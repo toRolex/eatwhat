@@ -4,10 +4,74 @@
 
 :root {
   --font-sans: 'Inter', system-ui, sans-serif;
+  --bg-dark: #0f1115;
+  --card-dark: rgba(255, 255, 255, 0.05);
+  --border-light: rgba(255, 255, 255, 0.1);
+  --accent: #7c3aed;
+  --accent-glow: rgba(124, 58, 237, 0.4);
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
 }
 
 @layer base {
   body {
-    @apply bg-white text-zinc-900 antialiased;
+    @apply bg-[#0f1115] text-[#ffffff] antialiased;
   }
 }
+
+.glow-bg {
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 50% 50%, var(--accent-glow) 0%, transparent 40%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.proto-container {
+    background: var(--card-dark);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-light);
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.proto-btn {
+    background: var(--card-dark);
+    border: 1px solid var(--border-light);
+    transition: all 0.2s ease;
+}
+
+.proto-btn:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #374151;
+    transition: .4s;
+    border-radius: 34px;
+}
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; width: 20px;
+    left: 4px; bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+input:checked + .toggle-slider { background-color: var(--accent); }
+input:checked + .toggle-slider:before { transform: translateX(22px); }
