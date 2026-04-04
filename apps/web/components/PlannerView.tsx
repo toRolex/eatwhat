@@ -9,7 +9,7 @@ export default function PlannerView({ onSync }: { onSync: () => void }) {
         <div className="flex items-center justify-between px-6 h-16 w-full max-w-5xl mx-auto">
           <div className="flex items-center gap-4">
             <span className="material-symbols-outlined text-[#4b44da] dark:text-[#6560f5] hover:scale-105 transition-transform duration-200 cursor-pointer">menu</span>
-            <span className="text-2xl font-black text-[#1b1b1c] dark:text-[#fcf9f8] uppercase tracking-tighter font-headline">Curator</span>
+            <span className="text-2xl font-black text-[#1b1b1c] dark:text-[#fcf9f8] tracking-tighter font-headline">GroupPlan</span>
           </div>
           <div className="flex items-center gap-6">
             <nav className="hidden md:flex gap-8 text-[10px] font-semibold uppercase tracking-widest text-[#1b1b1c]/40">

@@ -10,7 +10,7 @@ export default function InviteeView({ onAccept }: { onAccept: () => void }) {
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[#4b44da] dark:text-[#6560f5]" data-icon="menu">menu</span>
           </div>
-          <span className="text-2xl font-black text-[#1b1b1c] dark:text-[#fcf9f8] uppercase tracking-tighter font-headline">Curator</span>
+          <span className="text-2xl font-black text-[#1b1b1c] dark:text-[#fcf9f8] tracking-tighter font-headline">GroupPlan</span>
           <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/10">
             <img alt="User profile avatar" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRAKjzZh4bc7P00jPP6Vb7rvLI8eqBCmocMdWGc7mTHDLkbcV4R9C0rbg8xrZbUPAw4_go4Ryp_CwsYdn7TY_HeIK3HBYbO5CQUKYK0FMOoUN2LIXGsDV58yqyWbqJr996wNsQqM3VNgn0_PR2WtG3Olz2ibJHVsTfurGE5k0fRcWDC3UlbofjB52HlaJrNJhj6PxEmV1RyDPIB3PpK_EN0kp_lmEn_Hu_Bk23cMuMhx7nAj-zc6yhvn0lbfG-Xlc0FCmYVcSx6f2c" />
           </div>

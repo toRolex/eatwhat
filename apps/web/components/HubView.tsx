@@ -10,7 +10,7 @@ export default function HubView({ onNavigate }: { onNavigate: (view: string) => 
           <button className="hover:scale-105 transition-transform duration-200 text-[#1b1b1c]/60 dark:text-[#fcf9f8]/60">
             <span className="material-symbols-outlined">menu</span>
           </button>
-          <h1 className="text-2xl font-black text-[#1b1b1c] dark:text-[#fcf9f8] uppercase tracking-tighter font-headline">Curator</h1>
+          <h1 className="text-2xl font-black text-[#1b1b1c] dark:text-[#fcf9f8] tracking-tighter font-headline">GroupPlan</h1>
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20 hover:scale-105 transition-transform duration-200">
             <img alt="User avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-LHgvR9p05_RGL4wwMQHsGd9cxywvdS6TCtEkiyJVcG6-Jaj8TnH1HzXXADQkVIofbb-KydlpuF1SGssSwbMNsCtuSgwHAZITIsCKxI7YG5v2KOkhnobGqMJItbPWZWdKRfqFBGWN90WFWXWHJcQJg2aK8OC-FQiCoJFXsm4ofBl5J34K7N-A07xxkDPXVFlzxMn4h-MMxz2MrnzbifFP_4nvghy7XSvwaHbDM17xtV5c784p4VWAQc5VMhbGyCUssppbJXaKZ6iy" />
           </div>

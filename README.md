@@ -1,5 +1,7 @@
 # GroupPlan
 
+![Planner View](./assets/planner.png)
+
 AI-powered group event planning. Hosts create beautiful shareable invitations, guests submit preferences, and the AI proposes restaurant options the whole group will love.
 
 ## How it works
