@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ClaudeAIProvider } from '@groupplan/ai';
-import { YelpVenueProvider } from '@groupplan/venues';
+import { GooglePlacesVenueProvider, YelpVenueProvider } from '@groupplan/venues';
 import type { RestaurantCandidate } from '@groupplan/ai';
 import type { GuestPreferences } from '@groupplan/types';
 
@@ -42,15 +42,18 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({})) as { location?: string };
   const location = (body.location as string | undefined)?.trim() || 'New York, NY';
 
-  const yelpKey = process.env.YELP_API_KEY;
+  const googleKey  = process.env.GOOGLE_PLACES_API_KEY;
+  const yelpKey    = process.env.YELP_API_KEY;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
-  if (!yelpKey || !anthropicKey) {
-    return NextResponse.json({ error: 'API keys not configured' }, { status: 503 });
+  if ((!googleKey && !yelpKey) || !anthropicKey) {
+    return NextResponse.json({ error: 'API keys not configured — set GOOGLE_PLACES_API_KEY and ANTHROPIC_API_KEY in .env.local' }, { status: 503 });
   }
 
-  // 1. Fetch real venues from Yelp
-  const venues = new YelpVenueProvider(yelpKey);
+  // Prefer Google Places; fall back to Yelp if only Yelp key is present
+  const venues = googleKey
+    ? new GooglePlacesVenueProvider(googleKey)
+    : new YelpVenueProvider(yelpKey!);
   const results = await venues.searchVenues({ location, limit: 20 });
 
   if (!results.length) {

@@ -3,7 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { TriggerEventSchema } from '@groupplan/types';
 import { getEventById, getPreferencesByEvent, updateEventStatus, insertProposals } from '@groupplan/db';
 import { ClaudeAIProvider } from '@groupplan/ai';
-import { YelpVenueProvider } from '@groupplan/venues';
+import { GooglePlacesVenueProvider, YelpVenueProvider } from '@groupplan/venues';
 import type { RestaurantCandidate } from '@groupplan/ai';
 
 interface Context {
@@ -44,8 +44,11 @@ export async function POST(request: Request, { params }: Context) {
     return NextResponse.json({ error: 'No location available for venue search' }, { status: 422 });
   }
 
-  // 1. Fetch candidate restaurants from Yelp
-  const venues = new YelpVenueProvider(process.env.YELP_API_KEY!);
+  // 1. Fetch candidate restaurants — prefer Google Places, fall back to Yelp
+  const googleKey = process.env.GOOGLE_PLACES_API_KEY;
+  const venues = googleKey
+    ? new GooglePlacesVenueProvider(googleKey)
+    : new YelpVenueProvider(process.env.YELP_API_KEY!);
   const candidates = await venues.searchVenues({ location, limit: 20 });
 
   const aiCandidates: RestaurantCandidate[] = candidates.map((v) => ({
