@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Invitation } from '@groupplan/types';
 
-const STATUS_COLORS: Record<string, string> = {
-  pending:  'bg-amber-400',
-  accepted: 'bg-green-500',
-  declined: 'bg-red-400',
+const STATUS_COLOR: Record<string, string> = {
+  pending:  'oklch(72% 0.15 72)',
+  accepted: 'oklch(60% 0.15 148)',
+  declined: 'oklch(58% 0.18 26)',
 };
 
 interface Props {
@@ -21,17 +21,11 @@ export default function GuestStatusList({ eventId, initialInvitations }: Props) 
   useEffect(() => {
     const supabase = createClient();
 
-    // Subscribe to row-level changes on this event's invitations
     const channel = supabase
       .channel(`invitations:${eventId}`)
       .on(
         'postgres_changes',
-        {
-          event:  '*',
-          schema: 'public',
-          table:  'invitations',
-          filter: `event_id=eq.${eventId}`,
-        },
+        { event: '*', schema: 'public', table: 'invitations', filter: `event_id=eq.${eventId}` },
         (payload) => {
           if (payload.eventType === 'INSERT') {
             setInvitations((prev) => [...prev, payload.new as Invitation]);
@@ -54,22 +48,32 @@ export default function GuestStatusList({ eventId, initialInvitations }: Props) 
   const declined = invitations.filter((i) => i.status === 'declined').length;
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-4 text-sm text-zinc-500">
-        <span><span className="font-semibold text-green-600">{accepted}</span> going</span>
-        <span><span className="font-semibold text-amber-600">{pending}</span> pending</span>
-        <span><span className="font-semibold text-red-500">{declined}</span> declined</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+      {/* Stats */}
+      <div style={{ display: 'flex', gap: 20 }}>
+        {[
+          { label: 'Going',    val: accepted, key: 'accepted' },
+          { label: 'Pending',  val: pending,  key: 'pending' },
+          { label: 'Declined', val: declined, key: 'declined' },
+        ].map(s => (
+          <div key={s.label}>
+            <div style={{ fontSize: 22, fontFamily: 'var(--fd)', color: STATUS_COLOR[s.key] ?? 'var(--muted)', lineHeight: 1 }}>{s.val}</div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--fb)', marginTop: 2 }}>{s.label}</div>
+          </div>
+        ))}
       </div>
 
-      <ul className="space-y-2">
+      {/* Guest rows */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {invitations.map((inv) => (
-          <li key={inv.id} className="flex items-center gap-3">
-            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${STATUS_COLORS[inv.status] ?? 'bg-zinc-300'}`} />
-            <span className="text-sm text-zinc-800">{inv.name}</span>
-            <span className="text-xs text-zinc-400 capitalize ml-auto">{inv.status}</span>
-          </li>
+          <div key={inv.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--rs)', border: '1px solid var(--border2)', background: 'var(--surface)' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLOR[inv.status] ?? 'var(--border)', flexShrink: 0 }} />
+            <span style={{ fontSize: 13, color: 'var(--text)', fontFamily: 'var(--fb)', flex: 1 }}>{inv.name}</span>
+            <span style={{ fontSize: 11, color: STATUS_COLOR[inv.status] ?? 'var(--muted)', fontFamily: 'var(--fb)', textTransform: 'capitalize' }}>{inv.status}</span>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

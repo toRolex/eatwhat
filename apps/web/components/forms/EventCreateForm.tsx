@@ -9,6 +9,31 @@ const TEMPLATES = [
   { id: 'gradient', label: 'Gradient', description: 'Colourful gradient wash' },
 ];
 
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '10px 13px',
+  border: '1px solid var(--border2)',
+  borderRadius: 'var(--rs)',
+  fontSize: 14,
+  fontFamily: 'var(--fb)',
+  color: 'var(--text)',
+  background: 'var(--bg)',
+  outline: 'none',
+  transition: 'border-color .15s',
+  boxSizing: 'border-box',
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: 11,
+  fontWeight: 500,
+  color: 'var(--muted)',
+  textTransform: 'uppercase',
+  letterSpacing: '.06em',
+  marginBottom: 7,
+  fontFamily: 'var(--fb)',
+};
+
 export default function EventCreateForm() {
   const router = useRouter();
 
@@ -51,91 +76,92 @@ export default function EventCreateForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      <div className="space-y-1">
-        <label htmlFor="title" className="block text-sm font-medium text-zinc-700">Event name</label>
+      <div>
+        <label htmlFor="title" style={labelStyle}>Event name</label>
         <input
-          id="title"
-          type="text"
-          required
-          maxLength={120}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          id="title" type="text" required maxLength={120}
+          value={title} onChange={(e) => setTitle(e.target.value)}
           placeholder="Friday Night Dinner"
-          className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          style={inputStyle}
+          onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
+          onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}
         />
       </div>
 
-      <div className="space-y-1">
-        <label htmlFor="description" className="block text-sm font-medium text-zinc-700">
-          Description <span className="text-zinc-400 font-normal">(optional)</span>
+      <div>
+        <label htmlFor="description" style={labelStyle}>
+          Description <span style={{ color: 'var(--border)', fontWeight: 400, textTransform: 'none' }}>(optional)</span>
         </label>
         <textarea
-          id="description"
-          maxLength={500}
-          rows={3}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          id="description" maxLength={500} rows={3}
+          value={description} onChange={(e) => setDescription(e.target.value)}
           placeholder="A quick note for your guests…"
-          className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 resize-none"
+          style={{ ...inputStyle, resize: 'none' }}
+          onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
+          onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}
         />
       </div>
 
-      <div className="space-y-1">
-        <label htmlFor="location" className="block text-sm font-medium text-zinc-700">
-          General area <span className="text-zinc-400 font-normal">(optional)</span>
+      <div>
+        <label htmlFor="location" style={labelStyle}>
+          General area <span style={{ color: 'var(--border)', fontWeight: 400, textTransform: 'none' }}>(optional)</span>
         </label>
         <input
-          id="location"
-          type="text"
-          maxLength={200}
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
+          id="location" type="text" maxLength={200}
+          value={location} onChange={(e) => setLocation(e.target.value)}
           placeholder="Downtown Toronto, ON"
-          className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          style={inputStyle}
+          onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
+          onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}
         />
       </div>
 
-      <div className="space-y-1">
-        <label htmlFor="deadline" className="block text-sm font-medium text-zinc-700">RSVP deadline</label>
+      <div>
+        <label htmlFor="deadline" style={labelStyle}>RSVP deadline</label>
         <input
-          id="deadline"
-          type="datetime-local"
-          required
-          value={deadline}
-          onChange={(e) => setDeadline(e.target.value)}
-          className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          id="deadline" type="datetime-local" required
+          value={deadline} onChange={(e) => setDeadline(e.target.value)}
+          style={inputStyle}
+          onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
+          onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}
         />
       </div>
 
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-zinc-700">Invitation template</p>
-        <div className="grid grid-cols-3 gap-3">
+      <div>
+        <p style={labelStyle}>Invitation template</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
           {TEMPLATES.map((t) => (
             <button
-              key={t.id}
-              type="button"
-              onClick={() => setTemplate(t.id)}
-              className={`p-3 rounded-xl border text-left transition-colors ${
-                template === t.id
-                  ? 'border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900'
-                  : 'border-zinc-200 hover:border-zinc-400'
-              }`}
+              key={t.id} type="button" onClick={() => setTemplate(t.id)}
+              style={{
+                padding: '12px 10px',
+                borderRadius: 'var(--rs)',
+                border: `1px solid ${template === t.id ? 'var(--text)' : 'var(--border2)'}`,
+                background: template === t.id ? 'var(--bg2)' : 'var(--bg)',
+                textAlign: 'left',
+                cursor: 'pointer',
+                transition: 'border-color .15s, background .15s',
+                boxShadow: template === t.id ? '0 0 0 1px var(--text)' : 'none',
+              }}
             >
-              <p className="text-sm font-medium text-zinc-900">{t.label}</p>
-              <p className="text-xs text-zinc-500 mt-0.5">{t.description}</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--fb)', margin: '0 0 3px' }}>{t.label}</p>
+              <p style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: 0 }}>{t.description}</p>
             </button>
           ))}
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
+      )}
 
       <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-3 rounded-xl bg-zinc-900 text-white font-medium hover:bg-zinc-700 disabled:opacity-50 transition-colors"
+        type="submit" disabled={loading}
+        style={{ width: '100%', padding: '12px 0', borderRadius: 'var(--rs)', border: 'none', background: 'var(--text)', color: 'var(--bg)', fontSize: 14, fontWeight: 600, fontFamily: 'var(--fb)', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, transition: 'opacity .15s', letterSpacing: '-.01em' }}
+        onMouseEnter={e => !loading && (e.currentTarget.style.opacity = '0.85')}
+        onMouseLeave={e => !loading && (e.currentTarget.style.opacity = '1')}
       >
         {loading ? 'Creating…' : 'Create event'}
       </button>

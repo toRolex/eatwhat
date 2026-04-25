@@ -3,10 +3,16 @@
 import { useState } from 'react';
 import type { Invitation } from '@groupplan/types';
 
-const STATUS_COLORS: Record<string, string> = {
-  pending:  'text-amber-600 bg-amber-50',
-  accepted: 'text-green-600 bg-green-50',
-  declined: 'text-red-600 bg-red-50',
+const STATUS_DOT: Record<string, string> = {
+  pending:  'oklch(72% 0.15 72)',
+  accepted: 'oklch(60% 0.15 148)',
+  declined: 'oklch(58% 0.18 26)',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  pending:  'Pending',
+  accepted: 'Going',
+  declined: 'Declined',
 };
 
 interface Props {
@@ -14,12 +20,27 @@ interface Props {
   initialInvitations: Invitation[];
 }
 
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '9px 12px',
+  border: '1px solid var(--border2)',
+  borderRadius: 'var(--rs)',
+  fontSize: 13,
+  fontFamily: 'var(--fb)',
+  color: 'var(--text)',
+  background: 'var(--bg)',
+  outline: 'none',
+  transition: 'border-color .15s',
+  boxSizing: 'border-box',
+};
+
 export default function InviteManager({ eventId, initialInvitations }: Props) {
   const [invitations, setInvitations] = useState(initialInvitations);
   const [name,        setName]        = useState('');
   const [email,       setEmail]       = useState('');
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState<string | null>(null);
+  const [copied,      setCopied]      = useState<string | null>(null);
 
   async function addGuest(e: React.FormEvent) {
     e.preventDefault();
@@ -46,71 +67,96 @@ export default function InviteManager({ eventId, initialInvitations }: Props) {
     setEmail('');
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+  function copyLink(token: string) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+    navigator.clipboard.writeText(`${appUrl}/invite/${token}`);
+    setCopied(token);
+    setTimeout(() => setCopied(null), 2000);
+  }
+
+  const accepted = invitations.filter(i => i.status === 'accepted').length;
+  const pending  = invitations.filter(i => i.status === 'pending').length;
 
   return (
-    <div className="space-y-8">
-      <form onSubmit={addGuest} className="flex gap-3 items-end">
-        <div className="flex-1 space-y-1">
-          <label className="block text-xs font-medium text-zinc-600">Name</label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Alex"
-            className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+      {/* Stats row */}
+      {invitations.length > 0 && (
+        <div style={{ display: 'flex', gap: 20 }}>
+          {[
+            { label: 'Going', val: accepted, color: STATUS_DOT['accepted'] },
+            { label: 'Pending', val: pending, color: STATUS_DOT['pending'] },
+            { label: 'Total', val: invitations.length, color: 'var(--muted)' },
+          ].map(s => (
+            <div key={s.label}>
+              <div style={{ fontSize: 22, fontFamily: 'var(--fd)', color: s.color, lineHeight: 1 }}>{s.val}</div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--fb)', marginTop: 2 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add guest form */}
+      <form onSubmit={addGuest} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 10, alignItems: 'end' }}>
+        <div>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: 'var(--fb)' }}>Name</label>
+          <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="Alex" style={inputStyle}
+            onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
+            onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}
           />
         </div>
-        <div className="flex-1 space-y-1">
-          <label className="block text-xs font-medium text-zinc-600">Email</label>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="alex@example.com"
-            className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+        <div>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: 'var(--fb)' }}>Email</label>
+          <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="alex@example.com" style={inputStyle}
+            onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
+            onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}
           />
         </div>
         <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2 rounded-lg bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-700 disabled:opacity-50 transition-colors"
+          type="submit" disabled={loading}
+          style={{ padding: '9px 18px', borderRadius: 'var(--rs)', border: 'none', background: 'var(--text)', color: 'var(--bg)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, whiteSpace: 'nowrap', transition: 'opacity .15s' }}
         >
-          {loading ? '…' : 'Add'}
+          {loading ? '…' : 'Add guest'}
         </button>
       </form>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
+      )}
 
+      {/* Guest list */}
       {invitations.length === 0 ? (
-        <p className="text-sm text-zinc-400">No guests yet — add someone above.</p>
+        <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)', fontSize: 13, fontFamily: 'var(--fb)' }}>
+          No guests yet — add someone above.
+        </div>
       ) : (
-        <ul className="divide-y divide-zinc-100">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {invitations.map((inv) => (
-            <li key={inv.id} className="py-3 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-zinc-900">{inv.name}</p>
-                <p className="text-xs text-zinc-500">{inv.email}</p>
+            <div key={inv.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 14px', borderRadius: 'var(--rs)', border: '1px solid var(--border2)', background: 'var(--surface)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--bg2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--muted)', fontFamily: 'var(--fb)', flexShrink: 0 }}>
+                  {(inv.name ?? '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
+                </div>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--fb)', margin: 0 }}>{inv.name}</p>
+                  <p style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: '2px 0 0' }}>{inv.email}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span
-                  className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${STATUS_COLORS[inv.status] ?? ''}`}
-                >
-                  {inv.status}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 500, color: STATUS_DOT[inv.status] ?? 'var(--muted)', fontFamily: 'var(--fb)' }}>
+                  {STATUS_LABEL[inv.status] ?? inv.status}
                 </span>
                 <button
                   type="button"
-                  onClick={() => navigator.clipboard.writeText(`${appUrl}/invite/${inv.invite_token}`)}
-                  className="text-xs text-zinc-400 hover:text-zinc-700"
+                  onClick={() => copyLink(inv.invite_token)}
+                  style={{ fontSize: 11, color: copied === inv.invite_token ? 'var(--sage)' : 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--fb)', padding: 0, transition: 'color .15s' }}
                 >
-                  Copy link
+                  {copied === inv.invite_token ? 'Copied!' : 'Copy link'}
                 </button>
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { Tweaks, TWEAKS_DEFAULTS, GUESTS_DATA, INITIAL_ACTIVITIES, Guest, Activity } from "../components/groupplan/types";
 import { Sidebar, ShareModal, CreateEventModal } from "../components/groupplan/modals";
 import { NotificationPanel } from "../components/groupplan/notifications";
@@ -70,6 +71,7 @@ export default function App() {
     } catch { return TWEAKS_DEFAULTS; }
   });
   const [tweaksOn, setTweaksOn] = useState(false);
+  const [supaGuests, setSupaGuests] = useState<Guest[] | null>(null);
   const [showShare, setShowShare] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
@@ -106,6 +108,37 @@ export default function App() {
     } catch {}
   }, []);
 
+  // Fetch real guest data from Supabase if authenticated
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase
+        .from("invitations")
+        .select("id, name, email, status, invite_token, guest_preferences(cuisine_prefs, dietary, budget_max, vibe_pref)")
+        .then(({ data }) => {
+          if (!data?.length) return;
+          const mapped: Guest[] = data.map((inv: any, i: number) => {
+            const prefs = Array.isArray(inv.guest_preferences) ? inv.guest_preferences[0] : inv.guest_preferences;
+            const ini = (inv.name ?? "?").split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2) || "??";
+            const budget: "$" | "$$" | "$$$" =
+              prefs?.budget_max <= 30 ? "$" : prefs?.budget_max <= 60 ? "$$" : "$$$";
+            return {
+              id: i + 1,
+              name: inv.name ?? inv.email ?? "Guest",
+              ini,
+              status: inv.status === "accepted" ? "confirmed" : inv.status === "declined" ? "declined" : "pending",
+              dietary: prefs?.dietary ?? [],
+              cuisine: prefs?.cuisine_prefs ?? [],
+              budget: prefs?.budget_max ? budget : "$$",
+              vibe: prefs?.vibe_pref ?? null,
+            };
+          });
+          setSupaGuests(mapped);
+        });
+    });
+  }, []);
+
   // Sync RSVP submissions from other tabs
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
@@ -124,7 +157,8 @@ export default function App() {
     return () => window.removeEventListener("storage", onStorage);
   }, [addActivity]);
 
-  const tabProps = { tweaks, liveGuests, addActivity, setTab };
+  const displayGuests = supaGuests ?? liveGuests;
+  const tabProps = { tweaks, liveGuests: displayGuests, addActivity, setTab };
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
@@ -135,14 +169,27 @@ export default function App() {
         onNewEvent={() => setShowCreate(true)}
         onBell={() => setShowNotif(v => !v)}
         unreadCount={unread}
-        liveGuests={liveGuests}
+        liveGuests={displayGuests}
       />
       <main style={{ flex: 1, overflowY: "auto", overflowX: "hidden", background: "var(--bg)", position: "relative" }}>
-        {tab === "overview"    && <OverviewTab    setTab={setTab} liveGuests={liveGuests} />}
-        {tab === "preferences" && <PreferencesTab liveGuests={liveGuests} />}
+        {tab === "overview"    && <OverviewTab    setTab={setTab} liveGuests={displayGuests} />}
+        {tab === "preferences" && <PreferencesTab liveGuests={displayGuests} />}
         {tab === "ai"          && <AITab          tweaks={tweaks} addActivity={addActivity} />}
         {tab === "vote"        && <VoteTab        addActivity={addActivity} />}
       </main>
+      {/* Floating gear button — always visible */}
+      <button
+        onClick={() => setTweaksOn(v => !v)}
+        title="Tweaks"
+        style={{ position: "fixed", bottom: tweaksOn ? 270 : 22, right: 22, zIndex: 299, width: 36, height: 36, borderRadius: "50%", border: "1px solid var(--border2)", background: "var(--surface)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "var(--sh)", transition: "bottom .25s var(--sp), opacity .15s", opacity: tweaksOn ? 1 : 0.7 }}
+        onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
+        onMouseLeave={e => (e.currentTarget.style.opacity = tweaksOn ? "1" : "0.7")}
+      >
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none" style={{ transition: "transform .35s var(--sp)", transform: tweaksOn ? "rotate(90deg)" : "rotate(0deg)" }}>
+          <circle cx="10" cy="10" r="3" stroke="var(--text)" strokeWidth="1.5"/>
+          <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="var(--text)" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      </button>
       {tweaksOn && <TweaksPanel tweaks={tweaks} setTweaks={setTweaks} />}
       {showShare  && <ShareModal  onClose={() => setShowShare(false)} />}
       {showCreate && <CreateEventModal onClose={() => setShowCreate(false)} />}
