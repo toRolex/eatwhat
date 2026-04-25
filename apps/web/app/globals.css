@@ -87,3 +87,4 @@
 @keyframes typewave    { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
 @keyframes floatGeo    { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-12px) rotate(3deg)} }
 @keyframes glowPulse   { 0%,100%{opacity:.06} 50%{opacity:.12} }
+@keyframes checkDraw   { from{stroke-dashoffset:30} to{stroke-dashoffset:0} }
