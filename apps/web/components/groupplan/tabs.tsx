@@ -403,31 +403,129 @@ function RestCard({ r, rank, delay, tweaks, open, onToggle }: { r: Restaurant; r
   );
 }
 
+interface RealProposal {
+  rank: number;
+  restaurant_name: string;
+  restaurant_addr: string;
+  cuisine_type: string;
+  cuisine_types: string[];
+  price_range: string;
+  rating: number;
+  review_count: number;
+  image_url: string | null;
+  maps_url: string | null;
+  reasoning: string;
+  constraints_met: Record<string, boolean>;
+  constraints_gap: Record<string, string>;
+}
+
+function RealRestCard({ p, delay, tweaks, open, onToggle }: { p: RealProposal; delay: number; tweaks: Tweaks; open: boolean; onToggle: () => void }) {
+  const [h, setH] = useState(false);
+  const accents = ["var(--amber)", "var(--sage)", "var(--sky)"];
+  const accent = accents[(p.rank - 1) % accents.length] ?? "var(--muted)";
+  const metCount = Object.values(p.constraints_met).filter(Boolean).length;
+  const totalCount = Object.keys(p.constraints_met).length;
+  const matchPct = totalCount > 0 ? Math.round((metCount / totalCount) * 100) : 90;
+  return (
+    <div
+      onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
+      style={{ background: "var(--surface)", borderRadius: "var(--r)", border: `1px solid ${h ? "var(--border)" : "var(--border2)"}`, boxShadow: h ? "var(--shh)" : "var(--sh)", transition: "all .25s var(--eo)", transform: h ? "translateY(-2px)" : "none", overflow: "hidden", animation: `fu .5s var(--sp) ${delay}ms both`, marginBottom: 10 }}
+    >
+      <div style={{ height: 3, background: accent }} />
+      <div style={{ padding: "15px 17px" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--bg)", border: "1.5px solid var(--border2)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--fd)", fontSize: 14, color: accent, flexShrink: 0 }}>{p.rank}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap", marginBottom: 2 }}>
+              <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-.02em", color: "var(--text)" }}>{p.restaurant_name}</span>
+              <Badge color="amber">{matchPct}% match</Badge>
+            </div>
+            <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 6 }}>{p.cuisine_type} · {p.price_range} · ★ {p.rating}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginBottom: 8 }}>
+              {p.cuisine_types.slice(0, 3).map(t => <Badge key={t}>{t}</Badge>)}
+              {p.review_count > 0 && <Badge>{p.review_count} reviews</Badge>}
+            </div>
+            {p.maps_url ? (
+              <a href={p.maps_url} target="_blank" rel="noreferrer" style={{ fontSize: 10, color: "var(--muted)", textDecoration: "none" }}>{p.restaurant_addr}</a>
+            ) : (
+              <div style={{ fontSize: 10, color: "var(--muted)" }}>{p.restaurant_addr}</div>
+            )}
+          </div>
+          <div style={{ flexShrink: 0, textAlign: "center" }}>
+            <svg width="44" height="44" viewBox="0 0 44 44" style={{ transform: "rotate(-90deg)" }}>
+              <circle cx="22" cy="22" r="17" fill="none" stroke="var(--border2)" strokeWidth="2.5" />
+              <circle cx="22" cy="22" r="17" fill="none" stroke={accent} strokeWidth="2.5"
+                strokeDasharray={`${2 * Math.PI * 17 * matchPct / 100} ${2 * Math.PI * 17}`} strokeLinecap="round" />
+            </svg>
+            <div style={{ fontSize: 10, fontWeight: 600, marginTop: -2, color: "var(--text)" }}>{matchPct}%</div>
+          </div>
+        </div>
+        {tweaks.showAIReasoning && (
+          <button onClick={onToggle}
+            style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)", fontSize: 10, color: "var(--muted)", padding: 0, transition: "color .2s" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--muted)")}>
+            <span style={{ display: "inline-block", transition: "transform .2s var(--sp)", transform: open ? "rotate(90deg)" : "none" }}>▶</span> AI Reasoning
+          </button>
+        )}
+        {open && <div style={{ marginTop: 6, padding: "8px 10px", background: "var(--bg)", borderRadius: "var(--rs)", fontSize: 10, color: "var(--muted)", lineHeight: 1.7, fontFamily: "monospace", animation: "sd .28s var(--sp) both" }}>{p.reasoning}</div>}
+      </div>
+    </div>
+  );
+}
+
 export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (item: Omit<Activity, "id" | "read">) => void }) {
-  const [phase, setPhase] = useState<"idle" | "running" | "done">(() => {
+  const [phase, setPhase] = useState<"idle" | "running" | "done" | "error">(() => {
     if (typeof window !== "undefined") return (localStorage.getItem("gp_ai") as any) || "idle";
     return "idle";
   });
-  const [step, setStep] = useState(0);
-  const [open, setOpen] = useState<Record<number, boolean>>({});
+  const [step, setStep]               = useState(0);
+  const [open, setOpen]               = useState<Record<number, boolean>>({});
+  const [location, setLocation]       = useState("New York, NY");
+  const [realProposals, setReal]      = useState<RealProposal[]>(() => {
+    try { return JSON.parse(localStorage.getItem("gp_ai_proposals") || "null") || []; } catch { return []; }
+  });
+  const [errorMsg, setErrorMsg]       = useState("");
   useEffect(() => { localStorage.setItem("gp_ai", phase); }, [phase]);
 
-  const run = () => {
-    setPhase("running"); setStep(0);
+  const run = async () => {
+    setPhase("running"); setStep(0); setErrorMsg("");
+    // Animate steps while the real fetch runs in parallel
     let s = 0;
     const iv = setInterval(() => {
-      s++; setStep(s);
-      if (s >= AI_STEPS.length) {
-        clearInterval(iv);
-        setTimeout(() => {
-          setPhase("done");
-          addActivity({ type: "ai", ini: "✦", name: "AI Engine", msg: "Synthesis complete — 3 venues ranked", time: "just now" });
-        }, 500);
+      s = Math.min(s + 1, AI_STEPS.length - 1);
+      setStep(s);
+    }, 700);
+
+    try {
+      const res = await fetch("/api/demo/synthesize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ location }),
+      });
+      clearInterval(iv);
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || "Synthesis failed");
       }
-    }, 680);
+      const data = await res.json() as { proposals: RealProposal[] };
+      setStep(AI_STEPS.length);
+      setReal(data.proposals);
+      localStorage.setItem("gp_ai_proposals", JSON.stringify(data.proposals));
+      setTimeout(() => {
+        setPhase("done");
+        addActivity({ type: "ai", ini: "✦", name: "AI Engine", msg: `Synthesis complete — 3 venues ranked in ${location}`, time: "just now" });
+      }, 400);
+    } catch (err: any) {
+      clearInterval(iv);
+      setErrorMsg(err?.message || "Unknown error");
+      setPhase("error");
+    }
   };
 
-  if (phase === "idle") return (
+  const reset = () => { setPhase("idle"); setStep(0); setReal([]); localStorage.removeItem("gp_ai"); localStorage.removeItem("gp_ai_proposals"); };
+
+  if (phase === "idle" || phase === "error") return (
     <div>
       <div style={{ padding: "40px 32px 28px", borderBottom: "1px solid var(--border2)", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", right: 24, top: 16, opacity: .05, pointerEvents: "none" }}>
@@ -439,7 +537,7 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
         <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", marginBottom: 10 }}>
           Ready to find<br /><em>the perfect spot</em>
         </h2>
-        <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.65, maxWidth: 360 }}>TOPSIS ranking + Monte Carlo failure analysis across nearby venues, tuned to your group.</p>
+        <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.65, maxWidth: 360 }}>Real venue search via Yelp + Claude synthesis — tuned to your group's preferences.</p>
       </div>
       <div style={{ padding: "24px 32px", maxWidth: 640 }}>
         <Card delay={85} style={{ padding: "16px 18px", marginBottom: 16 }}>
@@ -451,6 +549,18 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
             </div>
           ))}
         </Card>
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ display: "block", fontSize: 10, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6, fontFamily: "var(--fb)" }}>Location</label>
+          <input
+            value={location}
+            onChange={e => setLocation(e.target.value)}
+            placeholder="New York, NY"
+            style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--border2)", borderRadius: "var(--rs)", fontSize: 13, fontFamily: "var(--fb)", color: "var(--text)", background: "var(--bg)", outline: "none", boxSizing: "border-box" }}
+            onFocus={e => (e.currentTarget.style.borderColor = "var(--text)")}
+            onBlur={e => (e.currentTarget.style.borderColor = "var(--border2)")}
+          />
+        </div>
+        {phase === "error" && <p style={{ fontSize: 12, color: "oklch(55% 0.18 26)", fontFamily: "var(--fb)", marginBottom: 10 }}>{errorMsg}</p>}
         <Btn onClick={run} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
           <span>✦</span> Run AI Synthesis
         </Btn>
@@ -480,6 +590,7 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
           </div>
         );
       })}
+      <p style={{ marginTop: 20, fontSize: 11, color: "var(--muted)", fontFamily: "var(--fb)" }}>Searching Yelp · calling Claude · ranking venues…</p>
     </div>
   );
 
@@ -488,16 +599,16 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
       <div style={{ padding: "40px 32px 24px", borderBottom: "1px solid var(--border2)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
           <Badge color="green">✓ Complete</Badge>
-          <button onClick={() => { setPhase("idle"); setStep(0); }} style={{ fontSize: 10, color: "var(--muted)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)" }}>Rerun</button>
+          <button onClick={reset} style={{ fontSize: 10, color: "var(--muted)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)" }}>Rerun</button>
         </div>
         <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", marginBottom: 5 }}>
           3 spots ranked<br /><em style={{ color: "var(--muted)" }}>for your group</em>
         </h2>
-        <p style={{ fontSize: 11, color: "var(--muted)" }}>Monte Carlo failure rate: <strong style={{ color: "var(--sage)" }}>4.2%</strong> — plan is highly stable</p>
+        <p style={{ fontSize: 11, color: "var(--muted)" }}>Real venues in <strong style={{ color: "var(--text)" }}>{location}</strong> · ranked by Claude across 5 guest preference profiles</p>
       </div>
       <div style={{ padding: "24px 32px 0", maxWidth: 760 }}>
-        {RESTAURANTS_DATA.map((r, i) => (
-          <RestCard key={r.id} r={r} rank={i + 1} delay={i * 80} tweaks={tweaks} open={!!open[r.id]} onToggle={() => setOpen(p => ({ ...p, [r.id]: !p[r.id] }))} />
+        {realProposals.map((p, i) => (
+          <RealRestCard key={i} p={p} delay={i * 80} tweaks={tweaks} open={!!open[i]} onToggle={() => setOpen(prev => ({ ...prev, [i]: !prev[i] }))} />
         ))}
       </div>
       <MassiveFooter eventName="AI Results" />

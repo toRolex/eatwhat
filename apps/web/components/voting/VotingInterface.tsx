@@ -10,15 +10,15 @@ interface Props {
   token: string;
 }
 
+const ACCENT = ['var(--amber)', 'var(--sage)', 'var(--sky)'];
+
 export default function VotingInterface({ proposals, invitationId: _, token }: Props) {
   const router = useRouter();
-  // Map proposal id → assigned rank (1, 2, or 3)
   const [rankings, setRankings] = useState<Record<string, 1 | 2 | 3>>({});
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState<string | null>(null);
 
   function assignRank(proposalId: string, rank: 1 | 2 | 3) {
-    // Remove any other proposal with this rank first
     setRankings((prev) => {
       const next = { ...prev };
       for (const [pid, r] of Object.entries(next)) {
@@ -40,19 +40,15 @@ export default function VotingInterface({ proposals, invitationId: _, token }: P
       Object.entries(rankings).map(([pid, rank]) =>
         fetch(`/api/events/${proposals[0]!.event_id}/proposals/${pid}/vote`, {
           method: 'POST',
-          headers: {
-            'Content-Type':   'application/json',
-            'x-invite-token': token,
-          },
+          headers: { 'Content-Type': 'application/json', 'x-invite-token': token },
           body: JSON.stringify({ rank }),
         }),
       ),
     );
 
-    const failed = results.filter((r) => r.status === 'rejected');
-    if (failed.length) {
+    if (results.some((r) => r.status === 'rejected')) {
       setLoading(false);
-      setError('Some votes failed to submit. Please try again.');
+      setError('Some votes failed — please try again.');
       return;
     }
 
@@ -60,48 +56,104 @@ export default function VotingInterface({ proposals, invitationId: _, token }: P
   }
 
   return (
-    <div className="space-y-6">
-      <ul className="space-y-4">
-        {proposals.map((p) => (
-          <li key={p.id} className="p-4 rounded-xl border border-zinc-200 space-y-3">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="font-semibold text-zinc-900">{p.restaurant_name}</p>
-                <p className="text-sm text-zinc-500">{p.cuisine_type} · {p.price_range}</p>
-                <p className="text-sm text-zinc-400 mt-1">{p.restaurant_addr}</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+      {/* Proposal cards */}
+      {proposals.map((p, i) => {
+        const myRank = rankings[p.id];
+        const accent = ACCENT[i % ACCENT.length] ?? 'var(--muted)';
+        return (
+          <div
+            key={p.id}
+            style={{
+              background: 'var(--surface)',
+              borderRadius: 'var(--r)',
+              border: `1px solid ${myRank ? accent : 'var(--border2)'}`,
+              boxShadow: myRank ? `0 0 0 1px ${accent}, var(--sh)` : 'var(--sh)',
+              overflow: 'hidden',
+              transition: 'border-color .2s, box-shadow .2s',
+              animation: `fu .4s var(--sp) ${i * 60}ms both`,
+            }}
+          >
+            <div style={{ height: 3, background: accent }} />
+            <div style={{ padding: '16px 18px' }}>
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--fb)', letterSpacing: '-.01em' }}>{p.restaurant_name}</span>
+                    <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--fb)' }}>{p.cuisine_type} · {p.price_range}</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: '3px 0 0' }}>{p.restaurant_addr}</p>
+                </div>
+                {p.rating && (
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--fb)', flexShrink: 0 }}>★ {p.rating}</span>
+                )}
               </div>
-              {p.rating && (
-                <span className="text-sm font-medium text-zinc-700 flex-shrink-0">★ {p.rating}</span>
-              )}
+
+              {/* Reasoning */}
+              <p style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', lineHeight: 1.6, fontStyle: 'italic', margin: '0 0 14px', padding: '8px 10px', background: 'var(--bg)', borderRadius: 'var(--rs)', borderLeft: `2px solid ${accent}` }}>
+                {p.reasoning}
+              </p>
+
+              {/* Rank buttons */}
+              <div style={{ display: 'flex', gap: 6 }}>
+                {([1, 2, 3] as const).map((rank) => {
+                  const selected = myRank === rank;
+                  const takenBy = !selected && Object.entries(rankings).find(([pid, r]) => r === rank && pid !== p.id);
+                  return (
+                    <button
+                      key={rank}
+                      type="button"
+                      onClick={() => assignRank(p.id, rank)}
+                      style={{
+                        flex: 1,
+                        padding: '8px 0',
+                        borderRadius: 'var(--rs)',
+                        border: `1px solid ${selected ? accent : 'var(--border2)'}`,
+                        background: selected ? accent : 'var(--bg)',
+                        color: selected ? '#fff' : takenBy ? 'var(--border)' : 'var(--muted)',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        fontFamily: 'var(--fb)',
+                        cursor: 'pointer',
+                        transition: 'all .15s',
+                        opacity: takenBy ? 0.5 : 1,
+                      }}
+                    >
+                      #{rank}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <p className="text-sm text-zinc-600 italic">{p.reasoning}</p>
+          </div>
+        );
+      })}
 
-            <div className="flex gap-2">
-              {([1, 2, 3] as const).map((rank) => (
-                <button
-                  key={rank}
-                  type="button"
-                  onClick={() => assignRank(p.id, rank)}
-                  className={`flex-1 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
-                    rankings[p.id] === rank
-                      ? 'bg-zinc-900 text-white border-zinc-900'
-                      : 'border-zinc-300 text-zinc-600 hover:border-zinc-500'
-                  }`}
-                >
-                  #{rank}
-                </button>
-              ))}
-            </div>
-          </li>
-        ))}
-      </ul>
+      {error && (
+        <p style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
+      )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
+      {/* Submit */}
       <button
         onClick={submitVotes}
         disabled={!allRanked || loading}
-        className="w-full py-3 rounded-xl bg-zinc-900 text-white font-medium hover:bg-zinc-700 disabled:opacity-40 transition-colors"
+        style={{
+          width: '100%',
+          padding: '13px 0',
+          borderRadius: 'var(--rs)',
+          border: 'none',
+          background: allRanked ? 'var(--text)' : 'var(--border2)',
+          color: allRanked ? 'var(--bg)' : 'var(--muted)',
+          fontSize: 14,
+          fontWeight: 600,
+          fontFamily: 'var(--fb)',
+          cursor: allRanked && !loading ? 'pointer' : 'not-allowed',
+          opacity: loading ? 0.6 : 1,
+          transition: 'background .2s, color .2s',
+          letterSpacing: '-.01em',
+        }}
       >
         {loading ? 'Submitting…' : allRanked ? 'Submit votes' : 'Rank all 3 to continue'}
       </button>

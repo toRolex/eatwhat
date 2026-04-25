@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getEventById } from '@groupplan/db';
+import AITriggerButton from '@/components/forms/AITriggerButton';
 
 export const metadata: Metadata = { title: 'Manage event' };
 
@@ -84,6 +85,11 @@ export default async function EventPage({ params }: Props) {
           </Link>
         ))}
       </div>
+
+      {/* AI trigger — only when collecting */}
+      {event.status === 'collecting' && (
+        <AITriggerButton eventId={id} locationHint={event.location_hint} />
+      )}
 
       {/* Event details card */}
       <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', padding: '20px 24px', boxShadow: 'var(--sh)', animation: 'fu .4s var(--sp) .05s both' }}>
