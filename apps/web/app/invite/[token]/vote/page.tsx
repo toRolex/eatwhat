@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { createServiceClient } from '@/lib/supabase/server';
-import { getInvitationByToken, getProposalsByEvent } from '@groupplan/db';
+import { getInvitationByToken, getProposalsByEvent, getVotesByInvitation } from '@groupplan/db';
 import { getEventById } from '@groupplan/db';
 import VotingInterface from '@/components/voting/VotingInterface';
 
@@ -11,9 +11,6 @@ export const metadata: Metadata = { title: 'Vote' };
 interface Props {
   params: Promise<{ token: string }>;
 }
-
-const RANK_LABELS = ['#1 Top pick', '#2 Second', '#3 Third'];
-const ACCENT = ['var(--amber)', 'var(--sage)', 'var(--sky)'];
 
 export default async function VotePage({ params }: Props) {
   const { token } = await params;
@@ -27,6 +24,10 @@ export default async function VotePage({ params }: Props) {
 
   const { data: proposals } = await getProposalsByEvent(db as never, invitation.event_id);
   if (!proposals?.length) notFound();
+
+  const { data: priorVotes } = await getVotesByInvitation(db as never, invitation.id);
+  const initialRankings: Record<string, number> = {};
+  for (const v of priorVotes ?? []) initialRankings[v.proposal_id] = v.rank;
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
@@ -48,19 +49,14 @@ export default async function VotePage({ params }: Props) {
 
         {/* Intro */}
         <p style={{ fontSize: 14, color: 'var(--muted)', fontFamily: 'var(--fb)', lineHeight: 1.6, margin: '0 0 20px', animation: 'fu .35s var(--sp) both' }}>
-          Rank the options <strong style={{ color: 'var(--text)' }}>#1 to #3</strong>. Your top pick carries the most weight in the final decision.
+          Rank all <strong style={{ color: 'var(--text)' }}>{proposals.length}</strong> picks from your top choice to your last. Higher ranks weight more in the final tally.
         </p>
 
-        {/* Rank legend */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 22 }}>
-          {RANK_LABELS.map((label, i) => (
-            <div key={label} style={{ flex: 1, padding: '6px 0', borderRadius: 'var(--rs)', background: 'var(--surface)', border: '1px solid var(--border2)', textAlign: 'center', fontSize: 11, fontFamily: 'var(--fb)', color: ACCENT[i] ?? 'var(--muted)', fontWeight: 600 }}>
-              {label}
-            </div>
-          ))}
-        </div>
-
-        <VotingInterface proposals={proposals} invitationId={invitation.id} token={token} />
+        <VotingInterface
+          proposals={proposals}
+          token={token}
+          initialRankings={initialRankings}
+        />
 
         <div style={{ marginTop: 24, textAlign: 'center' }}>
           <Link href={`/invite/${token}`} style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none' }}>

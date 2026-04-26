@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase/server';
-import { getEventBySlug, getInvitationsByEvent } from '@groupplan/db';
+import { getEventBySlug, getInvitationsByEvent, getFinalizedPlanByEvent } from '@groupplan/db';
+import { maybeAutoFinalize } from '@/lib/auto-finalize';
+import { STATUS_COLORS, STATUS_LABELS } from '@/lib/status-ui';
 import GuestStatusList from '@/components/realtime/GuestStatusList';
 
 interface Props {
@@ -15,17 +17,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: event?.title ?? 'Event' };
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  collecting: 'oklch(60% 0.15 148)',
-  deciding:   'oklch(68% 0.15 72)',
-  finalized:  'oklch(58% 0.14 228)',
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  collecting: 'Collecting RSVPs',
-  deciding:   'Voting in progress',
-  finalized:  'Finalized',
-};
 
 export default async function EventStatusPage({ params }: Props) {
   const { slug } = await params;
@@ -34,7 +25,32 @@ export default async function EventStatusPage({ params }: Props) {
   const { data: event } = await getEventBySlug(db as never, slug);
   if (!event) notFound();
 
-  const { data: invitations } = await getInvitationsByEvent(db as never, event.id);
+  await maybeAutoFinalize(event.id).catch(() => {});
+
+  // Re-fetch event after potential auto-finalize so status is fresh
+  const { data: freshEvent } = await getEventBySlug(db as never, slug);
+  const currentEvent = freshEvent ?? event;
+
+  const [{ data: invitations }, { data: finalizedPlan }] = await Promise.all([
+    getInvitationsByEvent(db as never, currentEvent.id),
+    currentEvent.status === 'finalized'
+      ? getFinalizedPlanByEvent(db as never, currentEvent.id)
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const plan = finalizedPlan as null | {
+    confirmed_time: string;
+    notes: string | null;
+    proposals: {
+      restaurant_name: string;
+      restaurant_addr: string;
+      cuisine_type: string;
+      price_range: string;
+      rating: number | null;
+      maps_url: string | null;
+      image_url: string | null;
+    } | null;
+  };
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', padding: '40px 24px 64px' }}>
@@ -42,28 +58,83 @@ export default async function EventStatusPage({ params }: Props) {
 
         {/* Event header */}
         <div style={{ marginBottom: 32, animation: 'fu .4s var(--sp) both' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 12, padding: '4px 10px', borderRadius: 6, background: 'var(--surface)', border: '1px solid var(--border2)', fontSize: 11, fontWeight: 500, color: STATUS_COLORS[event.status] ?? 'var(--muted)', fontFamily: 'var(--fb)' }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: STATUS_COLORS[event.status] ?? 'var(--muted)', display: 'inline-block' }} />
-            {STATUS_LABELS[event.status] ?? event.status}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 12, padding: '4px 10px', borderRadius: 6, background: 'var(--surface)', border: '1px solid var(--border2)', fontSize: 11, fontWeight: 500, color: STATUS_COLORS[currentEvent.status] ?? 'var(--muted)', fontFamily: 'var(--fb)' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: STATUS_COLORS[currentEvent.status] ?? 'var(--muted)', display: 'inline-block' }} />
+            {STATUS_LABELS[currentEvent.status] ?? currentEvent.status}
           </div>
-          <h1 style={{ fontFamily: 'var(--fd)', fontSize: 36, letterSpacing: '-.03em', color: 'var(--text)', margin: '0 0 8px', lineHeight: 1.05 }}>{event.title}</h1>
-          {event.description && (
-            <p style={{ fontSize: 14, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: 0, lineHeight: 1.6 }}>{event.description}</p>
+          <h1 style={{ fontFamily: 'var(--fd)', fontSize: 36, letterSpacing: '-.03em', color: 'var(--text)', margin: '0 0 8px', lineHeight: 1.05 }}>{currentEvent.title}</h1>
+          {currentEvent.description && (
+            <p style={{ fontSize: 14, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: 0, lineHeight: 1.6 }}>{currentEvent.description}</p>
           )}
         </div>
 
+        {/* Finalized restaurant card */}
+        {currentEvent.status === 'finalized' && plan?.proposals && (() => {
+          const venue = plan.proposals;
+          const confirmedDate = new Date(plan.confirmed_time);
+          const dateStr = confirmedDate.toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+          return (
+            <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', overflow: 'hidden', boxShadow: 'var(--sh)', animation: 'fu .4s var(--sp) .04s both', marginBottom: 24 }}>
+              {venue.image_url && (
+                <div style={{ height: 160, background: `url(${venue.image_url}) center/cover no-repeat`, borderBottom: '1px solid var(--border2)' }} />
+              )}
+              <div style={{ padding: '20px 24px' }}>
+                <div style={{ fontSize: 10, fontWeight: 500, color: 'oklch(58% 0.14 228)', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 10, fontFamily: 'var(--fb)' }}>
+                  ✓ We&apos;re going here
+                </div>
+                <div style={{ fontFamily: 'var(--fd)', fontSize: 26, letterSpacing: '-.02em', color: 'var(--text)', lineHeight: 1.1, marginBottom: 4 }}>
+                  {venue.restaurant_name}
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', marginBottom: 16 }}>
+                  {venue.cuisine_type}{venue.price_range ? ` · ${venue.price_range}` : ''}{venue.rating ? ` · ★ ${venue.rating.toFixed(1)}` : ''}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginTop: 1, flexShrink: 0 }}>
+                      <circle cx="7" cy="6" r="2.5" stroke="var(--muted)" strokeWidth="1.3"/>
+                      <path d="M7 1C4.8 1 3 2.8 3 5c0 3 4 8 4 8s4-5 4-8c0-2.2-1.8-4-4-4z" stroke="var(--muted)" strokeWidth="1.3" fill="none"/>
+                    </svg>
+                    <span style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', lineHeight: 1.4 }}>{venue.restaurant_addr}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                      <circle cx="7" cy="7" r="5.5" stroke="var(--muted)" strokeWidth="1.3"/>
+                      <path d="M7 4v3.5l2 2" stroke="var(--muted)" strokeWidth="1.3" strokeLinecap="round"/>
+                    </svg>
+                    <span style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)' }}>{dateStr}</span>
+                  </div>
+                </div>
+                {plan.notes && (
+                  <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: '14px 0 0', lineHeight: 1.55, borderTop: '1px solid var(--border2)', paddingTop: 12 }}>{plan.notes}</p>
+                )}
+                {venue.maps_url && (
+                  <a
+                    href={venue.maps_url}
+                    target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 16, padding: '8px 16px', borderRadius: 'var(--rs)', background: 'var(--text)', color: 'var(--bg)', fontSize: 12, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none' }}
+                  >
+                    Open in Maps ↗
+                  </a>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Guest status card */}
-        <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', padding: '20px 24px', boxShadow: 'var(--sh)', animation: 'fu .45s var(--sp) .06s both' }}>
+        <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', padding: '20px 24px', boxShadow: 'var(--sh)', animation: 'fu .45s var(--sp) .08s both' }}>
           <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 16, fontFamily: 'var(--fb)' }}>
             Guest status · live
           </div>
-          <GuestStatusList eventId={event.id} initialInvitations={invitations ?? []} />
+          <GuestStatusList eventId={currentEvent.id} initialInvitations={invitations ?? []} />
         </div>
 
         {/* RSVP deadline */}
-        <p style={{ marginTop: 16, fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textAlign: 'center' }}>
-          RSVP by {new Date(event.rsvp_deadline).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-        </p>
+        {currentEvent.status !== 'finalized' && (
+          <p style={{ marginTop: 16, fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textAlign: 'center' }}>
+            RSVP by {new Date(currentEvent.rsvp_deadline).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+          </p>
+        )}
       </div>
     </main>
   );

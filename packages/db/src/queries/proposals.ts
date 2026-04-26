@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface InsertProposalRow {
   event_id: string;
-  rank: 1 | 2 | 3;
+  rank: number;
   restaurant_name: string;
   restaurant_addr: string;
   cuisine_type: string;
@@ -26,5 +26,13 @@ export async function getProposalsByEvent(db: SupabaseClient, eventId: string) {
 }
 
 export async function insertProposals(db: SupabaseClient, rows: InsertProposalRow[]) {
+  return db.from('proposals').insert(rows).select();
+}
+
+// Replace all proposals for an event in one transaction-ish operation.
+// Used when re-running AI synthesis so stale picks don't pile up.
+export async function replaceProposals(db: SupabaseClient, eventId: string, rows: InsertProposalRow[]) {
+  const { error: deleteError } = await db.from('proposals').delete().eq('event_id', eventId);
+  if (deleteError) return { data: null, error: deleteError };
   return db.from('proposals').insert(rows).select();
 }

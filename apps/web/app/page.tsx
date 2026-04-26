@@ -10,12 +10,16 @@ function TweaksPanel({ tweaks, setTweaks }: { tweaks: Tweaks; setTweaks: (t: Twe
   const toggle = (k: keyof Tweaks) => {
     const n = { ...tweaks, [k]: !tweaks[k] } as Tweaks;
     setTweaks(n);
-    if (k === "darkMode") document.body.classList.toggle("dark", n.darkMode);
+    if (k === "darkMode") {
+      document.body.classList.toggle("dark", n.darkMode);
+      if (n.darkMode) document.documentElement.dataset.theme = "dark";
+      else delete document.documentElement.dataset.theme;
+    }
   };
   const setK = (k: keyof Tweaks, v: string) => setTweaks({ ...tweaks, [k]: v } as Tweaks);
 
   return (
-    <div style={{ position: "fixed", bottom: 22, right: 22, zIndex: 300, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r)", padding: "15px 17px", width: 230, boxShadow: "var(--shh)", animation: "si .28s var(--sp)", transformOrigin: "bottom right", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
+    <div className="gp-tweaks-panel" style={{ position: "fixed", bottom: 22, right: 22, zIndex: 300, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r)", padding: "15px 17px", width: 230, boxShadow: "var(--shh)", animation: "si .28s var(--sp)", transformOrigin: "bottom right", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
       <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 12 }}>Tweaks</div>
       {(["darkMode", "showAIReasoning", "animations"] as (keyof Tweaks)[]).map(key => (
         <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 9 }}>
@@ -60,31 +64,34 @@ function mergeGuests(): Guest[] {
 }
 
 export default function App() {
-  const [tab, setTab] = useState<string>(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("gp_tab") || "overview";
-    return "overview";
-  });
-  const [tweaks, setTweaks] = useState<Tweaks>(() => {
-    try {
-      const s = typeof window !== "undefined" ? localStorage.getItem("gp_tweaks") : null;
-      return s ? { ...TWEAKS_DEFAULTS, ...JSON.parse(s) } : TWEAKS_DEFAULTS;
-    } catch { return TWEAKS_DEFAULTS; }
-  });
+  // Both states start from defaults on server AND first client paint to keep
+  // hydration consistent, then read localStorage in useEffect after mount.
+  const [tab, setTab]       = useState<string>("overview");
+  const [tweaks, setTweaks] = useState<Tweaks>(TWEAKS_DEFAULTS);
+  const [hydrated, setHydrated] = useState(false);
   const [tweaksOn, setTweaksOn] = useState(false);
   const [supaGuests, setSupaGuests] = useState<Guest[] | null>(null);
   const [showShare, setShowShare] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
-  const [activities, setActivities] = useState<Activity[]>(() => {
+  const [navOpen, setNavOpen] = useState(false);
+  // Start from INITIAL_ACTIVITIES on both server and client to avoid hydration mismatch;
+  // hydrate from localStorage after mount.
+  const [activities, setActivities] = useState<Activity[]>(INITIAL_ACTIVITIES);
+  const [liveGuests, setLiveGuests] = useState<Guest[]>(() => [...GUESTS_DATA]);
+
+  useEffect(() => {
     try {
-      const s = typeof window !== "undefined" ? localStorage.getItem("gp_activities") : null;
-      return s ? JSON.parse(s) : INITIAL_ACTIVITIES;
-    } catch { return INITIAL_ACTIVITIES; }
-  });
-  const [liveGuests, setLiveGuests] = useState<Guest[]>(() => {
-    if (typeof window !== "undefined") return mergeGuests();
-    return [...GUESTS_DATA];
-  });
+      const savedTab = localStorage.getItem("gp_tab");
+      if (savedTab) setTab(savedTab);
+      const savedTweaks = localStorage.getItem("gp_tweaks");
+      if (savedTweaks) setTweaks({ ...TWEAKS_DEFAULTS, ...JSON.parse(savedTweaks) });
+      const s = localStorage.getItem("gp_activities");
+      if (s) setActivities(JSON.parse(s));
+    } catch {}
+    setLiveGuests(mergeGuests());
+    setHydrated(true);
+  }, []);
 
   const addActivity = useCallback((item: Omit<Activity, "id" | "read">) => {
     setActivities(prev => {
@@ -96,17 +103,14 @@ export default function App() {
 
   const unread = activities.filter(a => !a.read).length;
 
-  useEffect(() => { localStorage.setItem("gp_tab", tab); }, [tab]);
+  useEffect(() => { if (hydrated) localStorage.setItem("gp_tab", tab); }, [tab, hydrated]);
   useEffect(() => {
+    if (!hydrated) return;
     localStorage.setItem("gp_tweaks", JSON.stringify(tweaks));
     document.body.classList.toggle("dark", tweaks.darkMode);
-  }, [tweaks]);
-  useEffect(() => {
-    try {
-      const t = JSON.parse(localStorage.getItem("gp_tweaks") || "{}");
-      document.body.classList.toggle("dark", !!t.darkMode);
-    } catch {}
-  }, []);
+    if (tweaks.darkMode) document.documentElement.dataset.theme = "dark";
+    else delete document.documentElement.dataset.theme;
+  }, [tweaks, hydrated]);
 
   // Fetch real guest data from Supabase if authenticated
   useEffect(() => {
@@ -161,16 +165,54 @@ export default function App() {
   const tabProps = { tweaks, liveGuests: displayGuests, addActivity, setTab };
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      <Sidebar
-        activeTab={tab}
-        setTab={t => { setTab(t); setShowNotif(false); }}
-        onInvite={() => setShowShare(true)}
-        onNewEvent={() => setShowCreate(true)}
-        onBell={() => setShowNotif(v => !v)}
-        unreadCount={unread}
-        liveGuests={displayGuests}
-      />
+    <div className="gp-app-shell">
+      <header className="gp-mobile-topbar">
+        <button
+          onClick={() => setNavOpen(true)}
+          aria-label="Open menu"
+          style={{ background: "var(--bg)", border: "1px solid var(--border2)", borderRadius: 8, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 3h10M2 7h10M2 11h10" stroke="var(--text)" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--text)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
+              <circle cx="5" cy="5" r="3" fill="var(--bg)" />
+              <circle cx="9" cy="9" r="3" fill="var(--bg)" opacity=".5" />
+            </svg>
+          </div>
+          <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-.02em", color: "var(--text)" }}>GroupPlan</span>
+        </div>
+        <button
+          onClick={() => setShowNotif(v => !v)}
+          aria-label="Notifications"
+          style={{ position: "relative", background: "var(--bg)", border: "1px solid var(--border2)", borderRadius: 8, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+        >
+          <svg width="13" height="14" viewBox="0 0 13 14" fill="none">
+            <path d="M6.5 1a4.5 4.5 0 0 0-4.5 4.5c0 2.5-.8 3.5-1.5 4h12c-.7-.5-1.5-1.5-1.5-4A4.5 4.5 0 0 0 6.5 1z" stroke="var(--text)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+            <path d="M5.5 12.5a1 1 0 0 0 2 0" stroke="var(--text)" strokeWidth="1.2" strokeLinecap="round" />
+          </svg>
+          {unread > 0 && (
+            <span style={{ position: "absolute", top: -3, right: -3, width: 14, height: 14, borderRadius: "50%", background: "var(--coral)", color: "white", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid var(--surface)" }}>
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
+        </button>
+      </header>
+      <div className={`gp-sidebar-scrim ${navOpen ? "open" : ""}`} onClick={() => setNavOpen(false)} />
+      <div className={`gp-sidebar ${navOpen ? "open" : ""}`} style={{ display: "flex", flexShrink: 0 }}>
+        <Sidebar
+          activeTab={tab}
+          setTab={t => { setTab(t); setShowNotif(false); setNavOpen(false); }}
+          onInvite={() => { setShowShare(true); setNavOpen(false); }}
+          onNewEvent={() => { setShowCreate(true); setNavOpen(false); }}
+          onBell={() => setShowNotif(v => !v)}
+          unreadCount={unread}
+          liveGuests={displayGuests}
+        />
+      </div>
       <main style={{ flex: 1, overflowY: "auto", overflowX: "hidden", background: "var(--bg)", position: "relative" }}>
         {tab === "overview"    && <OverviewTab    setTab={setTab} liveGuests={displayGuests} />}
         {tab === "preferences" && <PreferencesTab liveGuests={displayGuests} />}
@@ -181,6 +223,7 @@ export default function App() {
       <button
         onClick={() => setTweaksOn(v => !v)}
         title="Tweaks"
+        className="gp-tweaks-gear"
         style={{ position: "fixed", bottom: tweaksOn ? 270 : 22, right: 22, zIndex: 299, width: 36, height: 36, borderRadius: "50%", border: "1px solid var(--border2)", background: "var(--surface)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "var(--sh)", transition: "bottom .25s var(--sp), opacity .15s", opacity: tweaksOn ? 1 : 0.7 }}
         onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
         onMouseLeave={e => (e.currentTarget.style.opacity = tweaksOn ? "1" : "0.7")}
@@ -191,7 +234,7 @@ export default function App() {
         </svg>
       </button>
       {tweaksOn && <TweaksPanel tweaks={tweaks} setTweaks={setTweaks} />}
-      {showShare  && <ShareModal  onClose={() => setShowShare(false)} />}
+      {showShare  && <ShareModal  onClose={() => setShowShare(false)} liveGuests={displayGuests} />}
       {showCreate && <CreateEventModal onClose={() => setShowCreate(false)} />}
       {showNotif  && <NotificationPanel onClose={() => setShowNotif(false)} activities={activities} setActivities={v => { const next = typeof v === "function" ? v(activities) : v; setActivities(next); localStorage.setItem("gp_activities", JSON.stringify(next)); }} />}
     </div>

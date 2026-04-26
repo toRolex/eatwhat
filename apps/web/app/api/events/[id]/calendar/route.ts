@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase/server';
 import { IcsCalendarExporter } from '@groupplan/calendar';
 import type { CalendarData } from '@groupplan/types';
 
@@ -9,7 +9,8 @@ interface Context {
 
 export async function GET(_req: Request, { params }: Context) {
   const { id } = await params;
-  const supabase = await createClient();
+  // Service client — guests access this link from their email without an auth session.
+  const supabase = createServiceClient();
 
   const { data: plan } = await supabase
     .from('finalized_plans')

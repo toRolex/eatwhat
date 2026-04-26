@@ -50,6 +50,11 @@ export async function PATCH(request: Request, { params }: Context) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
+  const { data: existing } = await getEventById(supabase as never, id);
+  if (!existing || existing.host_id !== user.id) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
   const { data: updated, error } = await updateEvent(supabase as never, id, parsed.data);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -61,6 +66,11 @@ export async function DELETE(_req: Request, { params }: Context) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { data: event } = await getEventById(supabase as never, id);
+  if (!event || event.host_id !== user.id) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
 
   const { error } = await deleteEvent(supabase as never, id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

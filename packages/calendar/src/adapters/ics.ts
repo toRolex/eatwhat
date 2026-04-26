@@ -8,23 +8,29 @@ export class IcsCalendarExporter implements CalendarExporter {
     const end   = new Date(data.end_time);
 
     const { error, value } = createEvent({
-      title:       data.title,
-      description: data.description,
-      location:    data.location,
+      productId:      '-//GroupPlan//GroupPlan//EN',
+      title:          data.title,
+      description:    data.description,
+      location:       data.location,
+      // Emit UTC timestamps (DTSTART/DTEND with Z suffix) so every calendar
+      // app interprets the time correctly regardless of server timezone.
+      startInputType: 'utc',
+      endInputType:   'utc',
       start: [
-        start.getFullYear(),
-        start.getMonth() + 1,
-        start.getDate(),
-        start.getHours(),
-        start.getMinutes(),
+        start.getUTCFullYear(),
+        start.getUTCMonth() + 1,
+        start.getUTCDate(),
+        start.getUTCHours(),
+        start.getUTCMinutes(),
       ],
       end: [
-        end.getFullYear(),
-        end.getMonth() + 1,
-        end.getDate(),
-        end.getHours(),
-        end.getMinutes(),
+        end.getUTCFullYear(),
+        end.getUTCMonth() + 1,
+        end.getUTCDate(),
+        end.getUTCHours(),
+        end.getUTCMinutes(),
       ],
+      status:    'CONFIRMED',
       attendees: data.attendees.map((a) => ({ name: a.name, email: a.email })),
     });
 

@@ -38,12 +38,45 @@ export default async function DashboardPage() {
 
       {/* Event list */}
       {!events?.length ? (
-        <div style={{ textAlign: 'center', padding: '64px 0', animation: 'fi .4s var(--eo) both' }}>
-          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--bg2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="4" width="18" height="16" rx="3" stroke="var(--muted)" strokeWidth="1.5"/><path d="M7 2v4M15 2v4M2 9h18" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round"/></svg>
+        <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', padding: '40px 32px', boxShadow: 'var(--sh)', animation: 'fu .4s var(--sp) both' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 24 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: 'oklch(94% .04 148)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2v18M2 11h18" stroke="oklch(40% .13 148)" strokeWidth="1.8" strokeLinecap="round"/></svg>
+            </div>
+            <div>
+              <h2 style={{ fontFamily: 'var(--fd)', fontSize: 22, letterSpacing: '-.02em', color: 'var(--text)', margin: '0 0 6px' }}>Plan your first dinner</h2>
+              <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: 0, lineHeight: 1.6 }}>
+                Spin up an event, share invite links, then let Claude pick the best restaurants for everyone's tastes.
+              </p>
+            </div>
           </div>
-          <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--fb)', margin: '0 0 6px' }}>No events yet</p>
-          <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: 0 }}>Create one to start planning with your group.</p>
+
+          {/* Three-step nudge */}
+          <ol style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[
+              { n: 1, t: 'Create the event', d: 'Title, location hint, and RSVP deadline.' },
+              { n: 2, t: 'Invite guests',    d: 'Each gets a private link to RSVP and share preferences.' },
+              { n: 3, t: 'Run AI synthesis', d: 'Real venues, ranked by Claude. Group votes, you finalize.' },
+            ].map(s => (
+              <li key={s.n} style={{ display: 'flex', gap: 12, padding: '10px 12px', borderRadius: 'var(--rs)', background: 'var(--bg)', border: '1px solid var(--border2)' }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--text)', color: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, fontFamily: 'var(--fb)', flexShrink: 0 }}>{s.n}</div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--fb)' }}>{s.t}</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--fb)', marginTop: 1 }}>{s.d}</div>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <Link href="/events/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '11px 20px', borderRadius: 'var(--rs)', background: 'var(--text)', color: 'var(--bg)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none', letterSpacing: '-.01em' }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              Create your first event
+            </Link>
+            <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', padding: '11px 18px', borderRadius: 'var(--rs)', background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border2)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none', boxShadow: 'var(--sh)' }}>
+              See the demo first
+            </Link>
+          </div>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

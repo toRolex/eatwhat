@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getEventById, getProposalsByEvent } from '@groupplan/db';
+import FinalizeFlow from '@/components/forms/FinalizeFlow';
 
 export const metadata: Metadata = { title: 'Results' };
 
@@ -22,6 +23,11 @@ export default async function ResultsPage({ params }: Props) {
 
   const { data: proposals } = await getProposalsByEvent(supabase as never, id);
   const sorted = (proposals ?? []).sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99));
+
+  // Look up finalized plan if any so we can highlight the winning card
+  const { data: plan } = await supabase
+    .from('finalized_plans').select('proposal_id').eq('event_id', id).maybeSingle();
+  const winnerId = plan?.proposal_id ?? null;
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px' }}>
@@ -43,7 +49,7 @@ export default async function ResultsPage({ params }: Props) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {sorted.map((p, i) => {
           const accent = ACCENT_COLORS[i % ACCENT_COLORS.length] ?? 'var(--muted)';
-          const isWinner = i === 0 && event.status === 'finalized';
+          const isWinner = p.id === winnerId;
           return (
             <div
               key={p.id}
@@ -87,6 +93,13 @@ export default async function ResultsPage({ params }: Props) {
           </div>
         )}
       </div>
+
+      <FinalizeFlow
+        eventId={id}
+        proposedDate={event.proposed_date ?? null}
+        status={event.status as 'deciding' | 'finalized'}
+        finalizedId={winnerId ?? undefined}
+      />
     </main>
   );
 }

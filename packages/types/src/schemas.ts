@@ -16,6 +16,7 @@ export const CreateEventSchema = z.object({
   date_flexible:   z.boolean(),
   proposed_date:   z.string().datetime().optional(),
   rsvp_deadline:   z.string().datetime(),
+  vote_deadline:   z.string().datetime().optional(),
   cover_image_url: z.string().url().optional(),
 });
 
@@ -27,6 +28,10 @@ export const TransitionEventSchema = z.object({
 
 export const TriggerEventSchema = z.object({
   location_override: z.string().max(200).optional(),
+  count:             z.number().int().min(3).max(10).optional(),
+  // Required to confirm a re-run while voting is already underway, since
+  // existing proposals (and their votes via FK cascade) get wiped.
+  confirm_rerun:     z.boolean().optional(),
 });
 
 // ── Invitations ───────────────────────────────────────────────────────────────

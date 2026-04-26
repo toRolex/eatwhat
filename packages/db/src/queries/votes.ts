@@ -7,11 +7,18 @@ export async function getVotesByEvent(db: SupabaseClient, eventId: string) {
     .eq('proposals.event_id', eventId);
 }
 
+export async function getVotesByInvitation(db: SupabaseClient, invitationId: string) {
+  return db
+    .from('votes')
+    .select('*')
+    .eq('invitation_id', invitationId);
+}
+
 export async function upsertVote(
   db: SupabaseClient,
   proposalId: string,
   invitationId: string,
-  rank: 1 | 2 | 3,
+  rank: number,
 ) {
   return db
     .from('votes')

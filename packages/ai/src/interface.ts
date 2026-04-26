@@ -21,10 +21,12 @@ export interface SynthesisInput {
   };
   preferences: GuestPreferences[];
   candidates: RestaurantCandidate[];
+  // How many ranked proposals to return (3..10, default 5).
+  count?: number;
 }
 
 export interface ProposalOutput {
-  rank: 1 | 2 | 3;
+  rank: number;
   candidate_id: string;
   reasoning: string;
   constraints_met: Record<string, boolean>;
@@ -32,8 +34,17 @@ export interface ProposalOutput {
   suggested_time?: string;
 }
 
+export interface UsageStats {
+  model:           string;
+  input_tokens:    number;
+  output_tokens:   number;
+  // Cost in micro-dollars (1e6 = $1.00). Computed from published per-model rates.
+  cost_micros:     number;
+}
+
 export interface SynthesisOutput {
-  proposals: [ProposalOutput, ProposalOutput, ProposalOutput];
+  proposals: ProposalOutput[];
+  usage?:    UsageStats;
 }
 
 // Implement this interface to swap Claude for any other model

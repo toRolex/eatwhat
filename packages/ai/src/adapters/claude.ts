@@ -2,6 +2,16 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { AIProvider, SynthesisInput, SynthesisOutput } from '../interface';
 import { buildSynthesisPrompt } from '../prompts/restaurant-synthesis';
 
+// Published per-MTok rates in USD for the models we use.
+// Update when Anthropic changes pricing — the cost figures rendered to the
+// host are best-effort estimates, not invoiced amounts.
+const PRICING: Record<string, { in: number; out: number }> = {
+  'claude-haiku-4-5-20251001':  { in: 1.00, out: 5.00 },
+  'claude-sonnet-4-6':           { in: 3.00, out: 15.00 },
+  'claude-opus-4-7':             { in: 15.00, out: 75.00 },
+};
+const MODEL = 'claude-haiku-4-5-20251001';
+
 export class ClaudeAIProvider implements AIProvider {
   private client: Anthropic;
 
@@ -11,8 +21,8 @@ export class ClaudeAIProvider implements AIProvider {
 
   async synthesizeRestaurantProposals(input: SynthesisInput): Promise<SynthesisOutput> {
     const response = await this.client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 4096,
+      model: MODEL,
+      max_tokens: 8192,
       // Pre-fill the assistant message with `{` so Claude is forced to continue
       // valid JSON instead of wrapping in markdown fences.
       messages: [
@@ -38,18 +48,32 @@ export class ClaudeAIProvider implements AIProvider {
       throw new Error(`Claude returned non-JSON output (parse error: ${(err as Error).message}): ${preview}`);
     }
 
-    if (!Array.isArray(parsed.proposals) || parsed.proposals.length !== 3) {
-      throw new Error(`Claude did not return exactly 3 proposals (got ${parsed.proposals?.length ?? 0})`);
+    const expected = Math.max(3, Math.min(10, input.count ?? 5));
+    if (!Array.isArray(parsed.proposals) || parsed.proposals.length !== expected) {
+      throw new Error(`Claude did not return exactly ${expected} proposals (got ${parsed.proposals?.length ?? 0})`);
     }
 
     const validIds = new Set(input.candidates.map((c) => c.id));
+    const seenIds  = new Set<string>();
     for (const proposal of parsed.proposals) {
       if (!validIds.has(proposal.candidate_id)) {
         throw new Error(`Claude returned unknown candidate_id: ${proposal.candidate_id}`);
       }
+      if (seenIds.has(proposal.candidate_id)) {
+        throw new Error(`Claude returned duplicate candidate_id: ${proposal.candidate_id}`);
+      }
+      seenIds.add(proposal.candidate_id);
     }
 
-    return parsed;
+    const inTok  = response.usage?.input_tokens ?? 0;
+    const outTok = response.usage?.output_tokens ?? 0;
+    const rate   = PRICING[MODEL] ?? { in: 0, out: 0 };
+    const costMicros = Math.round((inTok * rate.in + outTok * rate.out));
+
+    return {
+      proposals: parsed.proposals,
+      usage: { model: MODEL, input_tokens: inTok, output_tokens: outTok, cost_micros: costMicros },
+    };
   }
 }
 

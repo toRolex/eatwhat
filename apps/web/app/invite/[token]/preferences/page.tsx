@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase/server';
-import { getInvitationByToken, getPreferencesByInvitation } from '@groupplan/db';
+import { getInvitationByToken, getPreferencesByInvitation, getEventById } from '@groupplan/db';
 import PreferenceForm from '@/components/forms/PreferenceForm';
 
 export const metadata: Metadata = { title: 'Your preferences' };
@@ -17,23 +17,34 @@ export default async function PreferencesPage({ params }: Props) {
   const { data: invitation } = await getInvitationByToken(db as never, token);
   if (!invitation) notFound();
 
-  // Only accepted guests fill out preferences
   if (invitation.status !== 'accepted') {
     redirect(`/invite/${token}/rsvp`);
   }
 
-  const { data: existing } = await getPreferencesByInvitation(db as never, invitation.id);
+  const [{ data: existing }, { data: event }] = await Promise.all([
+    getPreferencesByInvitation(db as never, invitation.id),
+    getEventById(db as never, invitation.event_id),
+  ]);
 
   return (
-    <main className="min-h-screen bg-zinc-50 p-6">
-      <div className="max-w-lg mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900">Your preferences</h1>
-          <p className="text-sm text-zinc-500 mt-1">
-            Help us find the perfect restaurant for everyone.
+    <main style={{ minHeight: '100vh', background: 'var(--bg)', padding: '40px 24px 60px' }}>
+      <div style={{ maxWidth: 560, margin: '0 auto' }}>
+
+        <div style={{ marginBottom: 28, animation: 'fu .35s var(--sp) both' }}>
+          <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6, fontFamily: 'var(--fb)' }}>
+            Step 2 of 2 · {event?.title ?? 'Group dinner'}
+          </div>
+          <h1 style={{ fontFamily: 'var(--fd)', fontSize: 30, letterSpacing: '-.03em', color: 'var(--text)', margin: '0 0 8px', lineHeight: 1.1 }}>
+            Tell us your taste
+          </h1>
+          <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: 0, lineHeight: 1.55 }}>
+            Whatever you check helps Claude blend everyone's input into restaurant picks the whole group will actually agree on.
           </p>
         </div>
-        <PreferenceForm token={token} existing={existing ?? null} />
+
+        <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', boxShadow: 'var(--sh)', padding: '28px', animation: 'fu .4s var(--sp) .05s both' }}>
+          <PreferenceForm token={token} existing={existing ?? null} />
+        </div>
       </div>
     </main>
   );

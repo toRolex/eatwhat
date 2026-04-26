@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
-import { Guest, GUESTS_DATA } from "./types";
+import { Guest, GUESTS_DATA } from "./types"; // GUESTS_DATA is the demo fallback only
 import { Av, Badge, Btn, Modal, SectionLabel } from "./ui";
 import { BellButton } from "./notifications";
 
 // ── Share Modal ───────────────────────────────────────────────────────
-export function ShareModal({ onClose }: { onClose: () => void }) {
+export function ShareModal({ onClose, liveGuests }: { onClose: () => void; liveGuests?: Guest[] }) {
   const [copied, setCopied] = useState(false);
   const link = "groupplan.app/e/friday-gathering-x7k2";
   const copy = () => {
@@ -13,8 +13,9 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-  const confirmed = GUESTS_DATA.filter(g => g.status === "confirmed").length;
-  const pending   = GUESTS_DATA.filter(g => g.status === "pending").length;
+  const guests    = liveGuests ?? GUESTS_DATA;
+  const confirmed = guests.filter(g => g.status === "confirmed").length;
+  const pending   = guests.filter(g => g.status === "pending").length;
 
   return (
     <Modal onClose={onClose} width={500}>
@@ -44,7 +45,7 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
             <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "monospace" }}>QR code</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-            {[{ l: "Confirmed", v: confirmed }, { l: "Pending", v: pending }, { l: "Total", v: GUESTS_DATA.length }].map(s => (
+            {[{ l: "Confirmed", v: confirmed }, { l: "Pending", v: pending }, { l: "Total", v: guests.length }].map(s => (
               <div key={s.l} style={{ background: "var(--bg)", borderRadius: "var(--rs)", padding: "9px 12px", border: "1px solid var(--border2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontSize: 11, color: "var(--muted)" }}>{s.l}</span>
                 <span style={{ fontFamily: "var(--fd)", fontSize: 18, color: "var(--text)" }}>{s.v}</span>
@@ -56,7 +57,7 @@ export function ShareModal({ onClose }: { onClose: () => void }) {
         <div style={{ marginBottom: 16 }}>
           <SectionLabel style={{ marginBottom: 8 }}>Guest Status</SectionLabel>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            {GUESTS_DATA.map((g, i) => (
+            {guests.map((g, i) => (
               <div key={g.id} style={{ display: "flex", alignItems: "center", gap: 8, animation: `fu .3s var(--sp) ${i * 25}ms both` }}>
                 <Av ini={g.ini} size={24} delay={i * 25} />
                 <span style={{ flex: 1, fontSize: 12, fontWeight: 500, color: "var(--text)" }}>{g.name}</span>

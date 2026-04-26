@@ -42,6 +42,7 @@ export default function EventCreateForm() {
   const [template,    setTemplate]    = useState('classic');
   const [location,    setLocation]    = useState('');
   const [deadline,    setDeadline]    = useState('');
+  const [voteDeadline, setVoteDeadline] = useState('');
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState<string | null>(null);
 
@@ -60,6 +61,7 @@ export default function EventCreateForm() {
         location_hint: location || undefined,
         date_flexible: true,
         rsvp_deadline: new Date(deadline).toISOString(),
+        vote_deadline: voteDeadline ? new Date(voteDeadline).toISOString() : undefined,
       }),
     });
 
@@ -123,6 +125,19 @@ export default function EventCreateForm() {
         <input
           id="deadline" type="datetime-local" required
           value={deadline} onChange={(e) => setDeadline(e.target.value)}
+          style={inputStyle}
+          onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
+          onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="vote-deadline" style={labelStyle}>
+          Vote deadline <span style={{ color: 'var(--border)', fontWeight: 400, textTransform: 'none' }}>(optional — auto-finalizes the winner if set)</span>
+        </label>
+        <input
+          id="vote-deadline" type="datetime-local"
+          value={voteDeadline} onChange={(e) => setVoteDeadline(e.target.value)}
           style={inputStyle}
           onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
           onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}

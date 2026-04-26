@@ -48,6 +48,9 @@ export const TWEAKS_DEFAULTS: Tweaks = {
   animations: true,
 };
 
+// Demo-only fixtures. Used by the unauthenticated marketing demo at "/" so
+// visitors see a fully populated UI without a Supabase session. Authenticated
+// host routes pull real data from Supabase and never touch these.
 export const GUESTS_DATA: Guest[] = [
   { id:1, name:"Jordan Kim",   ini:"JK", status:"confirmed", dietary:["Vegetarian"],       cuisine:["Japanese","Italian"],         budget:"$$",  vibe:"Chill dinner with good cocktails" },
   { id:2, name:"Maya Patel",   ini:"MP", status:"confirmed", dietary:["Vegan","GF"],        cuisine:["Thai","Vietnamese"],           budget:"$",   vibe:"Healthy but fun" },

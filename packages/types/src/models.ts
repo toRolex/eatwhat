@@ -22,6 +22,7 @@ export interface Event {
   date_flexible: boolean;
   proposed_date: string | null;
   rsvp_deadline: string;
+  vote_deadline: string | null;
   status: EventStatus;
   slug: string;
   created_at: string;

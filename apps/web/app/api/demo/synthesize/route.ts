@@ -4,8 +4,15 @@ import { GooglePlacesVenueProvider, YelpVenueProvider } from '@groupplan/venues'
 import type { RestaurantCandidate } from '@groupplan/ai';
 import type { GuestPreferences } from '@groupplan/types';
 import { ensureEnvLoaded } from '@/lib/env';
+import { signPhotoRef } from '@/lib/photo-signing';
+import { rateLimit, clientIp } from '@/lib/rate-limit';
 
 ensureEnvLoaded();
+
+// Demo endpoint hits Anthropic + Google Places — both cost real money. Cap
+// per-IP requests so a stranger with the URL can't drain quota in a loop.
+const DEMO_LIMIT       = 3;
+const DEMO_WINDOW_MS   = 60 * 60 * 1000; // 1 hour
 
 // Mock preferences mirroring the demo GUESTS_DATA so the demo AI feels real
 const DEMO_PREFERENCES: GuestPreferences[] = [
@@ -42,6 +49,15 @@ const DEMO_PREFERENCES: GuestPreferences[] = [
 ];
 
 export async function POST(request: Request) {
+  const ip = clientIp(request);
+  const rl = rateLimit(`demo-synth:${ip}`, DEMO_LIMIT, DEMO_WINDOW_MS);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: `Demo limit reached (${DEMO_LIMIT}/hour). Try again in ${Math.ceil(rl.retryAfterSec / 60)} min.` },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } },
+    );
+  }
+
   const body = await request.json().catch(() => ({})) as { location?: string };
   const location = (body.location as string | undefined)?.trim() || 'New York, NY';
 
@@ -82,6 +98,7 @@ export async function POST(request: Request) {
     event: { title: 'Friday Group Dinner', location_hint: location },
     preferences: DEMO_PREFERENCES,
     candidates,
+    count: 5,
   });
 
   // 3. Return proposals enriched with venue data — no DB write for demo
@@ -90,19 +107,20 @@ export async function POST(request: Request) {
     if (!rawUrl) return null;
     if (rawUrl.includes('photo_reference=')) {
       const ref = new URL(rawUrl).searchParams.get('photo_reference');
-      return ref ? `/api/demo/photo?legacy=${encodeURIComponent(ref)}` : null;
+      return ref ? `/api/demo/photo?legacy=${encodeURIComponent(signPhotoRef(ref))}` : null;
     }
     if (rawUrl.includes('places.googleapis.com/v1/places/')) {
       // extract `places/{id}/photos/{name}`
       const match = rawUrl.match(/places\/[^/]+\/photos\/[^/]+/);
-      return match ? `/api/demo/photo?new=${encodeURIComponent(match[0])}` : null;
+      return match ? `/api/demo/photo?new=${encodeURIComponent(signPhotoRef(match[0]))}` : null;
     }
     return rawUrl;
   }
 
-  const proposals = synthesis.proposals.map((p) => {
-    const venue = results.find((v) => v.id === p.candidate_id)!;
-    return {
+  const proposals = synthesis.proposals.flatMap((p) => {
+    const venue = results.find((v) => v.id === p.candidate_id);
+    if (!venue) return [];
+    return [{
       rank:            p.rank,
       restaurant_name: venue.name,
       restaurant_addr: venue.address,
@@ -116,7 +134,7 @@ export async function POST(request: Request) {
       reasoning:       p.reasoning,
       constraints_met: p.constraints_met,
       constraints_gap: p.constraints_gap,
-    };
+    }];
   });
 
   return NextResponse.json({ proposals, location });
