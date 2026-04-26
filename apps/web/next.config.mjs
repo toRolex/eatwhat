@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@repo/ui"],
+  transpilePackages: [
+    '@groupplan/ai',
+    '@groupplan/db',
+    '@groupplan/types',
+    '@groupplan/venues',
+    '@groupplan/calendar',
+    '@groupplan/notifications',
+  ],
 };
 
 export default nextConfig;

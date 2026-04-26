@@ -421,54 +421,131 @@ interface RealProposal {
 
 function RealRestCard({ p, delay, tweaks, open, onToggle }: { p: RealProposal; delay: number; tweaks: Tweaks; open: boolean; onToggle: () => void }) {
   const [h, setH] = useState(false);
+  const [imgOk, setImgOk] = useState(true);
   const accents = ["var(--amber)", "var(--sage)", "var(--sky)"];
   const accent = accents[(p.rank - 1) % accents.length] ?? "var(--muted)";
-  const metCount = Object.values(p.constraints_met).filter(Boolean).length;
+  const metKeys = Object.entries(p.constraints_met).filter(([, v]) => v).map(([k]) => k);
+  const gapKeys = Object.keys(p.constraints_gap);
   const totalCount = Object.keys(p.constraints_met).length;
-  const matchPct = totalCount > 0 ? Math.round((metCount / totalCount) * 100) : 90;
+  const matchPct = totalCount > 0 ? Math.round((metKeys.length / totalCount) * 100) : 90;
+  const labelize = (k: string) => k.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
   return (
     <div
       onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
-      style={{ background: "var(--surface)", borderRadius: "var(--r)", border: `1px solid ${h ? "var(--border)" : "var(--border2)"}`, boxShadow: h ? "var(--shh)" : "var(--sh)", transition: "all .25s var(--eo)", transform: h ? "translateY(-2px)" : "none", overflow: "hidden", animation: `fu .5s var(--sp) ${delay}ms both`, marginBottom: 10 }}
+      style={{ background: "var(--surface)", borderRadius: "var(--r)", border: `1px solid ${h ? "var(--border)" : "var(--border2)"}`, boxShadow: h ? "var(--shh)" : "var(--sh)", transition: "all .3s var(--eo)", transform: h ? "translateY(-3px)" : "none", overflow: "hidden", animation: `fu .55s var(--sp) ${delay}ms both`, marginBottom: 14 }}
     >
-      <div style={{ height: 3, background: accent }} />
-      <div style={{ padding: "15px 17px" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--bg)", border: "1.5px solid var(--border2)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--fd)", fontSize: 14, color: accent, flexShrink: 0 }}>{p.rank}</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap", marginBottom: 2 }}>
-              <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-.02em", color: "var(--text)" }}>{p.restaurant_name}</span>
-              <Badge color="amber">{matchPct}% match</Badge>
-            </div>
-            <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 6 }}>{p.cuisine_type} · {p.price_range} · ★ {p.rating}</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginBottom: 8 }}>
-              {p.cuisine_types.slice(0, 3).map(t => <Badge key={t}>{t}</Badge>)}
-              {p.review_count > 0 && <Badge>{p.review_count} reviews</Badge>}
-            </div>
-            {p.maps_url ? (
-              <a href={p.maps_url} target="_blank" rel="noreferrer" style={{ fontSize: 10, color: "var(--muted)", textDecoration: "none" }}>{p.restaurant_addr}</a>
-            ) : (
-              <div style={{ fontSize: 10, color: "var(--muted)" }}>{p.restaurant_addr}</div>
-            )}
+      {/* Hero image */}
+      {p.image_url && imgOk && (
+        <div style={{ position: "relative", width: "100%", height: 180, background: "var(--bg2)", overflow: "hidden" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={p.image_url}
+            alt={p.restaurant_name}
+            onError={() => setImgOk(false)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform .5s var(--eo)", transform: h ? "scale(1.04)" : "scale(1)" }}
+          />
+          {/* Gradient overlay */}
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 50%, rgba(0,0,0,.55))", pointerEvents: "none" }} />
+          {/* Rank badge */}
+          <div style={{ position: "absolute", top: 12, left: 12, width: 36, height: 36, borderRadius: "50%", background: accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--fd)", fontSize: 16, boxShadow: "0 2px 8px rgba(0,0,0,.25)" }}>
+            {p.rank}
           </div>
-          <div style={{ flexShrink: 0, textAlign: "center" }}>
-            <svg width="44" height="44" viewBox="0 0 44 44" style={{ transform: "rotate(-90deg)" }}>
-              <circle cx="22" cy="22" r="17" fill="none" stroke="var(--border2)" strokeWidth="2.5" />
-              <circle cx="22" cy="22" r="17" fill="none" stroke={accent} strokeWidth="2.5"
-                strokeDasharray={`${2 * Math.PI * 17 * matchPct / 100} ${2 * Math.PI * 17}`} strokeLinecap="round" />
+          {/* Match ring */}
+          <div style={{ position: "absolute", top: 12, right: 12, display: "flex", alignItems: "center", gap: 6, padding: "5px 10px 5px 6px", borderRadius: 99, background: "rgba(255,255,255,.92)", backdropFilter: "blur(8px)", boxShadow: "0 2px 8px rgba(0,0,0,.15)" }}>
+            <svg width="22" height="22" viewBox="0 0 22 22" style={{ transform: "rotate(-90deg)" }}>
+              <circle cx="11" cy="11" r="8" fill="none" stroke="var(--border2)" strokeWidth="2" />
+              <circle cx="11" cy="11" r="8" fill="none" stroke={accent} strokeWidth="2"
+                strokeDasharray={`${2 * Math.PI * 8 * matchPct / 100} ${2 * Math.PI * 8}`} strokeLinecap="round" />
             </svg>
-            <div style={{ fontSize: 10, fontWeight: 600, marginTop: -2, color: "var(--text)" }}>{matchPct}%</div>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text)", fontFamily: "var(--fb)" }}>{matchPct}% match</span>
+          </div>
+          {/* Name overlay */}
+          <div style={{ position: "absolute", bottom: 12, left: 14, right: 14, color: "#fff" }}>
+            <div style={{ fontFamily: "var(--fd)", fontSize: 22, lineHeight: 1.1, letterSpacing: "-.02em", textShadow: "0 1px 4px rgba(0,0,0,.4)" }}>{p.restaurant_name}</div>
+            <div style={{ fontSize: 11, opacity: .9, marginTop: 3, fontFamily: "var(--fb)" }}>
+              {p.cuisine_type} · {p.price_range} · ★ {p.rating} ({p.review_count.toLocaleString()})
+            </div>
           </div>
         </div>
+      )}
+
+      {/* No-image fallback header */}
+      {(!p.image_url || !imgOk) && (
+        <>
+          <div style={{ height: 3, background: accent }} />
+          <div style={{ padding: "16px 18px 0", display: "flex", alignItems: "flex-start", gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", background: accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--fd)", fontSize: 16, flexShrink: 0 }}>{p.rank}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: "var(--fd)", fontSize: 20, letterSpacing: "-.02em", color: "var(--text)", lineHeight: 1.1 }}>{p.restaurant_name}</div>
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 3, fontFamily: "var(--fb)" }}>
+                {p.cuisine_type} · {p.price_range} · ★ {p.rating} ({p.review_count.toLocaleString()})
+              </div>
+            </div>
+            <Badge color="amber">{matchPct}% match</Badge>
+          </div>
+        </>
+      )}
+
+      <div style={{ padding: "14px 18px 16px" }}>
+        {/* Cuisine tags */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
+          {p.cuisine_types.map(t => <Badge key={t}>{t}</Badge>)}
+        </div>
+
+        {/* Constraints met */}
+        {metKeys.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
+            {metKeys.map(k => (
+              <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 99, background: "oklch(95% .04 148)", color: "oklch(34% .13 148)", fontSize: 10, fontWeight: 600, fontFamily: "var(--fb)" }}>
+                <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1 4.5l2.5 2.5L8 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                {labelize(k)}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Constraint gaps */}
+        {gapKeys.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
+            {gapKeys.map(k => (
+              <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 99, background: "oklch(96% .04 72)", color: "oklch(40% .14 72)", fontSize: 10, fontWeight: 600, fontFamily: "var(--fb)" }} title={p.constraints_gap[k]}>
+                <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M5 1v5M5 8v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                {labelize(k)}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* AI reasoning */}
         {tweaks.showAIReasoning && (
           <button onClick={onToggle}
-            style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)", fontSize: 10, color: "var(--muted)", padding: 0, transition: "color .2s" }}
+            style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)", fontSize: 11, fontWeight: 500, color: "var(--muted)", padding: 0, marginBottom: open ? 8 : 0, transition: "color .2s" }}
             onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
             onMouseLeave={e => (e.currentTarget.style.color = "var(--muted)")}>
-            <span style={{ display: "inline-block", transition: "transform .2s var(--sp)", transform: open ? "rotate(90deg)" : "none" }}>▶</span> AI Reasoning
+            <span style={{ display: "inline-block", transition: "transform .2s var(--sp)", transform: open ? "rotate(90deg)" : "none" }}>▶</span> AI reasoning
           </button>
         )}
-        {open && <div style={{ marginTop: 6, padding: "8px 10px", background: "var(--bg)", borderRadius: "var(--rs)", fontSize: 10, color: "var(--muted)", lineHeight: 1.7, fontFamily: "monospace", animation: "sd .28s var(--sp) both" }}>{p.reasoning}</div>}
+        {open && tweaks.showAIReasoning && (
+          <div style={{ padding: "11px 13px", background: "var(--bg)", borderRadius: "var(--rs)", borderLeft: `2px solid ${accent}`, fontSize: 12, color: "var(--text)", lineHeight: 1.65, fontFamily: "var(--fb)", fontStyle: "italic", animation: "sd .28s var(--sp) both", marginBottom: 12 }}>
+            "{p.reasoning}"
+          </div>
+        )}
+
+        {/* Address + actions */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 10, paddingTop: 12, borderTop: "1px solid var(--border2)" }}>
+          <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "var(--fb)", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {p.restaurant_addr}
+          </div>
+          {p.maps_url && (
+            <a href={p.maps_url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 7, background: "var(--bg)", border: "1px solid var(--border2)", color: "var(--text)", fontSize: 11, fontWeight: 500, fontFamily: "var(--fb)", textDecoration: "none", flexShrink: 0, transition: "all .2s" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--text)"; e.currentTarget.style.color = "var(--bg)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.color = "var(--text)"; }}>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1c-2 0-3.5 1.5-3.5 3.5 0 2.5 3.5 4.5 3.5 4.5s3.5-2 3.5-4.5C8.5 2.5 7 1 5 1z" stroke="currentColor" strokeWidth="1.2"/><circle cx="5" cy="4.5" r="1.2" stroke="currentColor" strokeWidth="1.2"/></svg>
+              Maps
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );

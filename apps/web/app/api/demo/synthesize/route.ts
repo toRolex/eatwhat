@@ -3,6 +3,9 @@ import { ClaudeAIProvider } from '@groupplan/ai';
 import { GooglePlacesVenueProvider, YelpVenueProvider } from '@groupplan/venues';
 import type { RestaurantCandidate } from '@groupplan/ai';
 import type { GuestPreferences } from '@groupplan/types';
+import { ensureEnvLoaded } from '@/lib/env';
+
+ensureEnvLoaded();
 
 // Mock preferences mirroring the demo GUESTS_DATA so the demo AI feels real
 const DEMO_PREFERENCES: GuestPreferences[] = [
@@ -82,6 +85,21 @@ export async function POST(request: Request) {
   });
 
   // 3. Return proposals enriched with venue data — no DB write for demo
+  // Replace direct Google photo URLs (which contain the API key) with proxy URLs
+  function proxyPhoto(rawUrl: string | undefined): string | null {
+    if (!rawUrl) return null;
+    if (rawUrl.includes('photo_reference=')) {
+      const ref = new URL(rawUrl).searchParams.get('photo_reference');
+      return ref ? `/api/demo/photo?legacy=${encodeURIComponent(ref)}` : null;
+    }
+    if (rawUrl.includes('places.googleapis.com/v1/places/')) {
+      // extract `places/{id}/photos/{name}`
+      const match = rawUrl.match(/places\/[^/]+\/photos\/[^/]+/);
+      return match ? `/api/demo/photo?new=${encodeURIComponent(match[0])}` : null;
+    }
+    return rawUrl;
+  }
+
   const proposals = synthesis.proposals.map((p) => {
     const venue = results.find((v) => v.id === p.candidate_id)!;
     return {
@@ -93,7 +111,7 @@ export async function POST(request: Request) {
       price_range:     venue.price_range,
       rating:          venue.rating,
       review_count:    venue.review_count,
-      image_url:       venue.image_url ?? null,
+      image_url:       proxyPhoto(venue.image_url),
       maps_url:        venue.maps_url ?? null,
       reasoning:       p.reasoning,
       constraints_met: p.constraints_met,

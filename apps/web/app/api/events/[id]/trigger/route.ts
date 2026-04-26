@@ -5,6 +5,9 @@ import { getEventById, getPreferencesByEvent, updateEventStatus, insertProposals
 import { ClaudeAIProvider } from '@groupplan/ai';
 import { GooglePlacesVenueProvider, YelpVenueProvider } from '@groupplan/venues';
 import type { RestaurantCandidate } from '@groupplan/ai';
+import { ensureEnvLoaded } from '@/lib/env';
+
+ensureEnvLoaded();
 
 interface Context {
   params: Promise<{ id: string }>;
