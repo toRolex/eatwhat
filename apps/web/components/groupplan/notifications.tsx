@@ -1,19 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Activity } from "./types";
+import { Activity, avColor, bgMap, fgMap } from "./types";
 import { Av } from "./ui";
 
-const bgMap2: Record<string, string> = {
-  coral:"oklch(91% .07 26)",sage:"oklch(91% .06 148)",sky:"oklch(91% .06 228)",amber:"oklch(93% .07 72)",lav:"oklch(91% .06 284)"
-};
-const fgMap2: Record<string, string> = {
-  coral:"oklch(42% .17 26)",sage:"oklch(36% .13 148)",sky:"oklch(38% .14 228)",amber:"oklch(44% .15 72)",lav:"oklch(40% .14 284)"
-};
-const clrs2 = ["coral","sage","sky","amber","lav"];
-function avC(ini: string) { return ini !== "✦" ? clrs2[ini.charCodeAt(0) % clrs2.length] : "amber"; }
-
 const typeColor: Record<string, string> = {
-  rsvp: "var(--sage)", vibe: "var(--sky)", system: "var(--amber)", ai: "var(--lav)",
+  rsvp:   "var(--sage)",
+  vibe:   "var(--sky)",
+  vote:   "var(--amber)",
+  system: "var(--amber)",
+  ai:     "var(--lav)",
 };
 
 function NotifDot({ count }: { count: number }) {
@@ -31,9 +26,9 @@ function NotifDot({ count }: { count: number }) {
 }
 
 function ActivityItem({ item, onRead }: { item: Activity; onRead: () => void }) {
-  const c: string = avC(item.ini) ?? "amber";
-  const bg = bgMap2[c] ?? "var(--bg2)";
-  const fg = fgMap2[c] ?? "var(--muted)";
+  const c: string = avColor(item.ini) ?? "amber";
+  const bg = bgMap[c] ?? "var(--bg2)";
+  const fg = fgMap[c] ?? "var(--muted)";
   return (
     <div
       onClick={onRead}
