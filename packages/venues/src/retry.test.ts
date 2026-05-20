@@ -95,4 +95,20 @@ describe('fetchWithRetry — with retries', () => {
     expect(mockFetch).toHaveBeenCalledTimes(2);
     expect(res.status).toBe(200);
   });
+
+  it('aborts immediately when caller signal is already aborted', async () => {
+    const abortErr = new Error('signal aborted');
+    abortErr.name = 'AbortError';
+    const mockFetch = vi.fn().mockImplementation((_url: unknown, opts?: RequestInit) => {
+      if (opts?.signal?.aborted) return Promise.reject(abortErr);
+      return Promise.resolve(makeMockResponse(200));
+    });
+    vi.stubGlobal('fetch', mockFetch);
+    const controller = new AbortController();
+    controller.abort();
+    await expect(
+      fetchWithRetry('https://example.com', { signal: controller.signal }),
+    ).rejects.toThrow('signal aborted');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
 });
