@@ -9,8 +9,7 @@
   },
   "dependencies": {
     "@groupplan/types": "workspace:*",
-    "@sendgrid/mail": "^8.1.0",
-    "firebase-admin": "^12.1.0"
+    "@sendgrid/mail": "^8.1.0"
   },
   "devDependencies": {
     "typescript": "^5.4.0"

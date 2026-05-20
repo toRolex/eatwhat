@@ -33,7 +33,7 @@ export default async function RSVPPage({ params }: Props) {
         <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', boxShadow: 'var(--sh)', padding: '32px 32px 28px', animation: 'fu .35s var(--sp) both' }}>
 
           <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: 'var(--fb)' }}>
-            You're invited
+            You&apos;re invited
           </div>
           <h1 style={{ fontFamily: 'var(--fd)', fontSize: 30, letterSpacing: '-.03em', color: 'var(--text)', margin: '0 0 6px', lineHeight: 1.1 }}>
             {event.title}

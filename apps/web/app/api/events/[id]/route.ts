@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { UpdateEventSchema, EVENT_STATUS_TRANSITIONS } from '@groupplan/types';
+import { UpdateEventSchema, EVENT_STATUS_TRANSITIONS, type EventStatus } from '@groupplan/types';
 import { getEventById, updateEvent, updateEventStatus, deleteEvent } from '@groupplan/db';
 
 interface Context {
@@ -32,7 +32,7 @@ export async function PATCH(request: Request, { params }: Context) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    const allowed = EVENT_STATUS_TRANSITIONS[event.status];
+    const allowed = EVENT_STATUS_TRANSITIONS[event.status as EventStatus];
     if (!allowed.includes(body.status)) {
       return NextResponse.json(
         { error: `Cannot transition from ${event.status} to ${body.status}` },
