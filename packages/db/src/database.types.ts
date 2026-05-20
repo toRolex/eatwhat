@@ -348,7 +348,12 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      replace_proposals_and_advance: {
+        Args: { p_event_id: string; p_rows: Json }
+        Returns: undefined
+      }
+    }
     Enums: {
       event_status: 'draft' | 'open' | 'collecting' | 'deciding' | 'finalized' | 'cancelled'
       event_category: 'dinner'

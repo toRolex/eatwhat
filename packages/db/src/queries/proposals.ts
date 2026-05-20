@@ -1,5 +1,5 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../database.types';
+import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
+import type { Database, Json } from '../database.types';
 
 export interface InsertProposalRow {
   event_id: string;
@@ -18,6 +18,9 @@ export interface InsertProposalRow {
   suggested_time?: string;
 }
 
+type ProposalRow = Database['public']['Tables']['proposals']['Row'];
+type ProposalRowsResult = Promise<{ data: ProposalRow[] | null; error: PostgrestError | null }>;
+
 export async function getProposalsByEvent(db: SupabaseClient<Database>, eventId: string) {
   return db
     .from('proposals')
@@ -30,14 +33,26 @@ export async function insertProposals(db: SupabaseClient<Database>, rows: Insert
   return db.from('proposals').insert(rows).select();
 }
 
-// Replace all proposals for an event in one transaction-ish operation.
-// Used when re-running AI synthesis so stale picks don't pile up.
+// Non-atomic: DELETE then INSERT as two separate PostgREST calls.
+// Prefer replaceProposalsAndAdvance (RPC) for callers that also need status advance.
 export async function replaceProposals(
   db: SupabaseClient<Database>,
   eventId: string,
   rows: InsertProposalRow[],
-) {
+): ProposalRowsResult {
   const { error: deleteError } = await db.from('proposals').delete().eq('event_id', eventId);
   if (deleteError) return { data: null, error: deleteError };
   return db.from('proposals').insert(rows).select();
+}
+
+// InsertProposalRow[] is JSON-serializable; cast required for rpc() generic
+export async function replaceProposalsAndAdvance(
+  db: SupabaseClient<Database>,
+  eventId: string,
+  rows: InsertProposalRow[],
+) {
+  return db.rpc('replace_proposals_and_advance', {
+    p_event_id: eventId,
+    p_rows: rows as unknown as Json,
+  });
 }
