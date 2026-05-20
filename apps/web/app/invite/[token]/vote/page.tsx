@@ -16,16 +16,16 @@ export default async function VotePage({ params }: Props) {
   const { token } = await params;
   const db = createServiceClient();
 
-  const { data: invitation } = await getInvitationByToken(db as never, token);
+  const { data: invitation } = await getInvitationByToken(db, token);
   if (!invitation) notFound();
 
-  const { data: event } = await getEventById(db as never, invitation.event_id);
+  const { data: event } = await getEventById(db, invitation.event_id);
   if (!event || event.status !== 'deciding') notFound();
 
-  const { data: proposals } = await getProposalsByEvent(db as never, invitation.event_id);
+  const { data: proposals } = await getProposalsByEvent(db, invitation.event_id);
   if (!proposals?.length) notFound();
 
-  const { data: priorVotes } = await getVotesByInvitation(db as never, invitation.id);
+  const { data: priorVotes } = await getVotesByInvitation(db, invitation.id);
   const initialRankings: Record<string, number> = {};
   for (const v of priorVotes ?? []) initialRankings[v.proposal_id] = v.rank;
 

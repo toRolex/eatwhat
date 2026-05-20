@@ -18,7 +18,7 @@ export async function GET() {
 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { data: events, error } = await getEventsByHost(supabase as never, user.id);
+  const { data: events, error } = await getEventsByHost(supabase, user.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   return NextResponse.json({ events });
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   }
 
   const slug = slugify(parsed.data.title);
-  const { data: event, error } = await createEvent(supabase as never, user.id, parsed.data, slug);
+  const { data: event, error } = await createEvent(supabase, user.id, parsed.data, slug);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

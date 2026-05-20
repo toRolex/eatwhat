@@ -11,7 +11,7 @@ export async function POST(request: Request, { params }: Context) {
   const { token } = await params;
   const db = createServiceClient();
 
-  const { data: invitation } = await getInvitationByToken(db as never, token);
+  const { data: invitation } = await getInvitationByToken(db, token);
   if (!invitation) return NextResponse.json({ error: 'Invalid token' }, { status: 404 });
 
   if (invitation.status !== 'accepted') {
@@ -28,7 +28,7 @@ export async function POST(request: Request, { params }: Context) {
   }
 
   const { data: preferences, error } = await upsertPreferences(
-    db as never,
+    db,
     invitation.id,
     invitation.event_id,
     parsed.data,

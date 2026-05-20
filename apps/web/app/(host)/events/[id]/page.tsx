@@ -19,11 +19,11 @@ export default async function EventPage({ params }: Props) {
   const { id } = await params;
   await maybeAutoFinalize(id).catch(() => {});
   const supabase = await createClient();
-  const { data: event } = await getEventById(supabase as never, id);
+  const { data: event } = await getEventById(supabase, id);
 
   if (!event) notFound();
 
-  const { data: invitations } = await getInvitationsByEvent(supabase as never, id);
+  const { data: invitations } = await getInvitationsByEvent(supabase, id);
   const guestCounts = (invitations ?? []).reduce(
     (acc, inv) => {
       acc.total += 1;

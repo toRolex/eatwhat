@@ -59,7 +59,7 @@ export async function POST(request: Request, { params }: Context) {
   }
 
   const { data: vote, error } = await upsertVote(
-    db as never,
+    db,
     pid,
     invitation.id,
     parsed.data.rank,

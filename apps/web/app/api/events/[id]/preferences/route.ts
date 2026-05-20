@@ -12,14 +12,14 @@ export async function GET(_req: Request, { params }: Context) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { data: event } = await getEventById(supabase as never, id);
+  const { data: event } = await getEventById(supabase, id);
   if (!event || event.host_id !== user.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
   const [{ data: preferences }, { data: invitations }] = await Promise.all([
-    getPreferencesByEvent(supabase as never, id),
-    getInvitationsByEvent(supabase as never, id),
+    getPreferencesByEvent(supabase, id),
+    getInvitationsByEvent(supabase, id),
   ]);
 
   const accepted = invitations?.filter((i) => i.status === 'accepted').length ?? 0;

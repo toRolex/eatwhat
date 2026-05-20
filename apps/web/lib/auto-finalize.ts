@@ -21,8 +21,8 @@ export async function maybeAutoFinalize(eventId: string): Promise<boolean> {
   if (new Date(event.vote_deadline).getTime() > Date.now()) return false;
 
   const [{ data: proposals }, { data: votes }] = await Promise.all([
-    getProposalsByEvent(db as never, eventId),
-    getVotesByEvent(db as never, eventId),
+    getProposalsByEvent(db, eventId),
+    getVotesByEvent(db, eventId),
   ]);
 
   if (!proposals?.length) return false;
@@ -45,7 +45,7 @@ export async function maybeAutoFinalize(eventId: string): Promise<boolean> {
   const confirmedTime = new Date(confirmedISO);
   const endTime = new Date(confirmedTime.getTime() + DINNER_DURATION_MS);
 
-  const { data: invitations } = await getInvitationsByEvent(db as never, eventId);
+  const { data: invitations } = await getInvitationsByEvent(db, eventId);
   const attendees = (invitations ?? [])
     .filter((i) => i.status === 'accepted')
     .map((i) => ({ name: i.name, email: i.email }));

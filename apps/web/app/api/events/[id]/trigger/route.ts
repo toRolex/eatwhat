@@ -20,7 +20,7 @@ export async function POST(request: Request, { params }: Context) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { data: event } = await getEventById(supabase as never, id);
+  const { data: event } = await getEventById(supabase, id);
   if (!event || event.host_id !== user.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
@@ -47,7 +47,7 @@ export async function POST(request: Request, { params }: Context) {
   }
 
   const serviceDb = createServiceClient();
-  const { data: preferences } = await getPreferencesByEvent(serviceDb as never, id);
+  const { data: preferences } = await getPreferencesByEvent(serviceDb, id);
   if (!preferences?.length) {
     return NextResponse.json({ error: 'No preferences submitted yet' }, { status: 422 });
   }
@@ -67,7 +67,7 @@ export async function POST(request: Request, { params }: Context) {
 
   // Log venue search spend. Google Places Text Search New is $32/1k, ~$0.032/call.
   // Yelp Fusion is free at moderate volume; log 0 cost.
-  await logUsage(serviceDb as never, {
+  await logUsage(serviceDb, {
     event_id:      id,
     kind:          'venue_search',
     provider:      venueProvider,
@@ -132,12 +132,12 @@ export async function POST(request: Request, { params }: Context) {
   }
 
   // Replace any prior proposals so re-runs don't pile up stale picks
-  const { error: insertError } = await replaceProposals(serviceDb as never, id, proposalRows);
+  const { error: insertError } = await replaceProposals(serviceDb, id, proposalRows);
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
 
   // Log AI spend
   if (synthesis.usage) {
-    await logUsage(serviceDb as never, {
+    await logUsage(serviceDb, {
       event_id:      id,
       kind:          'ai_synthesis',
       provider:      'anthropic',
@@ -149,13 +149,13 @@ export async function POST(request: Request, { params }: Context) {
     }).catch(() => {});
   }
 
-  await updateEventStatus(serviceDb as never, id, 'deciding');
+  await updateEventStatus(serviceDb, id, 'deciding');
 
   // Notify all accepted guests that voting is open
   const notifier = getNotificationService();
   let emailSummary: { sent: number; failed: number } | null = null;
   if (notifier) {
-    const { data: invitations } = await getInvitationsByEvent(serviceDb as never, id);
+    const { data: invitations } = await getInvitationsByEvent(serviceDb, id);
     const accepted = (invitations ?? []).filter((i) => i.status === 'accepted');
     const batch = await sendBatch(
       notifier,

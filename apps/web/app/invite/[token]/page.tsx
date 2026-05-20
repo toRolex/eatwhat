@@ -17,10 +17,10 @@ export default async function InvitePage({ params }: Props) {
   const { token } = await params;
   const serviceDb = createServiceClient();
 
-  const { data: invitation } = await getInvitationByToken(serviceDb as never, token);
+  const { data: invitation } = await getInvitationByToken(serviceDb, token);
   if (!invitation) notFound();
 
-  const { data: event } = await getEventById(serviceDb as never, invitation.event_id);
+  const { data: event } = await getEventById(serviceDb, invitation.event_id);
   if (!event) notFound();
 
   // Detect if an authenticated host is previewing their own invite page

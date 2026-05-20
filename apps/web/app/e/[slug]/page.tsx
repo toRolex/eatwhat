@@ -13,7 +13,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const db = createServiceClient();
-  const { data: event } = await getEventBySlug(db as never, slug);
+  const { data: event } = await getEventBySlug(db, slug);
   return { title: event?.title ?? 'Event' };
 }
 
@@ -22,19 +22,19 @@ export default async function EventStatusPage({ params }: Props) {
   const { slug } = await params;
   const db = createServiceClient();
 
-  const { data: event } = await getEventBySlug(db as never, slug);
+  const { data: event } = await getEventBySlug(db, slug);
   if (!event) notFound();
 
   await maybeAutoFinalize(event.id).catch(() => {});
 
   // Re-fetch event after potential auto-finalize so status is fresh
-  const { data: freshEvent } = await getEventBySlug(db as never, slug);
+  const { data: freshEvent } = await getEventBySlug(db, slug);
   const currentEvent = freshEvent ?? event;
 
   const [{ data: invitations }, { data: finalizedPlan }] = await Promise.all([
-    getInvitationsByEvent(db as never, currentEvent.id),
+    getInvitationsByEvent(db, currentEvent.id),
     currentEvent.status === 'finalized'
-      ? getFinalizedPlanByEvent(db as never, currentEvent.id)
+      ? getFinalizedPlanByEvent(db, currentEvent.id)
       : Promise.resolve({ data: null }),
   ]);
 
