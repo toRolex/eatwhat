@@ -1,4 +1,4 @@
-import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '../database.types';
 
 export interface InsertProposalRow {
@@ -18,9 +18,6 @@ export interface InsertProposalRow {
   suggested_time?: string;
 }
 
-type ProposalRow = Database['public']['Tables']['proposals']['Row'];
-type ProposalRowsResult = Promise<{ data: ProposalRow[] | null; error: PostgrestError | null }>;
-
 export async function getProposalsByEvent(db: SupabaseClient<Database>, eventId: string) {
   return db
     .from('proposals')
@@ -30,18 +27,6 @@ export async function getProposalsByEvent(db: SupabaseClient<Database>, eventId:
 }
 
 export async function insertProposals(db: SupabaseClient<Database>, rows: InsertProposalRow[]) {
-  return db.from('proposals').insert(rows).select();
-}
-
-// Non-atomic: DELETE then INSERT as two separate PostgREST calls.
-// Prefer replaceProposalsAndAdvance (RPC) for callers that also need status advance.
-export async function replaceProposals(
-  db: SupabaseClient<Database>,
-  eventId: string,
-  rows: InsertProposalRow[],
-): ProposalRowsResult {
-  const { error: deleteError } = await db.from('proposals').delete().eq('event_id', eventId);
-  if (deleteError) return { data: null, error: deleteError };
   return db.from('proposals').insert(rows).select();
 }
 
