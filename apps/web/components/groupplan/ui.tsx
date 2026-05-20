@@ -111,7 +111,7 @@ export function Modal({ children, onClose, width = 500 }: { children: ReactNode;
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: "var(--surface)", borderRadius: 20,
+          background: "var(--surface)", borderRadius: "var(--r)",
           width: "90%", maxWidth: width, maxHeight: "90vh", overflowY: "auto",
           boxShadow: "0 24px 80px rgba(0,0,0,.3)",
           border: "1px solid var(--border2)", animation: "slideUp .32s var(--sp) both",

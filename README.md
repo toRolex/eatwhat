@@ -18,7 +18,6 @@ AI-powered group restaurant planning. Hosts create beautiful shareable invitatio
 |---|---|
 | Frontend | Next.js 14 (App Router) |
 | Database / Auth | Supabase (PostgreSQL + RLS + Realtime) |
-| File storage | Firebase Storage |
 | AI synthesis | Claude Haiku (`claude-haiku-4-5-20251001`, Anthropic) |
 | Venue search | Google Places API v1 (Yelp Fusion as fallback) |
 | Email | SendGrid |
@@ -43,7 +42,10 @@ groupplan/
 │       │   └── realtime/       # GuestStatusList (Supabase realtime)
 │       └── lib/
 │           ├── auto-finalize.ts   # Check-on-read auto-finalize logic
-│           ├── notifications.ts   # sendBatch() helper + NotificationService factory
+│           ├── calendar.ts        # ICS calendar export
+│           ├── email.ts           # SendGrid email rendering + sending
+│           ├── env.ts             # Force-loads .env.local (Windows shadow workaround)
+│           ├── notifications.ts   # sendBatch() helper + email service factory
 │           ├── photo-signing.ts   # HMAC-SHA256 photo proxy token signing
 │           ├── rate-limit.ts      # In-memory sliding-window rate limiter
 │           ├── scoring.ts         # bordaScore(), computeBorda(), DINNER_DURATION_MS
@@ -52,9 +54,7 @@ groupplan/
 │   ├── types/        # Shared TypeScript types + Zod schemas
 │   ├── db/           # Supabase client + typed query helpers
 │   ├── ai/           # AI provider interface + Claude adapter
-│   ├── venues/       # Venue provider interface + Google Places / Yelp adapters
-│   ├── notifications/# Notification service + SendGrid email adapter
-│   └── calendar/     # Calendar export interface + .ics adapter
+│   └── venues/       # Venue provider interface + Google Places / Yelp adapters
 └── supabase/
     ├── migrations/   # PostgreSQL schema migrations (run in order)
     └── setup.sql     # Full schema for fresh installs
@@ -100,6 +100,7 @@ If you already have the base schema and are migrating, run each file in `supabas
 005_relax_rank_checks.sql
 006_usage_log.sql
 007_vote_deadline.sql
+008_replace_proposals_rpc.sql
 ```
 
 ### 4. Run the dev server
@@ -184,7 +185,10 @@ App runs at [http://localhost:3000](http://localhost:3000). The interactive demo
 |---|---|
 | `apps/web/lib/scoring.ts` | `bordaScore`, `computeBorda`, `DINNER_DURATION_MS` |
 | `apps/web/lib/status-ui.ts` | `STATUS_COLORS`, `STATUS_LABELS` |
+| `apps/web/lib/email.ts` | `sendEmail`, `renderEmail`, `EmailTemplate` |
+| `apps/web/lib/calendar.ts` | `IcsCalendarExporter` |
 | `apps/web/lib/notifications.ts` | `getNotificationService`, `sendBatch`, `appUrl` |
+| `apps/web/lib/env.ts` | `ensureEnvLoaded` — force-loads `.env.local` on Windows where system env vars can shadow it |
 | `apps/web/lib/auto-finalize.ts` | `maybeAutoFinalize` |
 | `apps/web/lib/photo-signing.ts` | `signPhotoRef`, `verifyPhotoRef` |
 | `apps/web/lib/rate-limit.ts` | `rateLimit`, `clientIp` |

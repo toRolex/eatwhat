@@ -2,15 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getEventsByHost } from '@groupplan/db';
+import { STATUS_COLORS } from '@/lib/status-ui';
 
 export const metadata: Metadata = { title: 'Dashboard' };
-
-const STATUS_COLORS: Record<string, string> = {
-  collecting: 'oklch(60% 0.15 148)',
-  deciding:   'oklch(68% 0.15 72)',
-  finalized:  'oklch(58% 0.14 228)',
-  cancelled:  'oklch(58% 0.18 26)',
-};
 
 export default async function DashboardPage() {
   const supabase = await createClient();

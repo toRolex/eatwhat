@@ -81,7 +81,7 @@ export function MassiveFooter({ eventName = "The Friday Gathering" }: { eventNam
       <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(var(--border2) 1px,transparent 1px),linear-gradient(90deg,var(--border2) 1px,transparent 1px)", backgroundSize: "40px 40px", opacity: .06, pointerEvents: "none" }} />
       <div style={{ position: "absolute", right: -20, top: -30, fontFamily: "var(--fd)", fontSize: 240, color: "rgba(255,255,255,.03)", lineHeight: 1, pointerEvents: "none", userSelect: "none", letterSpacing: "-10px" }}>GP</div>
       <div style={{ position: "relative", padding: "52px 32px 32px", maxWidth: 820 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 40, marginBottom: 48 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 40, marginBottom: 48 }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -97,7 +97,7 @@ export function MassiveFooter({ eventName = "The Friday Gathering" }: { eventNam
           </div>
           <div>
             <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,.4)", textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 12 }}>Engine</div>
-            {["TOPSIS Ranking", "Monte Carlo", "Gemini NLP", "Places API", "MCDA Core"].map(l => (
+            {["Claude Haiku synthesis", "Google Places search", "Borda count voting", "Auto-finalize logic", "Preference matching"].map(l => (
               <div key={l} style={{ fontSize: 12, color: "rgba(255,255,255,.55)", marginBottom: 7, display: "flex", alignItems: "center", gap: 6 }}>
                 <div style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,.2)", flexShrink: 0 }} />{l}
               </div>
@@ -105,7 +105,7 @@ export function MassiveFooter({ eventName = "The Friday Gathering" }: { eventNam
           </div>
           <div>
             <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,.4)", textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 12 }}>Stack</div>
-            {["Next.js 14", "Supabase", "Claude AI", "Firebase", "SendGrid"].map(l => (
+            {["Next.js 14", "Supabase", "Claude AI", "SendGrid", "Vercel / AWS"].map(l => (
               <div key={l} style={{ fontSize: 12, color: "rgba(255,255,255,.55)", marginBottom: 7, display: "flex", alignItems: "center", gap: 6 }}>
                 <div style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,.2)", flexShrink: 0 }} />{l}
               </div>
@@ -348,12 +348,12 @@ export function PreferencesTab({ liveGuests }: { liveGuests: Guest[] }) {
 
 // ── AI Tab ───────────────────────────────────────────────────────────────────
 const AI_STEPS = [
-  { l: "Parsing vibe inputs via Gemini",   d: "NLP → JSON schema" },
-  { l: "Computing geospatial centroid",    d: "3D weighted Cartesian" },
-  { l: "Querying Google Places API",       d: "Centroid-cached, cost-pruned" },
-  { l: "Running TOPSIS ranking",           d: "Euclidean normalization" },
-  { l: "Monte Carlo simulation",           d: "100× Gaussian noise" },
-  { l: "Constructing decision reasoning",  d: "Gemini narration layer" },
+  { l: "Collecting guest preferences",    d: "Dietary, cuisine, budget, vibe" },
+  { l: "Searching nearby venues",          d: "Google Places API v1 (Yelp fallback)" },
+  { l: "Building synthesis prompt",        d: "Preference matrix → structured input" },
+  { l: "Running Claude Haiku synthesis",   d: "claude-haiku-4-5-20251001" },
+  { l: "Ranking by preference match",      d: "Constraints met/gap per proposal" },
+  { l: "Generating proposal reasoning",    d: "Per-venue explanation for the group" },
 ];
 
 function RestCard({ r, rank, delay, tweaks, open, onToggle }: { r: Restaurant; rank: number; delay: number; tweaks: Tweaks; open: boolean; onToggle: () => void }) {

@@ -1,3 +1,7 @@
+-- Full schema for fresh installs. Kept in sync with supabase/migrations/.
+-- For upgrades on an existing database, apply only the migration files you
+-- haven't run yet (in numerical order) rather than re-running this file.
+
 -- Event lifecycle state machine: draft → open → collecting → deciding → finalized
 CREATE TYPE event_status AS ENUM (
   'draft',
@@ -295,3 +299,48 @@ CREATE POLICY usage_log_select_host ON usage_log FOR SELECT
     event_id IS NULL
     OR EXISTS (SELECT 1 FROM events WHERE events.id = usage_log.event_id AND events.host_id = auth.uid())
   );
+
+-- ── 008: Atomic proposal replacement RPC ─────────────────────────────────────
+-- Replaces all proposals for an event and advances its status to 'deciding'
+-- inside a single transaction. Prevents partial-delete state if the insert fails.
+CREATE OR REPLACE FUNCTION replace_proposals_and_advance(
+  p_event_id  UUID,
+  p_rows      JSONB
+) RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  DELETE FROM proposals WHERE event_id = p_event_id;
+
+  INSERT INTO proposals (
+    event_id, rank, restaurant_name, restaurant_addr, cuisine_type,
+    price_range, rating, image_url, maps_url, booking_url,
+    reasoning, constraints_met, constraints_gap, suggested_time
+  )
+  SELECT
+    p_event_id,
+    (r->>'rank')::integer,
+    r->>'restaurant_name',
+    r->>'restaurant_addr',
+    r->>'cuisine_type',
+    r->>'price_range',
+    (r->>'rating')::float,
+    r->>'image_url',
+    r->>'maps_url',
+    r->>'booking_url',
+    r->>'reasoning',
+    (r->'constraints_met'),
+    (r->'constraints_gap'),
+    (r->>'suggested_time')::timestamptz
+  FROM jsonb_array_elements(p_rows) AS r;
+
+  UPDATE events SET status = 'deciding' WHERE id = p_event_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION replace_proposals_and_advance(UUID, JSONB) FROM PUBLIC;
+REVOKE ALL ON FUNCTION replace_proposals_and_advance(UUID, JSONB) FROM anon;
+REVOKE ALL ON FUNCTION replace_proposals_and_advance(UUID, JSONB) FROM authenticated;
+GRANT EXECUTE ON FUNCTION replace_proposals_and_advance(UUID, JSONB) TO service_role;
