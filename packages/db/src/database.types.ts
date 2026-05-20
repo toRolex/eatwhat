@@ -1,3 +1,7 @@
+// Hand-written from supabase/migrations/. To regenerate from a running local instance:
+//   supabase gen types typescript --local > packages/db/src/database.types.ts
+// Requires: supabase start (Docker)
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export interface Database {
@@ -14,7 +18,7 @@ export interface Database {
           updated_at: string
         }
         Insert: {
-          id?: string | undefined
+          id: string  // no DEFAULT — always supplied by the handle_new_auth_user trigger
           name: string
           email: string
           phone?: string | null | undefined
