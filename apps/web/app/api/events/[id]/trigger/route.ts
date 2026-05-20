@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { TriggerEventSchema } from '@groupplan/types';
-import { getEventById, getPreferencesByEvent, updateEventStatus, replaceProposals, getInvitationsByEvent, logUsage } from '@groupplan/db';
+import { getEventById, getPreferencesByEvent, replaceProposalsAndAdvance, getInvitationsByEvent, logUsage } from '@groupplan/db';
 import { ClaudeAIProvider } from '@groupplan/ai';
 import { GooglePlacesVenueProvider, YelpVenueProvider } from '@groupplan/venues';
 import type { RestaurantCandidate } from '@groupplan/ai';
@@ -132,8 +132,8 @@ export async function POST(request: Request, { params }: Context) {
   }
 
   // Replace any prior proposals so re-runs don't pile up stale picks
-  const { error: insertError } = await replaceProposals(serviceDb, id, proposalRows);
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
+  const { error: rpcError } = await replaceProposalsAndAdvance(serviceDb, id, proposalRows);
+  if (rpcError) return NextResponse.json({ error: rpcError.message }, { status: 500 });
 
   // Log AI spend
   if (synthesis.usage) {
@@ -148,8 +148,6 @@ export async function POST(request: Request, { params }: Context) {
       metadata:      { proposals_returned: proposalRows.length, candidates_considered: candidates.length },
     }).catch(() => {});
   }
-
-  await updateEventStatus(serviceDb, id, 'deciding');
 
   // Notify all accepted guests that voting is open
   const notifier = getNotificationService();

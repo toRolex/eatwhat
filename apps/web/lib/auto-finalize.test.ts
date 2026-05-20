@@ -64,9 +64,9 @@ describe('maybeAutoFinalize', () => {
     vi.clearAllMocks();
     const defaultDb = makeDb();
     vi.mocked(createServiceClient).mockReturnValue(defaultDb as unknown as ReturnType<typeof createServiceClient>);
-    vi.mocked(getProposalsByEvent).mockResolvedValue({ data: PROPOSALS } as Awaited<ReturnType<typeof getProposalsByEvent>>);
-    vi.mocked(getVotesByEvent).mockResolvedValue({ data: VOTES } as Awaited<ReturnType<typeof getVotesByEvent>>);
-    vi.mocked(getInvitationsByEvent).mockResolvedValue({ data: INVITATIONS } as Awaited<ReturnType<typeof getInvitationsByEvent>>);
+    vi.mocked(getProposalsByEvent).mockResolvedValue({ data: PROPOSALS } as unknown as Awaited<ReturnType<typeof getProposalsByEvent>>);
+    vi.mocked(getVotesByEvent).mockResolvedValue({ data: VOTES } as unknown as Awaited<ReturnType<typeof getVotesByEvent>>);
+    vi.mocked(getInvitationsByEvent).mockResolvedValue({ data: INVITATIONS } as unknown as Awaited<ReturnType<typeof getInvitationsByEvent>>);
     vi.mocked(getNotificationService).mockReturnValue({ notify: vi.fn() });
   });
 
@@ -99,13 +99,13 @@ describe('maybeAutoFinalize', () => {
   });
 
   it('returns false when there are no proposals', async () => {
-    vi.mocked(getProposalsByEvent).mockResolvedValueOnce({ data: [] } as unknown as Awaited<ReturnType<typeof getProposalsByEvent>>);
+    vi.mocked(getProposalsByEvent).mockResolvedValueOnce({ data: [] } as unknown as unknown as Awaited<ReturnType<typeof getProposalsByEvent>>);
 
     await expect(maybeAutoFinalize(EVENT_ID)).resolves.toBe(false);
   });
 
   it('returns false when all Borda scores are zero (no votes)', async () => {
-    vi.mocked(getVotesByEvent).mockResolvedValueOnce({ data: [] } as Awaited<ReturnType<typeof getVotesByEvent>>);
+    vi.mocked(getVotesByEvent).mockResolvedValueOnce({ data: [] } as unknown as Awaited<ReturnType<typeof getVotesByEvent>>);
 
     await expect(maybeAutoFinalize(EVENT_ID)).resolves.toBe(false);
   });
@@ -113,7 +113,7 @@ describe('maybeAutoFinalize', () => {
   it('returns false when no confirmed_time is available', async () => {
     const db = makeDb({ event: { ...BASE_EVENT, proposed_date: null } });
     vi.mocked(createServiceClient).mockReturnValue(db as unknown as ReturnType<typeof createServiceClient>);
-    vi.mocked(getVotesByEvent).mockResolvedValueOnce({ data: VOTES } as Awaited<ReturnType<typeof getVotesByEvent>>);
+    vi.mocked(getVotesByEvent).mockResolvedValueOnce({ data: VOTES } as unknown as Awaited<ReturnType<typeof getVotesByEvent>>);
 
     await expect(maybeAutoFinalize(EVENT_ID)).resolves.toBe(false);
   });
@@ -218,7 +218,7 @@ describe('maybeAutoFinalize', () => {
       }),
     };
     vi.mocked(createServiceClient).mockReturnValue(dbWithSpy as unknown as ReturnType<typeof createServiceClient>);
-    vi.mocked(getVotesByEvent).mockResolvedValueOnce({ data: VOTES } as Awaited<ReturnType<typeof getVotesByEvent>>);
+    vi.mocked(getVotesByEvent).mockResolvedValueOnce({ data: VOTES } as unknown as Awaited<ReturnType<typeof getVotesByEvent>>);
 
     await maybeAutoFinalize(EVENT_ID);
 
