@@ -52,7 +52,7 @@ export interface GuestPreferences {
   budget_min: number | null;
   budget_max: number | null;
   location_pref: string | null;
-  availability: Record<string, unknown> | null;
+  availability: unknown;
   vibe_pref: string | null;
   notes: string | null;
   created_at: string;
@@ -62,7 +62,7 @@ export interface GuestPreferences {
 export interface Proposal {
   id: string;
   event_id: string;
-  rank: 1 | 2 | 3;
+  rank: number;
   restaurant_name: string;
   restaurant_addr: string;
   cuisine_type: string;
@@ -72,8 +72,8 @@ export interface Proposal {
   maps_url: string | null;
   booking_url: string | null;
   reasoning: string;
-  constraints_met: Record<string, boolean>;
-  constraints_gap: Record<string, string>;
+  constraints_met: unknown;
+  constraints_gap: unknown;
   suggested_time: string | null;
   created_at: string;
   updated_at: string;

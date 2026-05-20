@@ -1,3 +1,4 @@
+export type { Database, Json } from './database.types';
 export * from './queries/events';
 export * from './queries/invitations';
 export * from './queries/preferences';

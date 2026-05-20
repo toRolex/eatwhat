@@ -20,8 +20,11 @@ export async function fetchWithRetry(
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    const signal = init.signal
+      ? AbortSignal.any([controller.signal, init.signal])
+      : controller.signal;
     try {
-      const res = await fetch(url, { ...init, signal: controller.signal });
+      const res = await fetch(url, { ...init, signal });
       if (res.status === 429 || res.status >= 500) {
         lastError = new Error(`HTTP ${res.status}`);
         if (attempt < MAX_RETRIES) {
@@ -33,6 +36,7 @@ export async function fetchWithRetry(
       return res;
     } catch (err) {
       lastError = err;
+      if (init.signal?.aborted) throw err;
       if (attempt < MAX_RETRIES && isRetryable(err)) {
         await sleep(BASE_BACKOFF_MS * (attempt + 1));
         continue;

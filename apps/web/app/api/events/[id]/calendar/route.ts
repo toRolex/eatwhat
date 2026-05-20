@@ -21,7 +21,7 @@ export async function GET(_req: Request, { params }: Context) {
   if (!plan) return NextResponse.json({ error: 'No finalized plan' }, { status: 404 });
 
   const exporter = new IcsCalendarExporter();
-  const result = await exporter.export(plan.calendar_data as CalendarData);
+  const result = await exporter.export(plan.calendar_data as unknown as CalendarData);
 
   return new NextResponse(result.content as string, {
     headers: {

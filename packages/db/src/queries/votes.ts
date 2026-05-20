@@ -1,13 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../database.types';
 
-export async function getVotesByEvent(db: SupabaseClient, eventId: string) {
+export async function getVotesByEvent(db: SupabaseClient<Database>, eventId: string) {
   return db
     .from('votes')
     .select('*, proposals!inner(event_id)')
     .eq('proposals.event_id', eventId);
 }
 
-export async function getVotesByInvitation(db: SupabaseClient, invitationId: string) {
+export async function getVotesByInvitation(db: SupabaseClient<Database>, invitationId: string) {
   return db
     .from('votes')
     .select('*')
@@ -15,7 +16,7 @@ export async function getVotesByInvitation(db: SupabaseClient, invitationId: str
 }
 
 export async function upsertVote(
-  db: SupabaseClient,
+  db: SupabaseClient<Database>,
   proposalId: string,
   invitationId: string,
   rank: number,

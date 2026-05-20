@@ -1,15 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../database.types';
 import type { CreateEventInput, UpdateEventInput } from '@groupplan/types';
 
-export async function getEventBySlug(db: SupabaseClient, slug: string) {
+export async function getEventBySlug(db: SupabaseClient<Database>, slug: string) {
   return db.from('events').select('*').eq('slug', slug).single();
 }
 
-export async function getEventById(db: SupabaseClient, id: string) {
+export async function getEventById(db: SupabaseClient<Database>, id: string) {
   return db.from('events').select('*').eq('id', id).single();
 }
 
-export async function getEventsByHost(db: SupabaseClient, hostId: string) {
+export async function getEventsByHost(db: SupabaseClient<Database>, hostId: string) {
   return db
     .from('events')
     .select('*')
@@ -18,7 +19,7 @@ export async function getEventsByHost(db: SupabaseClient, hostId: string) {
 }
 
 export async function createEvent(
-  db: SupabaseClient,
+  db: SupabaseClient<Database>,
   hostId: string,
   input: CreateEventInput,
   slug: string,
@@ -30,14 +31,18 @@ export async function createEvent(
     .single();
 }
 
-export async function updateEvent(db: SupabaseClient, id: string, input: UpdateEventInput) {
+export async function updateEvent(db: SupabaseClient<Database>, id: string, input: UpdateEventInput) {
   return db.from('events').update(input).eq('id', id).select().single();
 }
 
-export async function updateEventStatus(db: SupabaseClient, id: string, status: string) {
+export async function updateEventStatus(
+  db: SupabaseClient<Database>,
+  id: string,
+  status: Database['public']['Enums']['event_status'],
+) {
   return db.from('events').update({ status }).eq('id', id).select().single();
 }
 
-export async function deleteEvent(db: SupabaseClient, id: string) {
+export async function deleteEvent(db: SupabaseClient<Database>, id: string) {
   return db.from('events').delete().eq('id', id);
 }
