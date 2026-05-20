@@ -305,7 +305,7 @@ export function PreferencesTab({ liveGuests }: { liveGuests: Guest[] }) {
                 <Badge>{guest.budget}</Badge>
               </div>
               {guest.vibe
-                ? <div style={{ fontSize: 10, color: "var(--muted)", fontStyle: "italic", lineHeight: 1.5 }}>"{guest.vibe}"</div>
+                ? <div style={{ fontSize: 10, color: "var(--muted)", fontStyle: "italic", lineHeight: 1.5 }}>&quot;{guest.vibe}&quot;</div>
                 : guest.status === "pending" && (
                   <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "var(--muted)" }}>
                     <span>Adding vibe</span><TypingDots />
@@ -528,7 +528,7 @@ function RealRestCard({ p, delay, tweaks, open, onToggle }: { p: RealProposal; d
         )}
         {open && tweaks.showAIReasoning && (
           <div style={{ padding: "11px 13px", background: "var(--bg)", borderRadius: "var(--rs)", borderLeft: `2px solid ${accent}`, fontSize: 12, color: "var(--text)", lineHeight: 1.65, fontFamily: "var(--fb)", fontStyle: "italic", animation: "sd .28s var(--sp) both", marginBottom: 12 }}>
-            "{p.reasoning}"
+            &quot;{p.reasoning}&quot;
           </div>
         )}
 
@@ -614,7 +614,7 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
         <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", marginBottom: 10 }}>
           Ready to find<br /><em>the perfect spot</em>
         </h2>
-        <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.65, maxWidth: 360 }}>Real venue search via Yelp + Claude synthesis — tuned to your group's preferences.</p>
+        <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.65, maxWidth: 360 }}>Real venue search via Yelp + Claude synthesis — tuned to your group&apos;s preferences.</p>
       </div>
       <div style={{ padding: "24px 32px", maxWidth: 640 }}>
         <Card delay={85} style={{ padding: "16px 18px", marginBottom: 16 }}>

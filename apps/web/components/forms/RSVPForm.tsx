@@ -53,7 +53,7 @@ export default function RSVPForm({ token, currentStatus }: Props) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ padding: '14px 16px', background: 'oklch(96% .04 148)', borderRadius: 'var(--rs)', border: '1px solid oklch(82% .12 148)' }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'oklch(36% .13 148)', fontFamily: 'var(--fb)', marginBottom: 2 }}>
-            ✓ You're going
+            ✓ You&apos;re going
           </div>
           <p style={{ fontSize: 12, color: 'oklch(38% .12 148)', fontFamily: 'var(--fb)', margin: 0 }}>
             Next: tell us your dietary needs and budget so the picks fit you.

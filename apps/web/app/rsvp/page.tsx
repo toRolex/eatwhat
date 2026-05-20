@@ -126,7 +126,7 @@ export default function RSVPPage() {
               strokeDasharray="30" style={{ animation: "checkDraw .4s var(--eo) .2s both" } as CSSProperties} />
           </svg>
         </div>
-        <h2 style={{ fontFamily: "var(--fd)", fontSize: 36, letterSpacing: "-.02em", marginBottom: 8, color: "var(--text)" }}>You're in!</h2>
+        <h2 style={{ fontFamily: "var(--fd)", fontSize: 36, letterSpacing: "-.02em", marginBottom: 8, color: "var(--text)" }}>You&apos;re in!</h2>
         <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.6, marginBottom: 24 }}>
           Preferences locked. The AI will synthesize once all RSVPs are in.
         </p>
@@ -149,7 +149,7 @@ export default function RSVPPage() {
           {form.vibe && (
             <div style={{ marginTop: 9, padding: "8px 10px", background: "var(--bg)", borderRadius: 8, borderLeft: "3px solid var(--muted)" }}>
               <div style={{ fontSize: 10, color: "var(--muted)", marginBottom: 2 }}>Vibe</div>
-              <div style={{ fontSize: 12, fontStyle: "italic", color: "var(--text)" }}>"{form.vibe}"</div>
+              <div style={{ fontSize: 12, fontStyle: "italic", color: "var(--text)" }}>&quot;{form.vibe}&quot;</div>
             </div>
           )}
         </div>
@@ -201,7 +201,7 @@ export default function RSVPPage() {
         <div style={{ background: "var(--text)", padding: "28px 22px 24px", animation: "fu .45s var(--sp) both", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", right: -20, top: -20, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,.04)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", right: 20, bottom: -30, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,.03)", pointerEvents: "none" }} />
-          <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,.45)", textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 5 }}>You're invited</div>
+          <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,.45)", textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 5 }}>You&apos;re invited</div>
           <h1 style={{ fontFamily: "var(--fd)", fontSize: 32, color: "white", letterSpacing: "-.03em", lineHeight: 1.0, marginBottom: 6 }}>
             The Friday<br />Gathering
           </h1>
@@ -219,7 +219,7 @@ export default function RSVPPage() {
         {step === 0 && (
           <div style={{ animation: "fu .4s var(--sp) both" }}>
             <h2 style={{ fontFamily: "var(--fd)", fontSize: 28, letterSpacing: "-.02em", marginBottom: 6, color: "var(--text)" }}>Can you make it?</h2>
-            <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 22, lineHeight: 1.6 }}>Let the host know if you'll be joining.</p>
+            <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 22, lineHeight: 1.6 }}>Let the host know if you&apos;ll be joining.</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
                 { v: "yes",   label: "Yes, I'll be there",  icon: "✓", bg: "oklch(92% .07 148)", fg: "oklch(34% .13 148)" },
@@ -247,7 +247,7 @@ export default function RSVPPage() {
         {step === 1 && (
           <div style={{ animation: "fu .4s var(--sp) both" }}>
             <h2 style={{ fontFamily: "var(--fd)", fontSize: 28, letterSpacing: "-.02em", marginBottom: 6, color: "var(--text)" }}>Tell us about you</h2>
-            <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 20, lineHeight: 1.6 }}>So the host knows who's in.</p>
+            <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 20, lineHeight: 1.6 }}>So the host knows who&apos;s in.</p>
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 11, fontWeight: 500, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--muted)", marginBottom: 7 }}>Your name</div>
               <input
@@ -302,7 +302,7 @@ export default function RSVPPage() {
         {/* Step 3 — Vibe */}
         {step === 3 && (
           <div style={{ animation: "fu .4s var(--sp) both" }}>
-            <h2 style={{ fontFamily: "var(--fd)", fontSize: 28, letterSpacing: "-.02em", marginBottom: 6, color: "var(--text)" }}>What's your vibe?</h2>
+            <h2 style={{ fontFamily: "var(--fd)", fontSize: 28, letterSpacing: "-.02em", marginBottom: 6, color: "var(--text)" }}>What&apos;s your vibe?</h2>
             <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 18, lineHeight: 1.6 }}>
               Describe in your own words — the AI uses this to match group energy.
             </p>

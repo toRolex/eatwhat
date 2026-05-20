@@ -19,7 +19,7 @@ export default function HubView({ onNavigate }: { onNavigate: (view: string) => 
       <main className="pt-24 pb-32 px-6 max-w-md mx-auto min-h-screen">
         <section className="mb-12 text-center">
           <h2 className="font-headline font-black text-4xl tracking-tight leading-tight mb-4 text-on-surface">
-            Find Your Group's <span className="text-primary">Perfect Rhythm</span>
+            Find Your Group&apos;s <span className="text-primary">Perfect Rhythm</span>
           </h2>
           <p className="text-on-surface-variant font-medium leading-relaxed">
             Your AI agent is harmonizing schedules and preferences in real-time.
@@ -33,7 +33,7 @@ export default function HubView({ onNavigate }: { onNavigate: (view: string) => 
                 <span className="inline-flex items-center px-3 py-1 rounded-full bg-secondary-container/20 text-secondary font-semibold text-xs tracking-wider uppercase mb-3">
                   Live Consensus
                 </span>
-                <h3 className="font-headline font-bold text-2xl text-on-surface">Dinner at L'Avenue</h3>
+                <h3 className="font-headline font-bold text-2xl text-on-surface">Dinner at L&apos;Avenue</h3>
               </div>
               <div className="flex flex-col items-end">
                 <span className="text-3xl font-black text-primary">85%</span>
@@ -57,7 +57,7 @@ export default function HubView({ onNavigate }: { onNavigate: (view: string) => 
             <div className="flex-1">
               <div className="bg-surface-container-low rounded-tr-xl rounded-b-xl p-4 editorial-shadow">
                 <p className="text-sm font-medium text-on-surface leading-relaxed">
-                  Based on everyone's availability, I suggest booking for <span className="font-bold text-primary">7 PM this Friday</span>.
+                  Based on everyone&apos;s availability, I suggest booking for <span className="font-bold text-primary">7 PM this Friday</span>.
                 </p>
               </div>
               <span className="text-[10px] font-bold text-on-surface-variant/40 mt-1 ml-1 uppercase tracking-widest">AI Agent • Just now</span>

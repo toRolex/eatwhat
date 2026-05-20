@@ -77,7 +77,7 @@ export default function LoginPage() {
             Group dinners,<br /><em>finally easy.</em>
           </h1>
           <p style={{ fontSize: 15, color: 'var(--muted)', fontFamily: 'var(--fb)', lineHeight: 1.65, margin: '0 0 28px', maxWidth: 400 }}>
-            Stop the endless "where should we eat?" thread. GroupPlan collects everyone&apos;s preferences, finds real nearby restaurants, and helps your group decide — in minutes.
+            Stop the endless &quot;where should we eat?&quot; thread. GroupPlan collects everyone&apos;s preferences, finds real nearby restaurants, and helps your group decide — in minutes.
           </p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <a href="#sign-in" style={{ display: 'inline-flex', alignItems: 'center', padding: '11px 22px', borderRadius: 'var(--rs)', background: 'var(--text)', color: 'var(--bg)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none', letterSpacing: '-.01em' }}>

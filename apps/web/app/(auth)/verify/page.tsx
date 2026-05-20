@@ -17,7 +17,7 @@ export default function VerifyPage() {
           We sent a magic link to your inbox.<br />Click it to sign in — expires in 1 hour.
         </p>
         <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', padding: '14px 18px', fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)' }}>
-          Didn't get it? Check your spam folder or{' '}
+          Didn&apos;t get it? Check your spam folder or{' '}
           <a href="/login" style={{ color: 'var(--text)', fontWeight: 500, textDecoration: 'none' }}>try again</a>.
         </div>
       </div>

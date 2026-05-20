@@ -38,7 +38,7 @@ export default async function PreferencesPage({ params }: Props) {
             Tell us your taste
           </h1>
           <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: 0, lineHeight: 1.55 }}>
-            Whatever you check helps Claude blend everyone's input into restaurant picks the whole group will actually agree on.
+            Whatever you check helps Claude blend everyone&apos;s input into restaurant picks the whole group will actually agree on.
           </p>
         </div>
 

@@ -25,7 +25,7 @@ export default function ClassicTemplate({ invitation, event }: Props) {
 
         <div className={`bg-zinc-900 p-8 space-y-6 ${event.cover_image_url ? 'rounded-b-2xl' : 'rounded-2xl'}`}>
           <div className="space-y-2">
-            <p className="text-xs text-zinc-500 uppercase tracking-widest">You're invited</p>
+            <p className="text-xs text-zinc-500 uppercase tracking-widest">You&apos;re invited</p>
             <h1 className="text-3xl font-bold text-white leading-tight">{event.title}</h1>
             {event.description && (
               <p className="text-zinc-400 text-sm leading-relaxed">{event.description}</p>
@@ -49,7 +49,7 @@ export default function ClassicTemplate({ invitation, event }: Props) {
                 href={`/e/${event.slug}`}
                 className="flex-1 py-3 rounded-xl border border-zinc-700 text-zinc-300 font-medium text-center text-sm hover:border-zinc-500 transition-colors"
               >
-                See who's coming
+                See who&apos;s coming
               </Link>
             </div>
           ) : (

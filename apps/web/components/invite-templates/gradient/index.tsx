@@ -25,7 +25,7 @@ export default function GradientTemplate({ invitation, event }: Props) {
           )}
 
           <div className="space-y-2">
-            <p className="text-white/60 text-xs uppercase tracking-widest">You're invited to</p>
+            <p className="text-white/60 text-xs uppercase tracking-widest">You&apos;re invited to</p>
             <h1 className="text-3xl font-bold text-white leading-tight">{event.title}</h1>
             {event.description && (
               <p className="text-white/80 text-sm leading-relaxed">{event.description}</p>

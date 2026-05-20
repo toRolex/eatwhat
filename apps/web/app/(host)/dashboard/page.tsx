@@ -46,7 +46,7 @@ export default async function DashboardPage() {
             <div>
               <h2 style={{ fontFamily: 'var(--fd)', fontSize: 22, letterSpacing: '-.02em', color: 'var(--text)', margin: '0 0 6px' }}>Plan your first dinner</h2>
               <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: 0, lineHeight: 1.6 }}>
-                Spin up an event, share invite links, then let Claude pick the best restaurants for everyone's tastes.
+                Spin up an event, share invite links, then let Claude pick the best restaurants for everyone&apos;s tastes.
               </p>
             </div>
           </div>

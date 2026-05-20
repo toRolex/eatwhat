@@ -85,7 +85,7 @@ export default function PlannerView({ onSync }: { onSync: () => void }) {
             <div className="grid grid-cols-1 md:grid-cols-2">
               <div className="p-8">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-outline mb-2 block">Proposed Venue</span>
-                <h3 className="text-2xl font-bold font-headline mb-4">L'Osteria del Porto</h3>
+                <h3 className="text-2xl font-bold font-headline mb-4">L&apos;Osteria del Porto</h3>
                 <p className="text-sm text-on-surface-variant leading-relaxed mb-6">Authentic Roman cuisine with a waterfront view. Perfect for mid-sized groups.</p>
               </div>
               <div className="h-48 md:h-full relative overflow-hidden">
