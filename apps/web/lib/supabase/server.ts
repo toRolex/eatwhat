@@ -1,10 +1,9 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import type { Database } from '@groupplan/db';
 import { cookies } from 'next/headers';
-import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Server component / Route Handler client — reads session from cookies
-export async function createClient(): Promise<SupabaseClient<Database>> {
+export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
@@ -24,11 +23,11 @@ export async function createClient(): Promise<SupabaseClient<Database>> {
         },
       },
     },
-  ) as unknown as SupabaseClient<Database>;
+  );
 }
 
 // Service role client for routes that operate on behalf of unauthenticated guests
-export function createServiceClient(): SupabaseClient<Database> {
+export function createServiceClient() {
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -36,5 +35,5 @@ export function createServiceClient(): SupabaseClient<Database> {
       cookies: { getAll: () => [], setAll: () => {} },
       auth: { persistSession: false },
     },
-  ) as unknown as SupabaseClient<Database>;
+  );
 }

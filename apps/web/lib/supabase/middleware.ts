@@ -1,7 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import type { Database } from '@groupplan/db';
 import { NextResponse, type NextRequest } from 'next/server';
-import type { SupabaseClient } from '@supabase/supabase-js';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -23,7 +22,7 @@ export async function updateSession(request: NextRequest) {
         },
       },
     },
-  ) as unknown as SupabaseClient<Database>;
+  );
 
   // Calling getUser() here is what triggers the token refresh. It must be
   // called immediately after createServerClient with no intervening logic —

@@ -26,11 +26,11 @@ export async function updateInvitationStatus(
   status: 'accepted' | 'declined',
   name?: string,
 ) {
-  const payload: Record<string, unknown> = {
+  const payload: Database['public']['Tables']['invitations']['Update'] = {
     status,
     responded_at: new Date().toISOString(),
+    ...(name !== undefined ? { name } : {}),
   };
-  if (name) payload['name'] = name;
 
   return db
     .from('invitations')
