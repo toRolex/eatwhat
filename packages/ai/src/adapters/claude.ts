@@ -16,7 +16,7 @@ export class ClaudeAIProvider implements AIProvider {
   private client: Anthropic;
 
   constructor(apiKey: string) {
-    this.client = new Anthropic({ apiKey });
+    this.client = new Anthropic({ apiKey, timeout: 30_000, maxRetries: 2 });
   }
 
   async synthesizeRestaurantProposals(input: SynthesisInput): Promise<SynthesisOutput> {

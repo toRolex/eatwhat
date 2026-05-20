@@ -1,4 +1,5 @@
 import type { VenueProvider, VenueSearchParams, VenueResult } from '../interface';
+import { fetchWithRetry } from '../retry';
 
 const NEW_API_BASE    = 'https://places.googleapis.com/v1/places:searchText';
 const LEGACY_API_BASE = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
@@ -46,7 +47,7 @@ export class GooglePlacesVenueProvider implements VenueProvider {
 
   // ── New Places API (v1) ──────────────────────────────────────────────────
   private async searchNew(query: string, limit: number): Promise<VenueResult[]> {
-    const res = await fetch(NEW_API_BASE, {
+    const res = await fetchWithRetry(NEW_API_BASE, {
       method: 'POST',
       headers: {
         'Content-Type':     'application/json',
@@ -101,7 +102,7 @@ export class GooglePlacesVenueProvider implements VenueProvider {
       key:  this.apiKey,
       type: 'restaurant',
     });
-    const res = await fetch(`${LEGACY_API_BASE}?${qs}`);
+    const res = await fetchWithRetry(`${LEGACY_API_BASE}?${qs}`);
     if (!res.ok) throw new Error(`Google Places (legacy) error ${res.status}: ${await res.text()}`);
 
     const data = (await res.json()) as LegacyResponse;
