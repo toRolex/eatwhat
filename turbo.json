@@ -2,6 +2,10 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "tasks": {
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["**/*.test.ts", "**/*.ts", "!**/*.d.ts"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
