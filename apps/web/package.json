@@ -12,9 +12,9 @@
   "dependencies": {
     "@groupplan/ai": "workspace:*",
     "@groupplan/db": "workspace:*",
-    "@groupplan/notifications": "workspace:*",
     "@groupplan/types": "workspace:*",
     "@groupplan/venues": "workspace:*",
+    "@sendgrid/mail": "^8.1.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.3",
     "ics": "^3.7.0",

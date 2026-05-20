@@ -5,7 +5,6 @@ const nextConfig = {
     '@groupplan/db',
     '@groupplan/types',
     '@groupplan/venues',
-    '@groupplan/notifications',
   ],
 };
 

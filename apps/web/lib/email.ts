@@ -1,4 +1,6 @@
-import type { NotificationTemplate } from '../interface';
+import sgMail from '@sendgrid/mail';
+
+export type EmailTemplate = 'invitation-sent' | 'rsvp-reminder' | 'proposals-ready' | 'winner-announced';
 
 interface RenderedEmail {
   subject: string;
@@ -37,7 +39,7 @@ function button(label: string, href: string): string {
   return `<a href="${escape(href)}" style="display:inline-block;padding:12px 22px;background:#1a1a1a;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px;margin:16px 0">${escape(label)}</a>`;
 }
 
-export function renderEmail(template: NotificationTemplate, data: Record<string, string>): RenderedEmail {
+export function renderEmail(template: EmailTemplate, data: Record<string, string>): RenderedEmail {
   switch (template) {
     case 'invitation-sent': {
       const hostName  = data['host_name']  ?? 'A friend';
@@ -104,4 +106,23 @@ export function renderEmail(template: NotificationTemplate, data: Record<string,
       };
     }
   }
+}
+
+export async function sendEmail(
+  apiKey: string,
+  fromEmail: string,
+  fromName: string,
+  to: { name: string; email: string },
+  template: EmailTemplate,
+  data: Record<string, string>,
+): Promise<void> {
+  sgMail.setApiKey(apiKey);
+  const { subject, html, text } = renderEmail(template, data);
+  await sgMail.send({
+    to,
+    from: { email: fromEmail, name: fromName },
+    subject,
+    html,
+    text,
+  });
 }
