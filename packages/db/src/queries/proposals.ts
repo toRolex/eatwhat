@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../database.types';
 
 export interface InsertProposalRow {
   event_id: string;
@@ -17,7 +18,7 @@ export interface InsertProposalRow {
   suggested_time?: string;
 }
 
-export async function getProposalsByEvent(db: SupabaseClient, eventId: string) {
+export async function getProposalsByEvent(db: SupabaseClient<Database>, eventId: string) {
   return db
     .from('proposals')
     .select('*')
@@ -25,13 +26,17 @@ export async function getProposalsByEvent(db: SupabaseClient, eventId: string) {
     .order('rank', { ascending: true });
 }
 
-export async function insertProposals(db: SupabaseClient, rows: InsertProposalRow[]) {
+export async function insertProposals(db: SupabaseClient<Database>, rows: InsertProposalRow[]) {
   return db.from('proposals').insert(rows).select();
 }
 
 // Replace all proposals for an event in one transaction-ish operation.
 // Used when re-running AI synthesis so stale picks don't pile up.
-export async function replaceProposals(db: SupabaseClient, eventId: string, rows: InsertProposalRow[]) {
+export async function replaceProposals(
+  db: SupabaseClient<Database>,
+  eventId: string,
+  rows: InsertProposalRow[],
+) {
   const { error: deleteError } = await db.from('proposals').delete().eq('event_id', eventId);
   if (deleteError) return { data: null, error: deleteError };
   return db.from('proposals').insert(rows).select();

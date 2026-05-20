@@ -1,10 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../database.types';
 
-export async function getInvitationByToken(db: SupabaseClient, token: string) {
+export async function getInvitationByToken(db: SupabaseClient<Database>, token: string) {
   return db.from('invitations').select('*').eq('invite_token', token).single();
 }
 
-export async function getInvitationsByEvent(db: SupabaseClient, eventId: string) {
+export async function getInvitationsByEvent(db: SupabaseClient<Database>, eventId: string) {
   return db
     .from('invitations')
     .select('*')
@@ -13,14 +14,14 @@ export async function getInvitationsByEvent(db: SupabaseClient, eventId: string)
 }
 
 export async function createInvitations(
-  db: SupabaseClient,
+  db: SupabaseClient<Database>,
   invitations: Array<{ event_id: string; name: string; email: string }>,
 ) {
   return db.from('invitations').insert(invitations).select();
 }
 
 export async function updateInvitationStatus(
-  db: SupabaseClient,
+  db: SupabaseClient<Database>,
   token: string,
   status: 'accepted' | 'declined',
   name?: string,
@@ -40,7 +41,7 @@ export async function updateInvitationStatus(
 }
 
 export async function linkInvitationToUser(
-  db: SupabaseClient,
+  db: SupabaseClient<Database>,
   invitationId: string,
   userId: string,
 ) {

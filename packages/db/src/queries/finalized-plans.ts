@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../database.types';
 
-export async function getFinalizedPlanByEvent(db: SupabaseClient, eventId: string) {
+export async function getFinalizedPlanByEvent(db: SupabaseClient<Database>, eventId: string) {
   return db
     .from('finalized_plans')
     .select('*, proposals(restaurant_name, restaurant_addr, cuisine_type, price_range, rating, maps_url, image_url)')

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database, Json } from '../database.types';
 
 export type UsageKind = 'ai_synthesis' | 'venue_search' | 'photo_proxy';
 
@@ -11,10 +12,10 @@ export interface InsertUsageRow {
   output_tokens?: number;
   cost_micros:    number;
   request_count?: number;
-  metadata?:      Record<string, unknown>;
+  metadata?:      Json;
 }
 
-export async function logUsage(db: SupabaseClient, row: InsertUsageRow) {
+export async function logUsage(db: SupabaseClient<Database>, row: InsertUsageRow) {
   return db.from('usage_log').insert({
     event_id:      row.event_id ?? null,
     kind:          row.kind,
@@ -28,7 +29,7 @@ export async function logUsage(db: SupabaseClient, row: InsertUsageRow) {
   });
 }
 
-export async function getUsageByEvent(db: SupabaseClient, eventId: string) {
+export async function getUsageByEvent(db: SupabaseClient<Database>, eventId: string) {
   return db
     .from('usage_log')
     .select('*')
