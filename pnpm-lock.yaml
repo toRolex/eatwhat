@@ -32,15 +32,15 @@ importers:
       '@groupplan/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@groupplan/notifications':
-        specifier: workspace:*
-        version: link:../../packages/notifications
       '@groupplan/types':
         specifier: workspace:*
         version: link:../../packages/types
       '@groupplan/venues':
         specifier: workspace:*
         version: link:../../packages/venues
+      '@sendgrid/mail':
+        specifier: ^8.1.0
+        version: 8.1.6
       '@supabase/ssr':
         specifier: ^0.10.3
         version: 0.10.3(@supabase/supabase-js@2.106.0)
@@ -112,19 +112,6 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.105.3
         version: 2.106.0
-    devDependencies:
-      typescript:
-        specifier: ^5.4.0
-        version: 5.9.3
-
-  packages/notifications:
-    dependencies:
-      '@groupplan/types':
-        specifier: workspace:*
-        version: link:../types
-      '@sendgrid/mail':
-        specifier: ^8.1.0
-        version: 8.1.6
     devDependencies:
       typescript:
         specifier: ^5.4.0

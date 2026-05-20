@@ -1,10 +1,27 @@
-import { EmailNotificationChannel, NotificationService } from '@groupplan/notifications';
-import type { NotificationPayload } from '@groupplan/notifications';
+import { type EmailTemplate, sendEmail } from './email';
 import { ensureEnvLoaded } from './env';
 
-let cached: NotificationService | null = null;
+export interface EmailPayload {
+  to: { name: string; email?: string };
+  template: EmailTemplate;
+  data: Record<string, string>;
+}
 
-// Returns null when SendGrid isn't configured — callers must no-op in that case.
+export interface EmailBatchResult {
+  sent: number;
+  failed: number;
+  errors: { email: string; message: string }[];
+}
+
+type NotificationService = { notify(payload: EmailPayload): Promise<void> };
+
+let cached:
+  | {
+      key: string;
+      service: NotificationService;
+    }
+  | null = null;
+
 export function getNotificationService(): NotificationService | null {
   ensureEnvLoaded();
 
@@ -14,25 +31,32 @@ export function getNotificationService(): NotificationService | null {
 
   if (!apiKey || !fromEmail) return null;
 
-  if (!cached) {
-    cached = new NotificationService([
-      new EmailNotificationChannel(apiKey, fromEmail, fromName),
-    ]);
-  }
-  return cached;
+  const cacheKey = JSON.stringify([apiKey, fromEmail, fromName]);
+
+  if (cached?.key === cacheKey) return cached.service;
+
+  const service: NotificationService = {
+    async notify(payload: EmailPayload): Promise<void> {
+      if (!payload.to.email) return;
+
+      await sendEmail(
+        apiKey,
+        fromEmail,
+        fromName,
+        { name: payload.to.name, email: payload.to.email },
+        payload.template,
+        payload.data,
+      );
+    },
+  };
+
+  cached = { key: cacheKey, service };
+  return service;
 }
 
-export interface EmailBatchResult {
-  sent:    number;
-  failed:  number;
-  errors:  { email: string; message: string }[];
-}
-
-// Send a batch of notifications, log individual failures to the server console,
-// and return a summary so callers can surface it to the host.
 export async function sendBatch(
   notifier: NotificationService,
-  messages: NotificationPayload[],
+  messages: EmailPayload[],
   context: string,
 ): Promise<EmailBatchResult> {
   const results = await Promise.allSettled(
@@ -42,7 +66,8 @@ export async function sendBatch(
   const errors: { email: string; message: string }[] = [];
   results.forEach((r, i) => {
     if (r.status === 'rejected') {
-      const email = messages[i]!.to.email ?? '(unknown)';
+      const messagePayload = messages[i];
+      const email = messagePayload?.to.email ?? '(unknown)';
       const message = r.reason instanceof Error ? r.reason.message : String(r.reason);
       console.error(`[notifications] ${context} failed for ${email}: ${message}`);
       errors.push({ email, message });
