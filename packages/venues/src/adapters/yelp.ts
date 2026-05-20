@@ -1,4 +1,5 @@
 import type { VenueProvider, VenueSearchParams, VenueResult } from '../interface';
+import { fetchWithRetry } from '../retry';
 
 const YELP_API_BASE = 'https://api.yelp.com/v3';
 
@@ -26,7 +27,7 @@ export class YelpVenueProvider implements VenueProvider {
       qs.set('radius', String(Math.min(params.radius_meters, 40_000)));
     }
 
-    const res = await fetch(`${YELP_API_BASE}/businesses/search?${qs}`, {
+    const res = await fetchWithRetry(`${YELP_API_BASE}/businesses/search?${qs}`, {
       headers: { Authorization: `Bearer ${this.apiKey}` },
     });
 
