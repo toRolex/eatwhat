@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
-import { IcsCalendarExporter } from '@groupplan/calendar';
+import { IcsCalendarExporter } from '@/lib/calendar';
 import type { CalendarData } from '@groupplan/types';
 
 interface Context {

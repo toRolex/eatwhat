@@ -11,10 +11,10 @@ export async function POST(request: Request, { params }: Context) {
   const { token } = await params;
   const db = createServiceClient();
 
-  const { data: invitation } = await getInvitationByToken(db as never, token);
+  const { data: invitation } = await getInvitationByToken(db, token);
   if (!invitation) return NextResponse.json({ error: 'Invalid token' }, { status: 404 });
 
-  const { data: event } = await getEventById(db as never, invitation.event_id);
+  const { data: event } = await getEventById(db, invitation.event_id);
   if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
 
   if (new Date(event.rsvp_deadline) < new Date()) {
@@ -28,7 +28,7 @@ export async function POST(request: Request, { params }: Context) {
   }
 
   const { data: updated, error } = await updateInvitationStatus(
-    db as never,
+    db,
     token,
     parsed.data.status,
     parsed.data.name,

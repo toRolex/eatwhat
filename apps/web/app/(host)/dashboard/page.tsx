@@ -16,7 +16,7 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: events } = await getEventsByHost(supabase as never, user!.id);
+  const { data: events } = await getEventsByHost(supabase, user!.id);
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px' }}>

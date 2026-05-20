@@ -15,7 +15,7 @@ export async function POST(request: Request, { params }: Context) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { data: event } = await getEventById(supabase as never, id);
+  const { data: event } = await getEventById(supabase, id);
   if (!event || event.host_id !== user.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
@@ -38,7 +38,7 @@ export async function POST(request: Request, { params }: Context) {
 
   if (!proposal) return NextResponse.json({ error: 'Proposal not found' }, { status: 404 });
 
-  const { data: invitations } = await getInvitationsByEvent(supabase as never, id);
+  const { data: invitations } = await getInvitationsByEvent(supabase, id);
   const attendees = (invitations ?? [])
     .filter((i) => i.status === 'accepted')
     .map((i) => ({ name: i.name, email: i.email }));

@@ -16,12 +16,12 @@ const ACCENT_COLORS = ['var(--coral)', 'var(--sage)', 'var(--sky)', 'var(--amber
 export default async function ResultsPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: event } = await getEventById(supabase as never, id);
+  const { data: event } = await getEventById(supabase, id);
 
   if (!event) notFound();
   if (event.status !== 'deciding' && event.status !== 'finalized') notFound();
 
-  const { data: proposals } = await getProposalsByEvent(supabase as never, id);
+  const { data: proposals } = await getProposalsByEvent(supabase, id);
   const sorted = (proposals ?? []).sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99));
 
   // Look up finalized plan if any so we can highlight the winning card

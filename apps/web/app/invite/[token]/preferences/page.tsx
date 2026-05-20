@@ -14,7 +14,7 @@ export default async function PreferencesPage({ params }: Props) {
   const { token } = await params;
   const db = createServiceClient();
 
-  const { data: invitation } = await getInvitationByToken(db as never, token);
+  const { data: invitation } = await getInvitationByToken(db, token);
   if (!invitation) notFound();
 
   if (invitation.status !== 'accepted') {
@@ -22,8 +22,8 @@ export default async function PreferencesPage({ params }: Props) {
   }
 
   const [{ data: existing }, { data: event }] = await Promise.all([
-    getPreferencesByInvitation(db as never, invitation.id),
-    getEventById(db as never, invitation.event_id),
+    getPreferencesByInvitation(db, invitation.id),
+    getEventById(db, invitation.event_id),
   ]);
 
   return (

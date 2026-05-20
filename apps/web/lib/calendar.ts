@@ -1,6 +1,16 @@
-import { createEvent } from 'ics';
-import type { CalendarExporter, CalendarExportResult } from '../interface';
 import type { CalendarData } from '@groupplan/types';
+import { createEvent } from 'ics';
+
+export interface CalendarExportResult {
+  content: string | Buffer;
+  content_type: string;
+  filename: string;
+}
+
+// Implement this interface to add GCal API push alongside .ics download
+export interface CalendarExporter {
+  export(data: CalendarData): Promise<CalendarExportResult>;
+}
 
 export class IcsCalendarExporter implements CalendarExporter {
   async export(data: CalendarData): Promise<CalendarExportResult> {

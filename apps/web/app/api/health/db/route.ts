@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { ensureEnvLoaded } from '@/lib/env';
 
+export const dynamic = 'force-dynamic';
+
 ensureEnvLoaded();
 
 const REQUIRED_TABLES = [

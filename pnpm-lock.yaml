@@ -29,9 +29,6 @@ importers:
       '@groupplan/ai':
         specifier: workspace:*
         version: link:../../packages/ai
-      '@groupplan/calendar':
-        specifier: workspace:*
-        version: link:../../packages/calendar
       '@groupplan/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -50,6 +47,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.43.0
         version: 2.101.1
+      ics:
+        specifier: ^3.7.0
+        version: 3.11.0
       next:
         specifier: ^14.2.0
         version: 14.2.35(@opentelemetry/api@1.9.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -99,19 +99,6 @@ importers:
       '@groupplan/types':
         specifier: workspace:*
         version: link:../types
-    devDependencies:
-      typescript:
-        specifier: ^5.4.0
-        version: 5.9.3
-
-  packages/calendar:
-    dependencies:
-      '@groupplan/types':
-        specifier: workspace:*
-        version: link:../types
-      ics:
-        specifier: ^3.7.0
-        version: 3.11.0
     devDependencies:
       typescript:
         specifier: ^5.4.0

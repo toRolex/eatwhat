@@ -14,11 +14,11 @@ interface Props {
 export default async function InvitePage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: event } = await getEventById(supabase as never, id);
+  const { data: event } = await getEventById(supabase, id);
 
   if (!event) notFound();
 
-  const { data: invitations } = await getInvitationsByEvent(supabase as never, id);
+  const { data: invitations } = await getInvitationsByEvent(supabase, id);
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px' }}>

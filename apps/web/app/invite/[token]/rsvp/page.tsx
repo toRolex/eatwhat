@@ -15,10 +15,10 @@ export default async function RSVPPage({ params }: Props) {
   const { token } = await params;
   const db = createServiceClient();
 
-  const { data: invitation } = await getInvitationByToken(db as never, token);
+  const { data: invitation } = await getInvitationByToken(db, token);
   if (!invitation) notFound();
 
-  const { data: event } = await getEventById(db as never, invitation.event_id);
+  const { data: event } = await getEventById(db, invitation.event_id);
   if (!event) notFound();
 
   const deadlinePassed = new Date(event.rsvp_deadline) < new Date();

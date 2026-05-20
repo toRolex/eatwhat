@@ -12,12 +12,12 @@ export async function GET(_req: Request, { params }: Context) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { data: event } = await getEventById(supabase as never, id);
+  const { data: event } = await getEventById(supabase, id);
   if (!event || event.host_id !== user.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const { data: rows } = await getUsageByEvent(supabase as never, id);
+  const { data: rows } = await getUsageByEvent(supabase, id);
   const log = rows ?? [];
 
   // Aggregate by kind

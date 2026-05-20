@@ -14,7 +14,7 @@ export async function POST(request: Request, { params }: Context) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { data: event } = await getEventById(supabase as never, id);
+  const { data: event } = await getEventById(supabase, id);
   if (!event || event.host_id !== user.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
@@ -32,7 +32,7 @@ export async function POST(request: Request, { params }: Context) {
   }
 
   const rows = parsed.data.guests.map((g) => ({ event_id: id, name: g.name, email: g.email }));
-  const { data: invitations, error } = await createInvitations(supabase as never, rows);
+  const { data: invitations, error } = await createInvitations(supabase, rows);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Advance the event into 'collecting' on first invite so guests can submit prefs

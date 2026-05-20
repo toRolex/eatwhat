@@ -18,8 +18,8 @@ export async function GET(_req: Request, { params }: Context) {
   await maybeAutoFinalize(id).catch(() => {});
 
   const [{ data: proposals }, { data: votes }] = await Promise.all([
-    getProposalsByEvent(supabase as never, id),
-    getVotesByEvent(supabase as never, id),
+    getProposalsByEvent(supabase, id),
+    getVotesByEvent(supabase, id),
   ]);
 
   if (!proposals?.length) {
