@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Activity, avColor, bgMap, fgMap } from "./types";
-import { Av } from "./ui";
 
 const typeColor: Record<string, string> = {
   rsvp:   "var(--sage)",
@@ -26,7 +25,7 @@ function NotifDot({ count }: { count: number }) {
 }
 
 function ActivityItem({ item, onRead }: { item: Activity; onRead: () => void }) {
-  const c: string = avColor(item.ini) ?? "amber";
+  const c: string = avColor(item.ini);
   const bg = bgMap[c] ?? "var(--bg2)";
   const fg = fgMap[c] ?? "var(--muted)";
   return (

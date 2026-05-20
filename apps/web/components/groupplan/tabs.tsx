@@ -82,7 +82,7 @@ export function MassiveFooter({ eventName = "The Friday Gathering" }: { eventNam
       <div style={{ position: "absolute", right: -20, top: -30, fontFamily: "var(--fd)", fontSize: 240, color: "rgba(255,255,255,.03)", lineHeight: 1, pointerEvents: "none", userSelect: "none", letterSpacing: "-10px" }}>GP</div>
       <div style={{ position: "relative", padding: "52px 32px 32px", maxWidth: 820 }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 40, marginBottom: 48 }}>
-          <div>
+          <div style={{ minWidth: 160 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="5" r="3" fill="rgba(255,255,255,.9)" /><circle cx="9" cy="9" r="3" fill="rgba(255,255,255,.4)" /></svg>
@@ -95,7 +95,7 @@ export function MassiveFooter({ eventName = "The Friday Gathering" }: { eventNam
               <div>Lower Manhattan, NYC</div>
             </div>
           </div>
-          <div>
+          <div style={{ minWidth: 160 }}>
             <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,.4)", textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 12 }}>Engine</div>
             {["Claude Haiku synthesis", "Google Places search", "Borda count voting", "Auto-finalize logic", "Preference matching"].map(l => (
               <div key={l} style={{ fontSize: 12, color: "rgba(255,255,255,.55)", marginBottom: 7, display: "flex", alignItems: "center", gap: 6 }}>
@@ -103,7 +103,7 @@ export function MassiveFooter({ eventName = "The Friday Gathering" }: { eventNam
               </div>
             ))}
           </div>
-          <div>
+          <div style={{ minWidth: 160 }}>
             <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,.4)", textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 12 }}>Stack</div>
             {["Next.js 14", "Supabase", "Claude AI", "SendGrid", "Vercel / AWS"].map(l => (
               <div key={l} style={{ fontSize: 12, color: "rgba(255,255,255,.55)", marginBottom: 7, display: "flex", alignItems: "center", gap: 6 }}>
@@ -348,12 +348,12 @@ export function PreferencesTab({ liveGuests }: { liveGuests: Guest[] }) {
 
 // ── AI Tab ───────────────────────────────────────────────────────────────────
 const AI_STEPS = [
-  { l: "Collecting guest preferences",    d: "Dietary, cuisine, budget, vibe" },
-  { l: "Searching nearby venues",          d: "Google Places API v1 (Yelp fallback)" },
-  { l: "Building synthesis prompt",        d: "Preference matrix → structured input" },
-  { l: "Running Claude Haiku synthesis",   d: "claude-haiku-4-5-20251001" },
-  { l: "Ranking by preference match",      d: "Constraints met/gap per proposal" },
-  { l: "Generating proposal reasoning",    d: "Per-venue explanation for the group" },
+  { l: "Collecting guest preferences", d: "Dietary, cuisine, budget, vibe" },
+  { l: "Searching nearby venues", d: "Google Places API v1 (Yelp fallback)" },
+  { l: "Building synthesis prompt", d: "Preference matrix → structured input" },
+  { l: "Running Claude Haiku synthesis", d: "claude-haiku-4-5-20251001" },
+  { l: "Ranking by preference match", d: "Constraints met/gap per proposal" },
+  { l: "Generating proposal reasoning", d: "Per-venue explanation for the group" },
 ];
 
 function RestCard({ r, rank, delay, tweaks, open, onToggle }: { r: Restaurant; rank: number; delay: number; tweaks: Tweaks; open: boolean; onToggle: () => void }) {
