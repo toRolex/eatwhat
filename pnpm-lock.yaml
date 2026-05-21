@@ -96,6 +96,9 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.24.0
         version: 0.24.3
+      '@supabase/supabase-js':
+        specifier: ^2.0.0
+        version: 2.106.0
       '@groupplan/types':
         specifier: workspace:*
         version: link:../types

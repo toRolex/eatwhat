@@ -125,7 +125,7 @@ App runs at [http://localhost:3000](http://localhost:3000). The interactive demo
 | `SENDGRID_FROM_EMAIL` | — | Sender address (required if SendGrid key set) |
 | `SENDGRID_FROM_NAME` | — | Sender display name (defaults to `GroupPlan`) |
 | `NEXT_PUBLIC_APP_URL` | — | Full origin for email links (defaults to `http://localhost:3000`) |
-| `PHOTO_PROXY_SECRET` | — | HMAC secret for photo proxy tokens (derived from service role key if absent) |
+| `PHOTO_PROXY_SECRET` | ✓ | HMAC secret for photo proxy tokens |
 
 ## Key features
 

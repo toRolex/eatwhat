@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual, randomBytes } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { ensureEnvLoaded } from './env';
 
 // HMAC-signs photo references so the proxy can't be used as an open relay
@@ -14,12 +14,7 @@ function getSecret(): Buffer {
   const fromEnv = process.env.PHOTO_PROXY_SECRET;
   if (fromEnv && fromEnv.length >= 16) return Buffer.from(fromEnv, 'utf-8');
 
-  // Fallback: derive from any other server-only secret so dev works without setup.
-  // Production should set PHOTO_PROXY_SECRET explicitly.
-  const fallback = process.env.SUPABASE_SERVICE_ROLE_KEY
-                ?? process.env.ANTHROPIC_API_KEY
-                ?? randomBytes(32).toString('hex');
-  return Buffer.from('groupplan-photo-v1:' + fallback, 'utf-8');
+  throw new Error('PHOTO_PROXY_SECRET env var is required');
 }
 
 function sign(payload: string): string {

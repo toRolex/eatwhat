@@ -9,13 +9,17 @@ export interface InsertProposalRow {
   cuisine_type: string;
   price_range: string;
   rating?: number;
-  image_url?: string;
-  maps_url?: string;
-  booking_url?: string;
+  image_url?: string | null;
+  maps_url?: string | null;
+  booking_url?: string | null;
   reasoning: string;
   constraints_met: Record<string, boolean>;
   constraints_gap: Record<string, string>;
-  suggested_time?: string;
+  suggested_time?: string | null;
+  envy_scores?: Record<string, number> | null;
+  narrative_group?: string | null;
+  narrative_personal?: Record<string, string> | null;
+  confidence_score?: number | null;
 }
 
 export async function getProposalsByEvent(db: SupabaseClient<Database>, eventId: string) {

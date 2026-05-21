@@ -201,6 +201,10 @@ export interface Database {
           constraints_met: Json
           constraints_gap: Json
           suggested_time: string | null
+          envy_scores: Json | null
+          narrative_group: string | null
+          narrative_personal: Json | null
+          confidence_score: number | null
           created_at: string
           updated_at: string
         }
@@ -220,6 +224,10 @@ export interface Database {
           constraints_met?: Json | undefined
           constraints_gap?: Json | undefined
           suggested_time?: string | null | undefined
+          envy_scores?: Json | null | undefined
+          narrative_group?: string | null | undefined
+          narrative_personal?: Json | null | undefined
+          confidence_score?: number | null | undefined
           created_at?: string | undefined
           updated_at?: string | undefined
         }
@@ -239,6 +247,10 @@ export interface Database {
           constraints_met?: Json | undefined
           constraints_gap?: Json | undefined
           suggested_time?: string | null | undefined
+          envy_scores?: Json | null | undefined
+          narrative_group?: string | null | undefined
+          narrative_personal?: Json | null | undefined
+          confidence_score?: number | null | undefined
           created_at?: string | undefined
           updated_at?: string | undefined
         }

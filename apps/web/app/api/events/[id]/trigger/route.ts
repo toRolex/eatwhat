@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { TriggerEventSchema } from '@groupplan/types';
 import { getEventById, getPreferencesByEvent, replaceProposalsAndAdvance, getInvitationsByEvent, logUsage } from '@groupplan/db';
-import { ClaudeAIProvider } from '@groupplan/ai';
+import { ClaudeAIProvider, runPipeline } from '@groupplan/ai';
 import { GooglePlacesVenueProvider, YelpVenueProvider } from '@groupplan/venues';
 import type { RestaurantCandidate } from '@groupplan/ai';
 import { ensureEnvLoaded } from '@/lib/env';
 import { getNotificationService, sendBatch, appUrl } from '@/lib/notifications';
+import { rateLimit } from '@/lib/rate-limit';
 
 ensureEnvLoaded();
 
@@ -20,10 +21,23 @@ export async function POST(request: Request, { params }: Context) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  // Per-user rate limit: 10 triggers per hour
+  const userRl = rateLimit(`trigger:user:${user.id}`, 10, 3600000);
+  if (!userRl.ok) {
+    return NextResponse.json({ error: 'Rate limit exceeded', retryAfterSec: userRl.retryAfterSec }, { status: 429 });
+  }
+
   const { data: event } = await getEventById(supabase, id);
   if (!event || event.host_id !== user.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
+
+  // Per-event rate limit: 1 trigger per 5 minutes
+  const eventRl = rateLimit(`trigger:event:${id}`, 1, 300000);
+  if (!eventRl.ok) {
+    return NextResponse.json({ error: 'Rate limit exceeded', retryAfterSec: eventRl.retryAfterSec }, { status: 429 });
+  }
+
   if (event.status !== 'collecting' && event.status !== 'deciding') {
     return NextResponse.json(
       { error: 'AI synthesis can only run while status is collecting or deciding' },
@@ -57,6 +71,97 @@ export async function POST(request: Request, { params }: Context) {
     return NextResponse.json({ error: 'No location available for venue search' }, { status: 422 });
   }
 
+  if (process.env.PIPELINE_V2 === 'true') {
+    const requiredV2Vars = [
+      'ANTHROPIC_API_KEY',
+      'ANTHROPIC_MODEL_FAST',
+      'ANTHROPIC_MODEL_REASONING',
+      'GEMINI_API_KEY',
+      'GEMINI_MODEL',
+      'VOYAGE_API_KEY',
+      'VOYAGE_MODEL',
+    ];
+    const missingVars = requiredV2Vars.filter(v => !process.env[v]);
+    if (missingVars.length > 0) {
+      console.error(`[trigger] Pipeline v2 misconfigured: missing env vars: ${missingVars.join(', ')}`);
+      return NextResponse.json(
+        { error: 'Pipeline v2 is not configured correctly.', code: 'v2_misconfigured', missing: missingVars },
+        { status: 500 },
+      );
+    }
+
+    const pipelineResult = await runPipeline(id, { locationHint: location });
+    const proposalRows = pipelineResult.proposals.flatMap((p) => {
+      const candidate = pipelineResult.candidateDetails[p.place_id];
+      if (!candidate) {
+        console.warn(`[trigger] Pipeline v2 returned unknown place_id ${p.place_id} — skipping`);
+        return [];
+      }
+
+      return [{
+        event_id:           id,
+        rank:               p.rank,
+        restaurant_name:    candidate.name,
+        restaurant_addr:    candidate.address,
+        cuisine_type:       candidate.cuisine_types[0] ?? '',
+        price_range:        candidate.price_range,
+        rating:             candidate.rating,
+        image_url:          candidate.image_url ?? null,
+        maps_url:           candidate.maps_url ?? null,
+        booking_url:        null,
+        reasoning:          p.reasoning,
+        constraints_met:    Object.fromEntries(p.constraints_met.map((label) => [label, true])),
+        constraints_gap:    Object.fromEntries(p.constraints_gap.map((gap) => [gap, gap])),
+        suggested_time:     null,
+        envy_scores:        Object.keys(p.envy_scores ?? {}).length > 0 ? p.envy_scores : null,
+        narrative_group:    p.narrative_group || null,
+        narrative_personal: Object.keys(p.narrative_personal ?? {}).length > 0 ? p.narrative_personal : null,
+        confidence_score:   p.confidence_score,
+      }];
+    });
+
+    if (!proposalRows.length) {
+      return NextResponse.json({ error: 'Pipeline v2 returned no valid proposals' }, { status: 500 });
+    }
+
+    const { error: rpcError } = await replaceProposalsAndAdvance(serviceDb, id, proposalRows);
+    if (rpcError) return NextResponse.json({ error: rpcError.message }, { status: 500 });
+
+    await logUsage(serviceDb, {
+      event_id:      id,
+      kind:          'ai_synthesis',
+      provider:      'pipeline_v2',
+      model:         'multi-stage',
+      cost_micros:   pipelineResult.totalCostMicros,
+      request_count: 1,
+      metadata:      {
+        proposals_returned: proposalRows.length,
+        latency_ms: pipelineResult.totalLatencyMs,
+        conflicts_resolved: pipelineResult.conflictsResolved,
+      },
+    }).catch(() => {});
+
+    const notifier = getNotificationService();
+    let emailSummary: { sent: number; failed: number } | null = null;
+    if (notifier) {
+      const { data: invitations } = await getInvitationsByEvent(serviceDb, id);
+      const accepted = (invitations ?? []).filter((i) => i.status === 'accepted');
+      const batch = await sendBatch(
+        notifier,
+        accepted.map((inv) => ({
+          to:       { name: inv.name, email: inv.email },
+          template: 'proposals-ready' as const,
+          data:     { event_title: event.title, vote_url: `${appUrl()}/invite/${inv.invite_token}/vote` },
+        })),
+        `trigger event ${id}`,
+      );
+      emailSummary = { sent: batch.sent, failed: batch.failed };
+    }
+
+    return NextResponse.json({ ok: true, emails: emailSummary, pipeline: 'v2' });
+  }
+
+  // Legacy path continues below
   // 1. Fetch candidate restaurants — prefer Google Places, fall back to Yelp
   const googleKey = process.env.GOOGLE_PLACES_API_KEY;
   const venueProvider = googleKey ? 'google_places' : 'yelp';
