@@ -1,0 +1,20 @@
+# CODEOWNERS
+# Changes to these paths require review from @andersonmcalpine before merge.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# API routes — auth, pipeline trigger, data writes
+apps/web/app/api/                          @andersonmcalpine
+
+# Database migrations — irreversible in production
+supabase/migrations/                       @andersonmcalpine
+
+# Pipeline core — orchestrator, types, stage interfaces
+packages/ai/src/pipeline/                 @andersonmcalpine
+packages/ai/src/                          @andersonmcalpine
+
+# CI and GitHub configuration
+.github/workflows/                         @andersonmcalpine
+.github/CODEOWNERS                         @andersonmcalpine
+
+# Deployment and security documentation
+docs/PIPELINE_V2_DEPLOYMENT_CHECKLIST.md  @andersonmcalpine

@@ -95,26 +95,11 @@ export function MassiveFooter({ eventName = "The Friday Gathering" }: { eventNam
               <div>Lower Manhattan, NYC</div>
             </div>
           </div>
-          <div style={{ minWidth: 160 }}>
-            <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,.4)", textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 12 }}>Engine</div>
-            {["Claude Haiku synthesis", "Google Places search", "Borda count voting", "Auto-finalize logic", "Preference matching"].map(l => (
-              <div key={l} style={{ fontSize: 12, color: "rgba(255,255,255,.55)", marginBottom: 7, display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,.2)", flexShrink: 0 }} />{l}
-              </div>
-            ))}
-          </div>
-          <div style={{ minWidth: 160 }}>
-            <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,.4)", textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 12 }}>Stack</div>
-            {["Next.js 14", "Supabase", "Claude AI", "SendGrid", "Vercel / AWS"].map(l => (
-              <div key={l} style={{ fontSize: 12, color: "rgba(255,255,255,.55)", marginBottom: 7, display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,.2)", flexShrink: 0 }} />{l}
-              </div>
-            ))}
-          </div>
+
         </div>
         <div style={{ height: 1, background: "rgba(255,255,255,.08)", marginBottom: 20 }} />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,.3)" }}>© 2026 GroupPlan · MIT License · MCDA-powered group coordination</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,.3)" }}>© 2026 GroupPlan</div>
           <div style={{ display: "flex", gap: 16 }}>
             {["Privacy", "Terms", "GitHub", "Docs"].map(l => (
               <span key={l} style={{ fontSize: 11, color: "rgba(255,255,255,.35)", cursor: "pointer", transition: "color .2s" }}
@@ -155,7 +140,7 @@ export function OverviewTab({ setTab, liveGuests }: { setTab: (t: string) => voi
         </div>
         <div style={{ animation: "fu .45s var(--sp) both", maxWidth: 480, position: "relative" }}>
           <SectionLabel style={{ marginBottom: 10 }}>Event Overview</SectionLabel>
-          <h2 style={{ fontFamily: "var(--fd)", fontSize: 56, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", marginBottom: 14 }}>
+          <h2 style={{ fontFamily: "var(--fd)", fontSize: 56, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", marginBottom: 14, textWrap: "balance" as React.CSSProperties["textWrap"] }}>
             The Friday<br /><em>Gathering</em>
           </h2>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -239,7 +224,7 @@ export function OverviewTab({ setTab, liveGuests }: { setTab: (t: string) => voi
               style={{ padding: "9px 18px", borderRadius: "var(--rs)", border: "1px solid rgba(255,255,255,.2)", background: "rgba(255,255,255,.12)", color: "white", fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "var(--fb)", whiteSpace: "nowrap", transition: "background .2s", backdropFilter: "blur(8px)" }}
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,.22)")}
               onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,.12)")}>
-              Run AI ✦
+              Run AI →
             </button>
           </div>
         </Card>
@@ -268,7 +253,7 @@ export function PreferencesTab({ liveGuests }: { liveGuests: Guest[] }) {
           </svg>
         </div>
         <SectionLabel style={{ marginBottom: 10 }}>Guest Preferences</SectionLabel>
-        <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)" }}>
+        <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", textWrap: "balance" as React.CSSProperties["textWrap"] }}>
           What everyone<br /><em>wants</em>
         </h2>
       </div>
@@ -376,7 +361,7 @@ function RestCard({ r, rank, delay, tweaks, open, onToggle }: { r: Restaurant; r
             <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 6 }}>{r.cuisine} · {r.price} · {r.dist} · ★ {r.rating}</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginBottom: 8 }}>{r.tags.map(t => <Badge key={t}>{t}</Badge>)}</div>
             <div style={{ height: 80, borderRadius: "var(--rs)", background: "var(--bg)", border: "1px dashed var(--border)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 7 }}>
-              <span style={{ fontSize: 9, fontFamily: "monospace", color: "var(--border)", textAlign: "center" }}>[ photo — {r.cuisine.toLowerCase()} interior ]</span>
+              <span style={{ fontSize: 10, fontFamily: "var(--fb)", fontStyle: "italic", color: "var(--border)", textAlign: "center", opacity: 0.6 }}>photo</span>
             </div>
             <div style={{ fontSize: 10, color: "var(--muted)" }}>{r.addr} · {r.hours}</div>
           </div>
@@ -397,7 +382,7 @@ function RestCard({ r, rank, delay, tweaks, open, onToggle }: { r: Restaurant; r
             <span style={{ display: "inline-block", transition: "transform .2s var(--sp)", transform: open ? "rotate(90deg)" : "none" }}>▶</span> AI Reasoning
           </button>
         )}
-        {open && <div style={{ marginTop: 6, padding: "8px 10px", background: "var(--bg)", borderRadius: "var(--rs)", fontSize: 10, color: "var(--muted)", lineHeight: 1.7, fontFamily: "monospace", animation: "sd .28s var(--sp) both" }}>{r.reasoning}</div>}
+        {open && <div style={{ marginTop: 6, padding: "8px 10px", background: "var(--bg)", borderRadius: "var(--rs)", fontSize: 10, color: "var(--muted)", lineHeight: 1.7, fontFamily: "var(--fb)", animation: "sd .28s var(--sp) both" }}>{r.reasoning}</div>}
       </div>
     </div>
   );
@@ -591,7 +576,7 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
       localStorage.setItem("gp_ai_proposals", JSON.stringify(data.proposals));
       setTimeout(() => {
         setPhase("done");
-        addActivity({ type: "ai", ini: "✦", name: "AI Engine", msg: `Synthesis complete — 3 venues ranked in ${location}`, time: "just now" });
+        addActivity({ type: "ai", ini: "AI", name: "AI Engine", msg: `Synthesis complete — 3 venues ranked in ${location}`, time: "just now" });
       }, 400);
     } catch (err: any) {
       clearInterval(iv);
@@ -611,7 +596,7 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
           </svg>
         </div>
         <SectionLabel style={{ marginBottom: 10 }}>AI Synthesis</SectionLabel>
-        <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", marginBottom: 10 }}>
+        <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", marginBottom: 10, textWrap: "balance" as React.CSSProperties["textWrap"] }}>
           Ready to find<br /><em>the perfect spot</em>
         </h2>
         <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.65, maxWidth: 360 }}>Real venue search via Yelp + Claude synthesis — tuned to your group&apos;s preferences.</p>
@@ -639,7 +624,7 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
         </div>
         {phase === "error" && <p style={{ fontSize: 12, color: "oklch(55% 0.18 26)", fontFamily: "var(--fb)", marginBottom: 10 }}>{errorMsg}</p>}
         <Btn onClick={run} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-          <span>✦</span> Run AI Synthesis
+          Run AI Synthesis →
         </Btn>
       </div>
       <MassiveFooter eventName="AI Synthesis" />
@@ -653,7 +638,7 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
           <div style={{ width: 12, height: 12, borderRadius: "50%", border: "2px solid var(--text)", borderTopColor: "transparent", animation: "sp2 .75s linear infinite" }} />
           <span style={{ fontSize: 10, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".07em" }}>Processing</span>
         </div>
-        <h2 style={{ fontFamily: "var(--fd)", fontSize: 36, letterSpacing: "-.03em", color: "var(--text)" }}>Running the<br /><em>decision engine</em></h2>
+        <h2 style={{ fontFamily: "var(--fd)", fontSize: 36, letterSpacing: "-.03em", color: "var(--text)", textWrap: "balance" as React.CSSProperties["textWrap"] }}>Running the<br /><em>decision engine</em></h2>
       </div>
       {AI_STEPS.map((s, i) => {
         const done = i < step, active = i === step - 1;
@@ -678,7 +663,7 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
           <Badge color="green">✓ Complete</Badge>
           <button onClick={reset} style={{ fontSize: 10, color: "var(--muted)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)" }}>Rerun</button>
         </div>
-        <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", marginBottom: 5 }}>
+        <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", marginBottom: 5, textWrap: "balance" as React.CSSProperties["textWrap"] }}>
           3 spots ranked<br /><em style={{ color: "var(--muted)" }}>for your group</em>
         </h2>
         <p style={{ fontSize: 11, color: "var(--muted)" }}>Real venues in <strong style={{ color: "var(--text)" }}>{location}</strong> · ranked by Claude across 5 guest preference profiles</p>
@@ -729,7 +714,7 @@ export function VoteTab({ addActivity }: { addActivity: (item: Omit<Activity, "i
     <div>
       <div style={{ padding: "40px 32px 24px", borderBottom: "1px solid var(--border2)" }}>
         <SectionLabel style={{ marginBottom: 10 }}>Ranked-Choice Vote</SectionLabel>
-        <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)" }}>
+        <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", textWrap: "balance" as React.CSSProperties["textWrap"] }}>
           Cast your<br /><em>ranking</em>
         </h2>
       </div>

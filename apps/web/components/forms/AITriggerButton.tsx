@@ -178,7 +178,7 @@ export default function AITriggerButton({ eventId, locationHint, eventStatus = '
               {LOADING_STEPS[stepIdx]}
             </>
           ) : (
-            <>✦ {isRerun ? (confirmingRerun ? 'Confirm re-run' : 'Re-run AI') : 'Run AI'}</>
+            <>{isRerun ? (confirmingRerun ? 'Confirm re-run' : 'Re-run AI') : 'Run AI'} →</>
           )}
         </button>
       </div>

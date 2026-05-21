@@ -69,7 +69,7 @@ export const RESTAURANTS_DATA: Restaurant[] = [
 ];
 
 export const INITIAL_ACTIVITIES: Activity[] = [
-  { id:6, type:"system", ini:"✦", name:"GroupPlan",    msg:"Event created · The Friday Gathering",              time:"1h ago",  read:true  },
+  { id:6, type:"system", ini:"GP", name:"GroupPlan",    msg:"Event created · The Friday Gathering",              time:"1h ago",  read:true  },
   { id:5, type:"rsvp",   ini:"ST", name:"Sam Torres",  msg:"confirmed attendance",                              time:"42m ago", read:true  },
   { id:4, type:"rsvp",   ini:"PN", name:"Priya Nair",  msg:"confirmed · added Halal restriction",               time:"31m ago", read:true  },
   { id:3, type:"rsvp",   ini:"MP", name:"Maya Patel",  msg:"confirmed · submitted vibe",                        time:"18m ago", read:false },

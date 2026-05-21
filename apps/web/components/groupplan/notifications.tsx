@@ -103,12 +103,10 @@ export function NotificationPanel({
             </div>
           ))}
           {activities.length === 0 && (
-            <div style={{ padding: "40px 16px", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>No activity yet</div>
+            <div style={{ padding: "40px 16px", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>All quiet — invite your guests to get started</div>
           )}
         </div>
-        <div style={{ padding: "14px 16px", borderTop: "1px solid var(--border2)", flexShrink: 0 }}>
-          <div style={{ fontSize: 11, color: "var(--muted)", textAlign: "center" }}>Powered by GroupPlan Realtime</div>
-        </div>
+
       </div>
     </>
   );

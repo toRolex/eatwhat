@@ -29,7 +29,7 @@ export function ShareModal({ onClose, liveGuests }: { onClose: () => void; liveG
         </div>
 
         <div style={{ background: "var(--bg)", borderRadius: "var(--rs)", border: "1px solid var(--border2)", padding: "11px 13px", display: "flex", alignItems: "center", gap: 9, marginBottom: 14 }}>
-          <div style={{ flex: 1, fontSize: 11, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "monospace" }}>{link}</div>
+          <div style={{ flex: 1, fontSize: 11, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{link}</div>
           <button onClick={copy} style={{ padding: "5px 12px", borderRadius: 7, border: "none", background: copied ? "oklch(92% .07 148)" : "var(--text)", color: copied ? "oklch(34% .13 148)" : "var(--bg)", fontSize: 11, fontWeight: 500, cursor: "pointer", fontFamily: "var(--fb)", transition: "all .2s var(--sp)", flexShrink: 0 }}>
             {copied ? "✓ Copied" : "Copy"}
           </button>
@@ -42,7 +42,7 @@ export function ShareModal({ onClose, liveGuests }: { onClose: () => void; liveG
                 <div key={i} style={{ width: 7, height: 7, borderRadius: 1, background: [0,1,2,5,9,10,12,14,15,19,20,22,23,24].includes(i) ? "var(--text)" : "var(--border2)" }} />
               ))}
             </div>
-            <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "monospace" }}>QR code</div>
+            <div style={{ fontSize: 9, color: "var(--muted)", fontFamily: "var(--fb)", fontStyle: "italic" }}>QR code</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
             {[{ l: "Confirmed", v: confirmed }, { l: "Pending", v: pending }, { l: "Total", v: guests.length }].map(s => (
@@ -194,7 +194,7 @@ export function Sidebar({
   const tabs = [
     { id: "overview",     icon: "⊞", label: "Overview" },
     { id: "preferences",  icon: "◈", label: "Preferences" },
-    { id: "ai",           icon: "✦", label: "AI Results", badge: "New" },
+    { id: "ai",           icon: "◆", label: "AI Results", badge: "New" },
     { id: "vote",         icon: "◎", label: "Vote" },
   ];
 
