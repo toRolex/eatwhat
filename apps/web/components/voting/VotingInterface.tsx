@@ -194,11 +194,11 @@ export default function VotingInterface({ proposals, token, initialRankings }: P
                     <button
                       key={rank}
                       type="button"
+                      className="vote-rank-btn"
                       onClick={() => assignRank(p.id, rank)}
                       style={{
                         flex: '1 0 36px',
                         minWidth: 36,
-                        padding: '8px 0',
                         borderRadius: 'var(--rs)',
                         border: `1px solid ${selected ? accent : 'var(--border2)'}`,
                         background: selected ? accent : 'var(--bg)',

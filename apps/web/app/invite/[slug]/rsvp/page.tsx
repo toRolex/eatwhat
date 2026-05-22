@@ -32,7 +32,7 @@ export default async function RSVPPage({ params }: Props) {
     <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
 
-        <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', boxShadow: 'var(--sh)', padding: '32px 32px 28px', animation: 'fu .35s var(--sp) both' }}>
+        <div className="invite-card-pad" style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', boxShadow: 'var(--sh)', animation: 'fu .35s var(--sp) both' }}>
 
           <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: 'var(--fb)' }}>
             You&apos;re invited

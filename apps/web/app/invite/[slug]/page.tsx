@@ -108,7 +108,7 @@ export default async function InvitePage({ params }: Props) {
       <main style={{ background: 'var(--bg)', padding: '36px 24px 60px' }}>
         <section style={{ maxWidth: 720, margin: '0 auto', display: 'grid', gap: 18 }}>
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border2)', borderRadius: 'var(--r)', boxShadow: 'var(--sh)', padding: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap' }}>
+            <div className="invite-host-row">
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--bg)', border: '1px solid var(--border2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontFamily: 'var(--fb)', fontSize: 13, fontWeight: 700, overflow: 'hidden' }}>
                   {host?.avatar_url ? (

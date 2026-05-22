@@ -3,7 +3,7 @@ import MagicLinkForm from '@/components/forms/MagicLinkForm';
 import { createServiceClient } from '@/lib/supabase/server';
 import { getEventById, getInvitationBySlug } from '@groupplan/db';
 
-export const metadata: Metadata = { title: 'GroupPlan — Group restaurant planning, simplified' };
+export const metadata: Metadata = { title: 'GroupPlan — Group event planning, simplified' };
 
 interface Props {
   searchParams: Promise<{ from?: string; slug?: string }>;
