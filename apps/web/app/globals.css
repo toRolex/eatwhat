@@ -160,3 +160,8 @@
 @media (max-width: 480px) {
   .vote-rank-btn { padding: 12px 0; }
 }
+
+.event-card:hover {
+  box-shadow: var(--shh);
+  border-color: var(--border);
+}

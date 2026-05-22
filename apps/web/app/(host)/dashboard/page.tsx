@@ -78,9 +78,8 @@ export default async function DashboardPage() {
             <Link
               key={event.id}
               href={`/events/${event.id}`}
+              className="event-card"
               style={{ display: 'block', padding: '16px 20px', borderRadius: 'var(--r)', border: '1px solid var(--border2)', background: 'var(--surface)', textDecoration: 'none', boxShadow: 'var(--sh)', transition: 'box-shadow .2s, border-color .2s', animation: `fu .35s var(--sp) ${i * 0.05}s both` }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = 'var(--shh)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'var(--sh)'; e.currentTarget.style.borderColor = 'var(--border2)'; }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--fb)', letterSpacing: '-.01em' }}>{event.title}</span>

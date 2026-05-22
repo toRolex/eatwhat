@@ -19,8 +19,7 @@ export default async function HostLayout({ children }: { children: React.ReactNo
           <Link href="/dashboard" style={{ fontSize: 14, fontWeight: 600, letterSpacing: '-.02em', color: 'var(--text)', textDecoration: 'none', fontFamily: 'var(--fb)' }}>GroupPlan</Link>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Link href="/dashboard" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--fb)', transition: 'color .15s' }}
-            onMouseEnter={undefined} onMouseLeave={undefined}>Events</Link>
+          <Link href="/dashboard" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--fb)', transition: 'color .15s' }}>Events</Link>
           <Link href="/dev" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--fb)' }}>Dev</Link>
           <Link href="/" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--fb)' }}>Demo</Link>
           <ThemeToggle />

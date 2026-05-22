@@ -50,6 +50,8 @@ export default function EventCreateForm() {
   const [location,    setLocation]    = useState('');
   const [deadline,    setDeadline]    = useState('');
   const [voteDeadline, setVoteDeadline] = useState('');
+  const [proposedDate,  setProposedDate]  = useState('');
+  const [dateFlexible,  setDateFlexible]  = useState(false);
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState<string | null>(null);
 
@@ -67,7 +69,8 @@ export default function EventCreateForm() {
         category,
         template_id:   template,
         location_hint: location || undefined,
-        date_flexible: true,
+        date_flexible:  dateFlexible,
+        proposed_date:  !dateFlexible && proposedDate ? new Date(proposedDate).toISOString() : undefined,
         rsvp_deadline: new Date(deadline).toISOString(),
         vote_deadline: voteDeadline ? new Date(voteDeadline).toISOString() : undefined,
       }),
@@ -137,6 +140,48 @@ export default function EventCreateForm() {
           onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
           onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}
         />
+      </div>
+
+      <div>
+        <label style={labelStyle}>Event date</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: dateFlexible ? 0 : 10 }}>
+          <button
+            type="button"
+            onClick={() => setDateFlexible(f => !f)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7,
+              padding: '7px 12px', borderRadius: 'var(--rs)',
+              border: `1px solid ${dateFlexible ? 'var(--text)' : 'var(--border2)'}`,
+              background: dateFlexible ? 'var(--text)' : 'var(--bg)',
+              color: dateFlexible ? 'var(--bg)' : 'var(--muted)',
+              fontSize: 12, fontWeight: 500, fontFamily: 'var(--fb)', cursor: 'pointer',
+              transition: 'all .15s',
+            }}
+          >
+            <span style={{
+              width: 14, height: 14, borderRadius: 3,
+              border: `1.5px solid ${dateFlexible ? 'var(--bg)' : 'var(--border)'}`,
+              background: dateFlexible ? 'var(--bg)' : 'transparent',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              {dateFlexible && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5l2.5 2.5L8 1" stroke="var(--text)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+            </span>
+            Date flexible
+          </button>
+          <span style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--fb)' }}>
+            {dateFlexible ? 'Guests will be notified when date is set' : 'Set a specific date'}
+          </span>
+        </div>
+        {!dateFlexible && (
+          <input
+            id="proposed-date" type="datetime-local"
+            value={proposedDate} onChange={(e) => setProposedDate(e.target.value)}
+            style={inputStyle}
+            onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
+            onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}
+          />
+        )}
       </div>
 
       <div>
