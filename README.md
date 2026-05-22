@@ -47,7 +47,7 @@ groupplan/
 │           ├── calendar.ts        # ICS calendar export
 │           ├── email.ts           # SendGrid email rendering + sending
 │           ├── scoring.ts         # bordaScore(), computeBorda()
-│           └── status-ui.ts       # STATUS_COLORS and STATUS_LABELS constants
+│           └── event-status.ts    # STATUS_COLORS and STATUS_LABELS constants
 ├── packages/
 │   ├── types/        # Shared TypeScript types + Zod schemas
 │   ├── db/           # Supabase client + typed query helpers

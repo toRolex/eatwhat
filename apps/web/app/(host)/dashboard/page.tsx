@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getEventsByHost } from '@groupplan/db';
-import { STATUS_COLORS } from '@/lib/status-ui';
+import { STATUS_COLORS } from '@/lib/event-status';
 
 export const metadata: Metadata = { title: 'Dashboard' };
 

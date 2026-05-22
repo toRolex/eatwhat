@@ -6,7 +6,7 @@ import { getEventById, getInvitationsByEvent } from '@groupplan/db';
 import AITriggerButton from '@/components/forms/AITriggerButton';
 import UsageBadge from '@/components/host/UsageBadge';
 import { maybeAutoFinalize } from '@/lib/auto-finalize';
-import { STATUS_COLORS } from '@/lib/status-ui';
+import { STATUS_COLORS } from '@/lib/event-status';
 
 export const metadata: Metadata = { title: 'Manage event' };
 

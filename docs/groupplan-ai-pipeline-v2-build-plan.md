@@ -782,7 +782,7 @@ When you're ready to start building, paste this into Claude Code:
 ```
 I'm upgrading the AI pipeline in my GroupPlan monorepo
 (github.com/andersonmcalpine/groupplan). The current architecture is
-a single Claude Haiku API call in packages/ai/src/adapters/claude.ts
+a single Claude Haiku API call in packages/ai/src/adapters/anthropic-legacy.ts
 that takes guest preferences + restaurant candidates and returns 3
 ranked proposals.
 
