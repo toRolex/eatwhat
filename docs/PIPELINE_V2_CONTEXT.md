@@ -367,7 +367,7 @@ YELP_API_KEY=
 
 # Required for pipeline v2
 GEMINI_API_KEY=
-GEMINI_MODEL=                    # e.g. gemini-2.0-flash-exp
+GEMINI_MODEL=                    # e.g. gemini-2.5-flash (stable) or gemini-2.0-flash
 COHERE_API_KEY=                  # required when Cohere reranker is added (Session 7)
 VOYAGE_API_KEY=
 VOYAGE_MODEL=                    # e.g. voyage-3

@@ -159,10 +159,9 @@ describe('reasoning-engine', () => {
 
     const callArgs = mockCreate.mock.calls[0]![0] as Record<string, unknown>;
     expect(callArgs).not.toHaveProperty('thinking');
-    expect(callArgs).not.toHaveProperty('betas');
   });
 
-  it('DOES include thinking and betas when ANTHROPIC_EXTENDED_THINKING=true', async () => {
+  it('DOES include thinking when ANTHROPIC_EXTENDED_THINKING=true', async () => {
     process.env.ANTHROPIC_EXTENDED_THINKING = 'true';
     mockCreate.mockResolvedValueOnce(makeToolResponse([
       { place_id: 'place1', rank: 1, reasoning: 'Best fit.', constraints_met: [], constraints_gap: [], fairness_note: '' },
@@ -172,7 +171,6 @@ describe('reasoning-engine', () => {
 
     const callArgs = mockCreate.mock.calls[0]![0] as Record<string, unknown>;
     expect(callArgs).toHaveProperty('thinking');
-    expect(callArgs).toHaveProperty('betas');
 
     delete process.env.ANTHROPIC_EXTENDED_THINKING;
   });

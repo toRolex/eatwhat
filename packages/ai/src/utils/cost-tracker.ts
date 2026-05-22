@@ -2,7 +2,8 @@
 const PRICING: Record<string, { input: number; output: number } | { perRequest: number }> = {
   'claude-haiku-4-5-20251001': { input: 0.80,  output: 4.00  },
   'claude-sonnet-4-6':         { input: 3.00,  output: 15.00 },
-  'gemini-3-flash':            { input: 0.075, output: 0.30  },
+  'gemini-2.5-flash':          { input: 0.30,  output: 2.50  },
+  'gemini-2.0-flash':          { input: 0.075, output: 0.30  },
   'voyage-3':                  { input: 0.06,  output: 0     },
   'cohere-rerank-v3.5':        { perRequest: 0.002           },
 };

@@ -149,7 +149,6 @@ export async function run(
       messages: [{ role: 'user', content: buildUserMessage(candidates, constraints, implicit) }],
       ...(useExtendedThinking ? {
         thinking: { type: 'enabled' as const, budget_tokens: 5000 },
-        betas: ['interleaved-thinking-2025-05-14'] as string[],
       } : {}),
     };
 

@@ -15,7 +15,7 @@ All of these must be set before `PIPELINE_V2=true` is safe.
 | `ANTHROPIC_MODEL_FAST` | Haiku model ID | e.g. `claude-haiku-4-5-20251001` |
 | `ANTHROPIC_MODEL_REASONING` | Sonnet model ID | e.g. `claude-sonnet-4-6` |
 | `GEMINI_API_KEY` | Gemini candidate discovery | V2 only |
-| `GEMINI_MODEL` | Gemini model ID | e.g. `gemini-2.0-flash-exp` — verify against Gemini docs |
+| `GEMINI_MODEL` | Gemini model ID | e.g. `gemini-2.5-flash` (stable) or `gemini-2.0-flash` |
 | `VOYAGE_API_KEY` | Voyage AI embeddings | V2 only |
 | `VOYAGE_MODEL` | Voyage model ID | e.g. `voyage-3` |
 | `PIPELINE_V2` | Feature flag | Must be `false` until ready |
