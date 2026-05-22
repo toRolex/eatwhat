@@ -138,6 +138,24 @@ export type Database = {
           },
         ]
       }
+      feature_flags: {
+        Row: {
+          enabled: boolean
+          flag_name: string
+          user_ids: string[]
+        }
+        Insert: {
+          enabled?: boolean
+          flag_name: string
+          user_ids?: string[]
+        }
+        Update: {
+          enabled?: boolean
+          flag_name?: string
+          user_ids?: string[]
+        }
+        Relationships: []
+      }
       finalized_plans: {
         Row: {
           calendar_data: Json
@@ -185,6 +203,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      funnel_events: {
+        Row: {
+          created_at: string
+          event_name: string
+          id: string
+          metadata: Json
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          id?: string
+          metadata?: Json
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          id?: string
+          metadata?: Json
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       guest_preferences: {
         Row: {
@@ -260,6 +305,7 @@ export type Database = {
           fcm_token: string | null
           id: string
           invite_token: string
+          slug: string
           name: string
           responded_at: string | null
           status: Database["public"]["Enums"]["invite_status"]
@@ -273,6 +319,7 @@ export type Database = {
           fcm_token?: string | null
           id?: string
           invite_token?: string
+          slug?: string
           name: string
           responded_at?: string | null
           status?: Database["public"]["Enums"]["invite_status"]
@@ -286,6 +333,7 @@ export type Database = {
           fcm_token?: string | null
           id?: string
           invite_token?: string
+          slug?: string
           name?: string
           responded_at?: string | null
           status?: Database["public"]["Enums"]["invite_status"]
@@ -650,7 +698,7 @@ export type Database = {
         | "deciding"
         | "finalized"
         | "cancelled"
-      invite_status: "pending" | "accepted" | "declined"
+      invite_status: "pending" | "accepted" | "declined" | "pending_signup"
       usage_kind: "ai_synthesis" | "venue_search" | "photo_proxy"
     }
     CompositeTypes: {
@@ -788,7 +836,7 @@ export const Constants = {
         "finalized",
         "cancelled",
       ],
-      invite_status: ["pending", "accepted", "declined"],
+      invite_status: ["pending", "accepted", "declined", "pending_signup"],
       usage_kind: ["ai_synthesis", "venue_search", "photo_proxy"],
     },
   },

@@ -16,9 +16,10 @@ export const EventCategory = {
 export type EventCategory = (typeof EventCategory)[keyof typeof EventCategory];
 
 export const InviteStatus = {
-  PENDING:  'pending',
-  ACCEPTED: 'accepted',
-  DECLINED: 'declined',
+  PENDING:        'pending',
+  ACCEPTED:       'accepted',
+  DECLINED:       'declined',
+  PENDING_SIGNUP: 'pending_signup',
 } as const;
 export type InviteStatus = (typeof InviteStatus)[keyof typeof InviteStatus];
 

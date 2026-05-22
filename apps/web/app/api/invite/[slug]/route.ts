@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
-import { getInvitationByToken, getEventById } from '@groupplan/db';
+import { getInvitationBySlug, getInvitationByToken, getEventById } from '@groupplan/db';
 
 interface Context {
-  params: Promise<{ token: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export async function GET(_req: Request, { params }: Context) {
-  const { token } = await params;
+  const { slug } = await params;
   const db = createServiceClient();
 
-  const { data: invitation } = await getInvitationByToken(db, token);
-  if (!invitation) return NextResponse.json({ error: 'Invalid token' }, { status: 404 });
+  const { data: invitation } = slug.length === 64
+    ? await getInvitationByToken(db, slug)
+    : await getInvitationBySlug(db, slug);
+  if (!invitation) return NextResponse.json({ error: 'Invalid invite' }, { status: 404 });
 
   const { data: event } = await getEventById(db, invitation.event_id);
   if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });

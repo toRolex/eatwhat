@@ -1,0 +1,190 @@
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { createServiceClient, createClient } from '@/lib/supabase/server';
+import { getInvitationByToken, getInvitationBySlug, getEventById } from '@groupplan/db';
+import InviteView from '@/components/invite-templates/InviteView';
+import PreviewBanner from '@/components/ui/PreviewBanner';
+import AcceptButton from './AcceptButton';
+
+interface Props {
+  params: Promise<{ slug: string }>;
+}
+
+interface Attendee {
+  name: string;
+  avatarUrl: string | null;
+}
+
+interface AttendeeRow {
+  name: string;
+  users?: unknown;
+}
+
+function formatDate(value: string | null): string {
+  if (!value) return 'Date to be confirmed';
+  return new Date(value).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return (parts[0]?.[0] ?? '?') + (parts[1]?.[0] ?? '');
+}
+
+function mapAttendees(rows: AttendeeRow[]): Attendee[] {
+  return rows.map((row) => {
+    const userData = (Array.isArray(row.users) ? row.users[0] : row.users) as unknown;
+    const avatarUrl = (userData as { avatar_url?: string | null } | null)?.avatar_url ?? null;
+    return { name: row.name, avatarUrl };
+  });
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const db = createServiceClient();
+  const { data: invitation } = slug.length === 64
+    ? await getInvitationByToken(db, slug)
+    : await getInvitationBySlug(db, slug);
+
+  if (!invitation) return { title: "You're invited" };
+
+  const { data: event } = await getEventById(db, invitation.event_id);
+  return {
+    title: event ? `${event.title} invitation` : "You're invited",
+    description: event?.description ?? undefined,
+  };
+}
+
+export default async function InvitePage({ params }: Props) {
+  const { slug } = await params;
+  const serviceDb = createServiceClient();
+
+  const { data: invitation } = slug.length === 64
+    ? await getInvitationByToken(serviceDb, slug)
+    : await getInvitationBySlug(serviceDb, slug);
+  if (!invitation) notFound();
+
+  const { data: event } = await getEventById(serviceDb, invitation.event_id);
+  if (!event) notFound();
+
+  const [{ data: host }, { data: attendeeRows }] = await Promise.all([
+    serviceDb
+      .from('users')
+      .select('name, email, avatar_url')
+      .eq('id', event.host_id)
+      .single(),
+    serviceDb
+      .from('invitations')
+      .select('name, users(avatar_url)')
+      .eq('event_id', event.id)
+      .eq('status', 'accepted')
+      .order('responded_at', { ascending: true }),
+  ]);
+
+  const authDb = await createClient();
+  const { data: { user } } = await authDb.auth.getUser();
+  const isHostPreview = user?.id === event.host_id;
+  const hostName = host?.name ?? user?.email?.split('@')[0] ?? 'Your host';
+  const attendees = mapAttendees((attendeeRows ?? []) as unknown as AttendeeRow[]);
+  const visibleAttendees = attendees.slice(0, 5);
+  const extraAttendees = Math.max(0, attendees.length - visibleAttendees.length);
+  const dateDisplay = event.date_flexible ? 'Date flexible' : formatDate(event.proposed_date);
+  const locationDisplay = event.location_hint ?? 'Location to be confirmed';
+  const inviteViewInvitation = { ...invitation, invite_token: slug };
+
+  return (
+    <>
+      {isHostPreview && <PreviewBanner />}
+      <InviteView
+        invitation={inviteViewInvitation}
+        event={event}
+        templateId={event.template_id}
+      />
+
+      <main style={{ background: 'var(--bg)', padding: '36px 24px 60px' }}>
+        <section style={{ maxWidth: 720, margin: '0 auto', display: 'grid', gap: 18 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border2)', borderRadius: 'var(--r)', boxShadow: 'var(--sh)', padding: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--bg)', border: '1px solid var(--border2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontFamily: 'var(--fb)', fontSize: 13, fontWeight: 700, overflow: 'hidden' }}>
+                  {host?.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={host.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    initials(hostName)
+                  )}
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', fontFamily: 'var(--fb)', marginBottom: 3 }}>
+                    Hosted by
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--fb)' }}>
+                    {hostName}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', minHeight: 36 }}>
+                {visibleAttendees.map((attendee, index) => (
+                  <div
+                    key={`${attendee.name}-${index}`}
+                    title={attendee.name}
+                    style={{ width: 36, height: 36, marginLeft: index === 0 ? 0 : -10, borderRadius: '50%', border: '2px solid var(--surface)', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontFamily: 'var(--fb)', fontSize: 11, fontWeight: 700, overflow: 'hidden' }}
+                  >
+                    {attendee.avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={attendee.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      initials(attendee.name)
+                    )}
+                  </div>
+                ))}
+                {extraAttendees > 0 && (
+                  <div style={{ width: 36, height: 36, marginLeft: -10, borderRadius: '50%', border: '2px solid var(--surface)', background: 'var(--text)', color: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, fontFamily: 'var(--fb)' }}>
+                    +{extraAttendees}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 22 }}>
+              <span style={{ border: '1px solid var(--border2)', background: 'var(--bg)', color: 'var(--text)', borderRadius: 999, padding: '8px 12px', fontSize: 12, fontWeight: 600, fontFamily: 'var(--fb)' }}>
+                {dateDisplay}
+              </span>
+              <span style={{ border: '1px solid var(--border2)', background: 'var(--bg)', color: 'var(--text)', borderRadius: 999, padding: '8px 12px', fontSize: 12, fontWeight: 600, fontFamily: 'var(--fb)' }}>
+                {locationDisplay}
+              </span>
+            </div>
+
+            {event.description && (
+              <div style={{ marginTop: 24, paddingTop: 22, borderTop: '1px solid var(--border2)' }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', fontFamily: 'var(--fb)', marginBottom: 8 }}>
+                  A note from {hostName}
+                </div>
+                <p style={{ margin: 0, color: 'var(--muted)', fontFamily: 'var(--fb)', fontSize: 14, lineHeight: 1.65 }}>
+                  {event.description}
+                </p>
+              </div>
+            )}
+
+            <div style={{ marginTop: 24 }}>
+              <AcceptButton slug={slug} alreadyAccepted={invitation.status === 'accepted'} />
+            </div>
+
+            {invitation.status === 'accepted' && (
+              <div style={{ marginTop: 12, textAlign: 'center' }}>
+                <Link href={`/invite/${slug}/preferences`} style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none' }}>
+                  Update preferences
+                </Link>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
+    </>
+  );
+}

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { InviteGuestsSchema } from '@groupplan/types';
 import { getEventById, createInvitations } from '@groupplan/db';
 import { getNotificationService, sendBatch, appUrl } from '@/lib/notifications';
+import { track } from '@/lib/funnel';
 
 interface Context {
   params: Promise<{ id: string }>;
@@ -31,9 +32,15 @@ export async function POST(request: Request, { params }: Context) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const rows = parsed.data.guests.map((g) => ({ event_id: id, name: g.name, email: g.email }));
+  const rows = parsed.data.guests.map((g) => ({
+    event_id: id,
+    event_slug: event.slug,
+    name: g.name,
+    email: g.email,
+  }));
   const { data: invitations, error } = await createInvitations(supabase, rows);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  void track('invites_sent', { userId: user.id, metadata: { event_id: id, count: invitations?.length ?? 0 } });
 
   // Advance the event into 'collecting' on first invite so guests can submit prefs
   if (event.status === 'open') {
@@ -57,7 +64,7 @@ export async function POST(request: Request, { params }: Context) {
         data: {
           host_name:   hostName,
           event_title: event.title,
-          invite_url:  `${appUrl()}/invite/${inv.invite_token}`,
+          invite_url:  `${appUrl()}/invite/${inv.slug ?? inv.invite_token}`,
         },
       })),
       `invite event ${id}`,

@@ -1,21 +1,23 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase/server';
-import { getInvitationByToken } from '@groupplan/db';
+import { getInvitationBySlug, getInvitationByToken } from '@groupplan/db';
 import { getEventById } from '@groupplan/db';
 import RSVPForm from '@/components/forms/RSVPForm';
 
 export const metadata: Metadata = { title: 'RSVP' };
 
 interface Props {
-  params: Promise<{ token: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export default async function RSVPPage({ params }: Props) {
-  const { token } = await params;
+  const { slug } = await params;
   const db = createServiceClient();
 
-  const { data: invitation } = await getInvitationByToken(db, token);
+  const { data: invitation } = slug.length === 64
+    ? await getInvitationByToken(db, slug)
+    : await getInvitationBySlug(db, slug);
   if (!invitation) notFound();
 
   const { data: event } = await getEventById(db, invitation.event_id);
@@ -55,7 +57,7 @@ export default async function RSVPPage({ params }: Props) {
               </p>
             </div>
           ) : (
-            <RSVPForm token={token} currentStatus={invitation.status} />
+            <RSVPForm token={slug} currentStatus={invitation.status} />
           )}
         </div>
 

@@ -1,18 +1,20 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { RSVPSchema } from '@groupplan/types';
-import { getInvitationByToken, updateInvitationStatus, getEventById } from '@groupplan/db';
+import { getInvitationBySlug, getInvitationByToken, getEventById } from '@groupplan/db';
 
 interface Context {
-  params: Promise<{ token: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export async function POST(request: Request, { params }: Context) {
-  const { token } = await params;
+  const { slug } = await params;
   const db = createServiceClient();
 
-  const { data: invitation } = await getInvitationByToken(db, token);
-  if (!invitation) return NextResponse.json({ error: 'Invalid token' }, { status: 404 });
+  const { data: invitation } = slug.length === 64
+    ? await getInvitationByToken(db, slug)
+    : await getInvitationBySlug(db, slug);
+  if (!invitation) return NextResponse.json({ error: 'Invalid invite' }, { status: 404 });
 
   const { data: event } = await getEventById(db, invitation.event_id);
   if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
@@ -27,12 +29,18 @@ export async function POST(request: Request, { params }: Context) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { data: updated, error } = await updateInvitationStatus(
-    db,
-    token,
-    parsed.data.status,
-    parsed.data.name,
-  );
+  const payload = {
+    status: parsed.data.status,
+    responded_at: new Date().toISOString(),
+    ...(parsed.data.name !== undefined ? { name: parsed.data.name } : {}),
+  };
+
+  const { data: updated, error } = await db
+    .from('invitations')
+    .update(payload)
+    .eq('id', invitation.id)
+    .select()
+    .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

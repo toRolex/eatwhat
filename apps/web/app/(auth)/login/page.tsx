@@ -1,7 +1,13 @@
 import type { Metadata } from 'next';
 import MagicLinkForm from '@/components/forms/MagicLinkForm';
+import { createServiceClient } from '@/lib/supabase/server';
+import { getEventById, getInvitationBySlug } from '@groupplan/db';
 
 export const metadata: Metadata = { title: 'GroupPlan — Group restaurant planning, simplified' };
+
+interface Props {
+  searchParams: Promise<{ from?: string; slug?: string }>;
+}
 
 const FEATURES = [
   {
@@ -50,7 +56,24 @@ const STEPS = [
   { n: '3', label: 'Let AI decide', sub: 'Claude picks top venues. Guests vote. You finalize in one click.' },
 ];
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: Props) {
+  const { from, slug } = await searchParams;
+  let inviteContext: { guestName: string; eventTitle: string } | null = null;
+
+  if (from === 'invite' && slug) {
+    const db = createServiceClient();
+    const { data: invitation } = await getInvitationBySlug(db, slug);
+
+    if (invitation) {
+      const { data: event } = await getEventById(db, invitation.event_id);
+      inviteContext = event
+        ? { guestName: invitation.name, eventTitle: event.title }
+        : null;
+    }
+  }
+
+  const redirectTo = from === 'invite' && slug ? `/invite/${slug}/confirmed` : undefined;
+
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', padding: '0 0 80px' }}>
 
@@ -98,7 +121,17 @@ export default function LoginPage() {
                 Sign in to<br /><em>GroupPlan</em>
               </h2>
             </div>
-            <MagicLinkForm />
+            {inviteContext && (
+              <div style={{ padding: '12px 14px', borderRadius: 'var(--rs)', border: '1px solid var(--border2)', background: 'var(--bg)', marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--fb)', marginBottom: 3 }}>
+                  Finish accepting your invite
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', lineHeight: 1.5, margin: 0 }}>
+                  {inviteContext.guestName}, sign in to confirm your spot for {inviteContext.eventTitle}.
+                </p>
+              </div>
+            )}
+            <MagicLinkForm redirectTo={redirectTo} />
             <p style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: '14px 0 0', lineHeight: 1.5 }}>
               No password needed — we&apos;ll email you a magic link.
             </p>

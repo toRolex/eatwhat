@@ -1,8 +1,18 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../database.types';
 
+function randomHex8(): string {
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
 export async function getInvitationByToken(db: SupabaseClient<Database>, token: string) {
   return db.from('invitations').select('*').eq('invite_token', token).single();
+}
+
+export async function getInvitationBySlug(db: SupabaseClient<Database>, slug: string) {
+  return db.from('invitations').select('*').eq('slug', slug).single();
 }
 
 export async function getInvitationsByEvent(db: SupabaseClient<Database>, eventId: string) {
@@ -15,9 +25,14 @@ export async function getInvitationsByEvent(db: SupabaseClient<Database>, eventI
 
 export async function createInvitations(
   db: SupabaseClient<Database>,
-  invitations: Array<{ event_id: string; name: string; email: string }>,
+  invitations: Array<{ event_id: string; event_slug: string; name: string; email: string }>,
 ) {
-  return db.from('invitations').insert(invitations).select();
+  const rows = invitations.map(({ event_slug, ...invitation }) => ({
+    ...invitation,
+    slug: `${event_slug}-${randomHex8()}`,
+  }));
+
+  return db.from('invitations').insert(rows).select();
 }
 
 export async function updateInvitationStatus(

@@ -34,6 +34,7 @@ export interface Invitation {
   event_id: string;
   user_id: string | null;
   invite_token: string;
+  slug: string;
   name: string;
   email: string;
   status: InviteStatus;
