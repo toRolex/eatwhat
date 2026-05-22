@@ -27,11 +27,12 @@ export async function POST(_request: NextRequest, { params }: Context) {
   if (!['open', 'collecting'].includes(event.status)) {
     return NextResponse.json({ error: 'RSVPs are no longer being accepted for this event' }, { status: 422 });
   }
-  await serviceDb.from('invitations').update({
+  const { error: updateError } = await serviceDb.from('invitations').update({
     status: 'accepted',
     responded_at: new Date().toISOString(),
     ...(user ? { user_id: user.id } : {}),
   }).eq('id', invitation.id);
+  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
   void track('invite_accepted', { userId: user?.id ?? null, metadata: { slug: inviteSlug } });
   return NextResponse.json({ redirect: `/invite/${inviteSlug}/confirmed` });
 }

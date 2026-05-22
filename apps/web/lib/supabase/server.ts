@@ -1,4 +1,5 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@groupplan/db';
 import { cookies } from 'next/headers';
 
@@ -26,14 +27,13 @@ export async function createClient() {
   );
 }
 
-// Service role client for routes that operate on behalf of unauthenticated guests
+// Service role client — bypasses RLS for server-side operations on behalf of guests.
+// Uses the plain supabase-js client (not @supabase/ssr) so the service role key is
+// sent as the Bearer token on every request, reliably bypassing RLS.
 export function createServiceClient() {
-  return createServerClient<Database>(
+  return createSupabaseClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: { getAll: () => [], setAll: () => {} },
-      auth: { persistSession: false },
-    },
+    { auth: { persistSession: false, autoRefreshToken: false } },
   );
 }
