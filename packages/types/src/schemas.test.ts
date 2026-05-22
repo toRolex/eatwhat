@@ -53,6 +53,11 @@ describe('CreateEventSchema', () => {
       expect(CreateEventSchema.safeParse({ ...valid, template_id: id }).success).toBe(true);
     }
   });
+
+  it('rejects event categories that are not yet supported', () => {
+    expect(CreateEventSchema.safeParse({ ...valid, category: 'activity' }).success).toBe(false);
+    expect(CreateEventSchema.safeParse({ ...valid, category: 'movie' }).success).toBe(false);
+  });
 });
 
 describe('SubmitPreferencesSchema', () => {

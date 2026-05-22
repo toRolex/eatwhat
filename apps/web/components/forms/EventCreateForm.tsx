@@ -3,6 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+const CATEGORIES = [
+  { id: 'dinner',   label: 'Dinner',   description: 'Restaurant picks for the group', disabled: false },
+  { id: 'activity', label: 'Activity', description: 'Coming soon', disabled: true },
+  { id: 'movie',    label: 'Movie',    description: 'Coming soon', disabled: true },
+];
+
 const TEMPLATES = [
   { id: 'classic',  label: 'Classic',  description: 'Elegant dark card' },
   { id: 'minimal',  label: 'Minimal',  description: 'Clean white layout' },
@@ -39,6 +45,7 @@ export default function EventCreateForm() {
 
   const [title,       setTitle]       = useState('');
   const [description, setDescription] = useState('');
+  const [category,    setCategory]    = useState<string>('dinner');
   const [template,    setTemplate]    = useState('classic');
   const [location,    setLocation]    = useState('');
   const [deadline,    setDeadline]    = useState('');
@@ -57,6 +64,7 @@ export default function EventCreateForm() {
       body: JSON.stringify({
         title,
         description:   description || undefined,
+        category,
         template_id:   template,
         location_hint: location || undefined,
         date_flexible: true,
@@ -142,6 +150,31 @@ export default function EventCreateForm() {
           onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
           onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}
         />
+      </div>
+
+      <div>
+        <p style={labelStyle}>Event type</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.id} type="button" onClick={() => !c.disabled && setCategory(c.id)}
+              style={{
+                padding: '12px 10px',
+                borderRadius: 'var(--rs)',
+                border: `1px solid ${category === c.id ? 'var(--text)' : 'var(--border2)'}`,
+                background: category === c.id ? 'var(--bg2)' : 'var(--bg)',
+                textAlign: 'left',
+                cursor: c.disabled ? 'default' : 'pointer',
+                opacity: c.disabled ? 0.45 : 1,
+                transition: 'border-color .15s, background .15s',
+                boxShadow: category === c.id ? '0 0 0 1px var(--text)' : 'none',
+              }}
+            >
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--fb)', margin: '0 0 3px' }}>{c.label}</p>
+              <p style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: 0 }}>{c.description}</p>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div>

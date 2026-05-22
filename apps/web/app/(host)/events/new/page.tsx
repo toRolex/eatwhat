@@ -16,7 +16,7 @@ export default function NewEventPage() {
       <div style={{ marginBottom: 28 }}>
         <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 5, fontFamily: 'var(--fb)' }}>New event</div>
         <h1 style={{ fontFamily: 'var(--fd)', fontSize: 32, letterSpacing: '-.03em', color: 'var(--text)', margin: 0 }}>
-          Plan a dinner
+          Plan an event
         </h1>
       </div>
 

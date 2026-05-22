@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
-import { SubmitPreferencesSchema } from '@groupplan/types';
-import { getInvitationByToken, upsertPreferences } from '@groupplan/db';
+import { getPreferencesSchema } from '@groupplan/types';
+import { getInvitationByToken, upsertPreferences, getEventById } from '@groupplan/db';
 
 interface Context {
   params: Promise<{ token: string }>;
@@ -21,8 +21,11 @@ export async function POST(request: Request, { params }: Context) {
     );
   }
 
+  const { data: event } = await getEventById(db, invitation.event_id);
+  const schema = getPreferencesSchema((event as { category?: string } | null)?.category ?? 'dinner');
+
   const body = await request.json();
-  const parsed = SubmitPreferencesSchema.safeParse(body);
+  const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }

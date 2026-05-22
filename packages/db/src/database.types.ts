@@ -642,7 +642,7 @@ export type Database = {
       }
     }
     Enums: {
-      event_category: "dinner"
+      event_category: "dinner" | "activity" | "movie"
       event_status:
         | "draft"
         | "open"
@@ -779,7 +779,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      event_category: ["dinner"],
+      event_category: ["dinner", "activity", "movie"],
       event_status: [
         "draft",
         "open",

@@ -17,15 +17,23 @@ import type { RawPreference } from '../stages/constraint-extractor';
 export interface EventDataRecord {
   id: string;
   title: string;
+  category: string;
   event_date: string | null;
   guest_count: number;
   location_hint: string;
 }
 
+type EventDataLoaderEvent = EventDataRecord | (Omit<EventDataRecord, 'category'> & { category?: string | null });
+
 export interface LoadedEventData {
-  event: EventDataRecord;
+  event: EventDataLoaderEvent;
   preferences: RawPreference[];
 }
+
+type NormalizedLoadedEventData = {
+  event: EventDataRecord;
+  preferences: RawPreference[];
+};
 
 export type EventDataLoader = (eventId: string) => Promise<LoadedEventData>;
 
@@ -47,7 +55,7 @@ type InvitationRow = {
   status: string;
 };
 
-function preferenceToRawText(preference: GuestPreferenceRow): string {
+function dinnerPreferenceToRawText(preference: GuestPreferenceRow): string {
   return [
     preference.dietary?.length ? `Dietary: ${preference.dietary.join(', ')}` : '',
     preference.cuisine_prefs?.length ? `Cuisine likes: ${preference.cuisine_prefs.join(', ')}` : '',
@@ -113,13 +121,14 @@ export async function defaultLoader(eventId: string): Promise<LoadedEventData> {
     guest_id: preference.invitation_id,
     invitation_id: preference.invitation_id,
     event_id: preference.event_id,
-    raw_text: preferenceToRawText(preference),
+    raw_text: dinnerPreferenceToRawText(preference),
     weight_multiplier: invitationById.get(preference.invitation_id)?.status === 'accepted' ? 1.0 : 0.8,
   }));
 
   const eventRecord = event as {
     id: string;
     title: string;
+    category?: string | null;
     proposed_date?: string | null;
     event_date?: string | null;
     guest_count?: number | null;
@@ -130,6 +139,7 @@ export async function defaultLoader(eventId: string): Promise<LoadedEventData> {
     event: {
       id: eventRecord.id,
       title: eventRecord.title,
+      category: (eventRecord as any).category ?? "dinner",
       event_date: eventRecord.event_date ?? eventRecord.proposed_date ?? null,
       guest_count: eventRecord.guest_count ?? Math.max(preferences.length, invitations?.length ?? 0),
       location_hint: eventRecord.location_hint ?? '',
@@ -145,15 +155,25 @@ export async function runPipeline(
   const startMs = Date.now();
   const loader = options?.loader ?? defaultLoader;
 
-  let eventData: LoadedEventData;
+  let eventData: NormalizedLoadedEventData;
   try {
-    eventData = await loader(eventId);
+    const loadedEventData = await loader(eventId);
+    eventData = {
+      event: {
+        ...loadedEventData.event,
+        category: loadedEventData.event.category ?? 'dinner',
+      },
+      preferences: loadedEventData.preferences,
+    };
   } catch (err) {
     if (err instanceof PipelineError) throw err;
     throw new PipelineError('load-event-data', err instanceof Error ? err : new Error(String(err)));
   }
 
   const { event, preferences } = eventData;
+  if (event.category !== 'dinner') {
+    throw new PipelineError('orchestrator', new Error(`event type '${event.category}' is not yet supported by the pipeline`));
+  }
   const locationHint = options?.locationHint ?? event.location_hint;
   if (!locationHint) {
     throw new PipelineError('load-event-data', new Error('event location_hint is required'));

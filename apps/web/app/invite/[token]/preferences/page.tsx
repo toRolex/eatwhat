@@ -32,7 +32,7 @@ export default async function PreferencesPage({ params }: Props) {
 
         <div style={{ marginBottom: 28, animation: 'fu .35s var(--sp) both' }}>
           <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6, fontFamily: 'var(--fb)' }}>
-            Step 2 of 2 · {event?.title ?? 'Group dinner'}
+            Step 2 of 2 · {event?.title ?? 'Your event'}
           </div>
           <h1 style={{ fontFamily: 'var(--fd)', fontSize: 30, letterSpacing: '-.03em', color: 'var(--text)', margin: '0 0 8px', lineHeight: 1.1 }}>
             Tell us your taste
@@ -43,7 +43,7 @@ export default async function PreferencesPage({ params }: Props) {
         </div>
 
         <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', boxShadow: 'var(--sh)', padding: '28px', animation: 'fu .4s var(--sp) .05s both' }}>
-          <PreferenceForm token={token} existing={existing ?? null} />
+          <PreferenceForm token={token} existing={existing ?? null} category={event?.category ?? "dinner"} />
         </div>
       </div>
     </main>

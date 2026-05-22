@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EventCategory } from './enums';
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
@@ -11,6 +12,7 @@ export const MagicLinkSchema = z.object({
 export const CreateEventSchema = z.object({
   title:           z.string().min(1).max(120),
   description:     z.string().max(500).optional(),
+  category:        z.literal(EventCategory.DINNER).default(EventCategory.DINNER),
   template_id:     z.enum(['classic', 'minimal', 'gradient']),
   location_hint:   z.string().max(200).optional(),
   date_flexible:   z.boolean(),
@@ -54,7 +56,7 @@ export const RSVPSchema = z.object({
 
 const DollarAmount = z.number().int().min(0).max(100_000); // cents
 
-export const SubmitPreferencesSchema = z.object({
+export const DinnerPreferencesSchema = z.object({
   dietary:       z.array(z.string().max(50)).max(20),
   cuisine_prefs: z.array(z.string().max(50)).max(20),
   cuisine_avoid: z.array(z.string().max(50)).max(20),
@@ -68,6 +70,9 @@ export const SubmitPreferencesSchema = z.object({
   (d) => d.budget_min == null || d.budget_max == null || d.budget_min <= d.budget_max,
   { message: 'budget_min must be ≤ budget_max', path: ['budget_min'] }
 );
+
+/** @deprecated use DinnerPreferencesSchema */
+export const SubmitPreferencesSchema = DinnerPreferencesSchema;
 
 // ── Votes ─────────────────────────────────────────────────────────────────────
 
@@ -89,6 +94,12 @@ export type CreateEventInput     = z.infer<typeof CreateEventSchema>;
 export type UpdateEventInput     = z.infer<typeof UpdateEventSchema>;
 export type InviteGuestsInput    = z.infer<typeof InviteGuestsSchema>;
 export type RSVPInput             = z.infer<typeof RSVPSchema>;
-export type SubmitPreferencesInput = z.infer<typeof SubmitPreferencesSchema>;
+export type DinnerPreferencesInput = z.infer<typeof DinnerPreferencesSchema>;
+export type SubmitPreferencesInput = DinnerPreferencesInput;
 export type CastVoteInput         = z.infer<typeof CastVoteSchema>;
 export type FinalizeInput         = z.infer<typeof FinalizeSchema>;
+
+export function getPreferencesSchema(category: string) {
+  if (category === EventCategory.DINNER) return DinnerPreferencesSchema;
+  throw new Error(`No preferences schema defined for event category: ${category}`);
+}

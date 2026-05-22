@@ -17,6 +17,7 @@ const BUDGET_PRESETS    = [
 interface Props {
   token: string;
   existing: GuestPreferences | null;
+  category: string;
 }
 
 function findPresetIndex(min?: number | null, max?: number | null): number | null {
@@ -25,7 +26,7 @@ function findPresetIndex(min?: number | null, max?: number | null): number | nul
   return i === -1 ? null : i;
 }
 
-export default function PreferenceForm({ token, existing }: Props) {
+export default function PreferenceForm({ token, existing, category }: Props) {
   const router = useRouter();
 
   const [dietary,      setDietary]      = useState<string[]>(existing?.dietary ?? []);

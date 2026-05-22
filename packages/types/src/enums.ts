@@ -9,7 +9,9 @@ export const EventStatus = {
 export type EventStatus = (typeof EventStatus)[keyof typeof EventStatus];
 
 export const EventCategory = {
-  DINNER: 'dinner',
+  DINNER:   'dinner',
+  ACTIVITY: 'activity',
+  MOVIE:    'movie',
 } as const;
 export type EventCategory = (typeof EventCategory)[keyof typeof EventCategory];
 
