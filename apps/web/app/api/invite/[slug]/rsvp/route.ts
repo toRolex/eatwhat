@@ -22,11 +22,16 @@ export async function POST(request: Request, { params }: Context) {
   if (new Date(event.rsvp_deadline) < new Date()) {
     return NextResponse.json({ error: 'RSVP deadline has passed' }, { status: 422 });
   }
+  if (!['open', 'collecting'].includes(event.status)) {
+    return NextResponse.json({ error: 'RSVPs are no longer being accepted for this event' }, { status: 422 });
+  }
 
   const body = await request.json();
   const parsed = RSVPSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    const flat = parsed.error.flatten();
+    const message = flat.formErrors[0] ?? Object.values(flat.fieldErrors).flat()[0] ?? 'Invalid request';
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 
   const payload = {

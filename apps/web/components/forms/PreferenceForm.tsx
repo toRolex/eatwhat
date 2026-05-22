@@ -71,7 +71,7 @@ export default function PreferenceForm({ token, existing, category }: Props) {
       return;
     }
 
-    router.push(`/invite/${token}`);
+    router.push(`/invite/${token}/confirmed`);
   }
 
   return (
@@ -121,8 +121,8 @@ export default function PreferenceForm({ token, existing, category }: Props) {
       </Section>
 
       {error && (
-        <div style={{ padding: '10px 14px', borderRadius: 'var(--rs)', background: 'oklch(96% .03 26)', border: '1px solid oklch(82% .12 26)' }}>
-          <p style={{ fontSize: 12, color: 'oklch(40% .18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
+        <div style={{ padding: '10px 14px', borderRadius: 'var(--rs)', background: 'var(--surface)', border: '1px solid oklch(72% .15 26)' }}>
+          <p style={{ fontSize: 12, color: 'oklch(48% .2 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
         </div>
       )}
 

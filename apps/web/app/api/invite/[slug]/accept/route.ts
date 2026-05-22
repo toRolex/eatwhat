@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient, createClient } from '@/lib/supabase/server';
-import { getInvitationBySlug, getInvitationByToken } from '@groupplan/db';
+import { getEventById, getInvitationBySlug, getInvitationByToken } from '@groupplan/db';
 import { track } from '@/lib/funnel';
 
 interface Context {
@@ -19,6 +19,14 @@ export async function POST(_request: NextRequest, { params }: Context) {
   const inviteSlug = invitation.slug;
   if (invitation.status === 'declined') return NextResponse.json({ error: 'Already declined' }, { status: 400 });
   if (invitation.status === 'accepted') return NextResponse.json({ redirect: `/invite/${inviteSlug}/confirmed` });
+  const { data: event } = await getEventById(serviceDb, invitation.event_id);
+  if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+  if (new Date(event.rsvp_deadline) < new Date()) {
+    return NextResponse.json({ error: 'RSVP deadline has passed' }, { status: 422 });
+  }
+  if (!['open', 'collecting'].includes(event.status)) {
+    return NextResponse.json({ error: 'RSVPs are no longer being accepted for this event' }, { status: 422 });
+  }
   if (user) {
     await serviceDb.from('invitations').update({ status: 'accepted', user_id: user.id, responded_at: new Date().toISOString() }).eq('id', invitation.id);
     void track('invite_accepted', { userId: user.id, metadata: { slug: inviteSlug } });
