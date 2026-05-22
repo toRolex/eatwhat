@@ -6,3 +6,4 @@ export * from './queries/proposals';
 export * from './queries/votes';
 export * from './queries/usage';
 export * from './queries/finalized-plans';
+export * from './queries/ai-logs';
