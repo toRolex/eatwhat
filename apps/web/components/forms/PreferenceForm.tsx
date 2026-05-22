@@ -165,7 +165,7 @@ function ChipRow({ options, active, onToggle }: { options: string[]; active: str
             type="button"
             onClick={() => onToggle(opt)}
             style={{
-              padding: '6px 12px', borderRadius: 999,
+              padding: '10px 14px', borderRadius: 999,
               border: `1px solid ${on ? 'var(--text)' : 'var(--border2)'}`,
               background: on ? 'var(--text)' : 'var(--bg)',
               color: on ? 'var(--bg)' : 'var(--text)',

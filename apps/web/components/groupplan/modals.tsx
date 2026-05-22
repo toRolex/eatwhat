@@ -298,12 +298,6 @@ export function Sidebar({
           onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--muted)"; }}>
           + Invite Guest
         </button>
-        <a href="/rsvp" target="_blank"
-          style={{ width: "100%", padding: 8, borderRadius: "var(--rs)", border: "1px solid var(--border2)", background: "var(--bg)", fontSize: 11, fontWeight: 500, color: "var(--muted)", fontFamily: "var(--fb)", transition: "all .2s", textDecoration: "none", display: "block", textAlign: "center" }}
-          onMouseEnter={e => { e.currentTarget.style.color = "var(--text)"; e.currentTarget.style.borderColor = "var(--border)"; }}
-          onMouseLeave={e => { e.currentTarget.style.color = "var(--muted)"; e.currentTarget.style.borderColor = "var(--border2)"; }}>
-          Preview guest RSVP →
-        </a>
       </div>
     </aside>
   );
