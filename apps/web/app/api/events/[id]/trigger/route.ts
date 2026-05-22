@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { TriggerEventSchema } from '@groupplan/types';
-import { getEventById, getPreferencesByEvent, replaceProposalsAndAdvance, getInvitationsByEvent, logUsage } from '@groupplan/db';
+import { getEventById, getPreferencesByEvent, replaceProposalsAndAdvance, getInvitationsByEvent, logUsage, getMonthlySpendByEvent, getSpendSince } from '@groupplan/db';
 import { ClaudeAIProvider, runPipeline } from '@groupplan/ai';
 import { GooglePlacesVenueProvider, YelpVenueProvider } from '@groupplan/venues';
 import type { RestaurantCandidate } from '@groupplan/ai';
@@ -90,6 +90,22 @@ export async function POST(request: Request, { params }: Context) {
       );
     }
 
+    const capMicros = parseInt(process.env.PIPELINE_COST_CAP_MICROS ?? '5000000', 10);
+    const monthlySpend = await getMonthlySpendByEvent(serviceDb, id);
+    if (monthlySpend >= capMicros) {
+      return NextResponse.json(
+        {
+          error: 'Monthly AI spend cap reached for this event.',
+          code: 'spend_cap_exceeded',
+          spent_micros: monthlySpend,
+          cap_micros: capMicros,
+          remaining_micros: 0,
+        },
+        { status: 402 },
+      );
+    }
+
+    const runStart = new Date();
     const pipelineResult = await runPipeline(id, { locationHint: location });
     const proposalRows = pipelineResult.proposals.flatMap((p) => {
       const candidate = pipelineResult.candidateDetails[p.place_id];
@@ -127,12 +143,13 @@ export async function POST(request: Request, { params }: Context) {
     const { error: rpcError } = await replaceProposalsAndAdvance(serviceDb, id, proposalRows);
     if (rpcError) return NextResponse.json({ error: rpcError.message }, { status: 500 });
 
+    const actualCostMicros = await getSpendSince(serviceDb, id, runStart);
     await logUsage(serviceDb, {
       event_id:      id,
       kind:          'ai_synthesis',
       provider:      'pipeline_v2',
       model:         'multi-stage',
-      cost_micros:   pipelineResult.totalCostMicros,
+      cost_micros:   actualCostMicros,
       request_count: 1,
       metadata:      {
         proposals_returned: proposalRows.length,

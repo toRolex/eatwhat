@@ -72,6 +72,17 @@ export default async function CostsPage() {
   const totalRuns = logs.length;
   const avgCostPerRun = totalRuns > 0 ? totalCost / totalRuns : 0;
 
+  const nowMonth = new Date().toISOString().slice(0, 7);
+  const capMicros = parseInt(process.env.PIPELINE_COST_CAP_MICROS ?? '5000000', 10);
+  const monthSpendMap = new Map<string, number>();
+  for (const row of logs) {
+    if (!row.created_at || !row.created_at.startsWith(nowMonth)) continue;
+    monthSpendMap.set(row.event_id, (monthSpendMap.get(row.event_id) ?? 0) + (row.cost_micros ?? 0));
+  }
+  const spendCapRows = Array.from(monthSpendMap.entries())
+    .map(([eventId, spent]) => ({ eventId, spent }))
+    .sort((a, b) => b.spent - a.spent);
+
   const fmt = (micros: number) => '$' + (micros / 1_000_000).toFixed(4);
 
   const thStyle: React.CSSProperties = { fontSize: 10, textTransform: 'uppercase', color: 'var(--muted)', fontFamily: 'var(--fb)', padding: '8px 12px', textAlign: 'left', fontWeight: 600, letterSpacing: '.05em' };
@@ -148,6 +159,34 @@ export default async function CostsPage() {
               </tr>
             ))}
             {topEvents.length === 0 && <tr><td colSpan={3} style={{ ...tdStyle, textAlign: 'center', color: 'var(--muted)' }}>No data yet.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      <div style={panelStyle}>
+        <div style={panelHeaderStyle}>Spend caps — current month</div>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead><tr style={{ borderBottom: '1px solid var(--border2)' }}>
+            {['Event', 'Spent', 'Cap', 'Status'].map(h => <th key={h} style={thStyle}>{h}</th>)}
+          </tr></thead>
+          <tbody>
+            {spendCapRows.map(row => {
+              const pct = row.spent / capMicros;
+              const statusColor = pct >= 1
+                ? 'oklch(55% 0.2 26)'
+                : pct > 0.8
+                  ? 'oklch(65% 0.15 85)'
+                  : 'var(--muted)';
+              const statusLabel = pct >= 1 ? 'Cap reached' : pct > 0.8 ? 'Warning' : 'OK';
+              return (
+                <tr key={row.eventId}>
+                  <td style={tdStyle}>{eventTitleMap.get(row.eventId) ?? row.eventId.slice(0, 8) + '...'}</td>
+                  <td style={{ ...tdStyle, fontWeight: 600 }}>{fmt(row.spent)}</td>
+                  <td style={tdStyle}>{fmt(capMicros)}</td>
+                  <td style={{ ...tdStyle, color: statusColor, fontWeight: 600 }}>{statusLabel}</td>
+                </tr>
+              );
+            })}
+            {spendCapRows.length === 0 && <tr><td colSpan={4} style={{ ...tdStyle, textAlign: 'center', color: 'var(--muted)' }}>No AI runs this month.</td></tr>}
           </tbody>
         </table>
       </div>
