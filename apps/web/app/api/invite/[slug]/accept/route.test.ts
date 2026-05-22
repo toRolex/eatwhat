@@ -81,7 +81,7 @@ describe('POST /api/invite/[slug]/accept', () => {
     expect(serviceDb.updateChain.eq).toHaveBeenCalledWith('id', 'inv-1');
   });
 
-  it('marks unauthenticated users pending signup and sets invite cookie', async () => {
+  it('accepts unauthenticated guests without requiring a user_id', async () => {
     const serviceDb = makeServiceDb();
     vi.mocked(createServiceClient).mockReturnValue(serviceDb as unknown as ReturnType<typeof createServiceClient>);
     vi.mocked(createClient).mockResolvedValue(makeAuthDb(null) as unknown as Awaited<ReturnType<typeof createClient>>);
@@ -93,11 +93,13 @@ describe('POST /api/invite/[slug]/accept', () => {
       params: Promise.resolve({ slug: 'team-dinner-abcd1234' }),
     });
 
-    await expect(response.json()).resolves.toEqual({ redirect: '/login?from=invite&slug=team-dinner-abcd1234' });
+    await expect(response.json()).resolves.toEqual({ redirect: '/invite/team-dinner-abcd1234/confirmed' });
     expect(serviceDb.updateChain.update).toHaveBeenCalledWith(expect.objectContaining({
-      status: 'pending_signup',
+      status: 'accepted',
     }));
-    expect(response.cookies.get('gp_invite_slug')?.value).toBe('team-dinner-abcd1234');
+    expect(serviceDb.updateChain.update).toHaveBeenCalledWith(
+      expect.not.objectContaining({ user_id: expect.anything() }),
+    );
   });
 
   it('accepts legacy token links and redirects to the canonical slug', async () => {

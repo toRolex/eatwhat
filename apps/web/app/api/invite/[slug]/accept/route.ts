@@ -27,14 +27,11 @@ export async function POST(_request: NextRequest, { params }: Context) {
   if (!['open', 'collecting'].includes(event.status)) {
     return NextResponse.json({ error: 'RSVPs are no longer being accepted for this event' }, { status: 422 });
   }
-  if (user) {
-    await serviceDb.from('invitations').update({ status: 'accepted', user_id: user.id, responded_at: new Date().toISOString() }).eq('id', invitation.id);
-    void track('invite_accepted', { userId: user.id, metadata: { slug: inviteSlug } });
-    return NextResponse.json({ redirect: `/invite/${inviteSlug}/confirmed` });
-  }
-  await serviceDb.from('invitations').update({ status: 'pending_signup', responded_at: new Date().toISOString() }).eq('id', invitation.id);
-  void track('invite_pending_signup', { metadata: { slug: inviteSlug } });
-  const response = NextResponse.json({ redirect: `/login?from=invite&slug=${inviteSlug}` });
-  response.cookies.set('gp_invite_slug', inviteSlug, { httpOnly: true, maxAge: 3600, path: '/', sameSite: 'lax' });
-  return response;
+  await serviceDb.from('invitations').update({
+    status: 'accepted',
+    responded_at: new Date().toISOString(),
+    ...(user ? { user_id: user.id } : {}),
+  }).eq('id', invitation.id);
+  void track('invite_accepted', { userId: user?.id ?? null, metadata: { slug: inviteSlug } });
+  return NextResponse.json({ redirect: `/invite/${inviteSlug}/confirmed` });
 }
