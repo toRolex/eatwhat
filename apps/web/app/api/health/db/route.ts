@@ -6,7 +6,9 @@ export const dynamic = 'force-dynamic';
 
 ensureEnvLoaded();
 
-const REQUIRED_TABLES = [
+type CheckedTable = 'users' | 'events' | 'invitations' | 'guest_preferences' | 'proposals' | 'votes' | 'finalized_plans' | 'usage_log';
+
+const REQUIRED_TABLES: CheckedTable[] = [
   'users',
   'events',
   'invitations',

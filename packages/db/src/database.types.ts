@@ -1,377 +1,795 @@
-// Hand-written from supabase/migrations/. To regenerate from a running local instance:
-//   supabase gen types typescript --local > packages/db/src/database.types.ts
-// Requires: supabase start (Docker)
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
-
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.4"
+  }
   public: {
     Tables: {
-      users: {
+      ai_logs: {
         Row: {
+          cost_micros: number | null
+          created_at: string | null
+          error: string | null
+          event_id: string
           id: string
-          name: string
-          email: string
-          phone: string | null
-          avatar_url: string | null
-          created_at: string
-          updated_at: string
+          input_hash: string | null
+          input_tokens: number | null
+          latency_ms: number | null
+          model: string
+          output_tokens: number | null
+          provider: string
+          raw_input: Json | null
+          raw_output: Json | null
+          stage: string
         }
         Insert: {
-          id: string  // no DEFAULT — always supplied by the handle_new_auth_user trigger
-          name: string
-          email: string
-          phone?: string | null | undefined
-          avatar_url?: string | null | undefined
-          created_at?: string | undefined
-          updated_at?: string | undefined
+          cost_micros?: number | null
+          created_at?: string | null
+          error?: string | null
+          event_id: string
+          id?: string
+          input_hash?: string | null
+          input_tokens?: number | null
+          latency_ms?: number | null
+          model: string
+          output_tokens?: number | null
+          provider: string
+          raw_input?: Json | null
+          raw_output?: Json | null
+          stage: string
         }
         Update: {
-          id?: string | undefined
-          name?: string | undefined
-          email?: string | undefined
-          phone?: string | null | undefined
-          avatar_url?: string | null | undefined
-          created_at?: string | undefined
-          updated_at?: string | undefined
+          cost_micros?: number | null
+          created_at?: string | null
+          error?: string | null
+          event_id?: string
+          id?: string
+          input_hash?: string | null
+          input_tokens?: number | null
+          latency_ms?: number | null
+          model?: string
+          output_tokens?: number | null
+          provider?: string
+          raw_input?: Json | null
+          raw_output?: Json | null
+          stage?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ai_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       events: {
         Row: {
-          id: string
-          host_id: string
-          title: string
-          description: string | null
-          category: Database['public']['Enums']['event_category']
+          category: Database["public"]["Enums"]["event_category"]
           cover_image_url: string | null
-          template_id: string
-          location_hint: string | null
+          created_at: string
           date_flexible: boolean
+          description: string | null
+          host_id: string
+          id: string
+          location_hint: string | null
           proposed_date: string | null
           rsvp_deadline: string
-          vote_deadline: string | null
-          status: Database['public']['Enums']['event_status']
           slug: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string | undefined
-          host_id: string
+          status: Database["public"]["Enums"]["event_status"]
+          template_id: string
           title: string
-          description?: string | null | undefined
-          category?: Database['public']['Enums']['event_category'] | undefined
-          cover_image_url?: string | null | undefined
-          template_id?: string | undefined
-          location_hint?: string | null | undefined
-          date_flexible?: boolean | undefined
-          proposed_date?: string | null | undefined
+          updated_at: string
+          vote_deadline: string | null
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["event_category"]
+          cover_image_url?: string | null
+          created_at?: string
+          date_flexible?: boolean
+          description?: string | null
+          host_id: string
+          id?: string
+          location_hint?: string | null
+          proposed_date?: string | null
           rsvp_deadline: string
-          vote_deadline?: string | null | undefined
-          status?: Database['public']['Enums']['event_status'] | undefined
           slug: string
-          created_at?: string | undefined
-          updated_at?: string | undefined
+          status?: Database["public"]["Enums"]["event_status"]
+          template_id?: string
+          title: string
+          updated_at?: string
+          vote_deadline?: string | null
         }
         Update: {
-          id?: string | undefined
-          host_id?: string | undefined
-          title?: string | undefined
-          description?: string | null | undefined
-          category?: Database['public']['Enums']['event_category'] | undefined
-          cover_image_url?: string | null | undefined
-          template_id?: string | undefined
-          location_hint?: string | null | undefined
-          date_flexible?: boolean | undefined
-          proposed_date?: string | null | undefined
-          rsvp_deadline?: string | undefined
-          vote_deadline?: string | null | undefined
-          status?: Database['public']['Enums']['event_status'] | undefined
-          slug?: string | undefined
-          created_at?: string | undefined
-          updated_at?: string | undefined
+          category?: Database["public"]["Enums"]["event_category"]
+          cover_image_url?: string | null
+          created_at?: string
+          date_flexible?: boolean
+          description?: string | null
+          host_id?: string
+          id?: string
+          location_hint?: string | null
+          proposed_date?: string | null
+          rsvp_deadline?: string
+          slug?: string
+          status?: Database["public"]["Enums"]["event_status"]
+          template_id?: string
+          title?: string
+          updated_at?: string
+          vote_deadline?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      invitations: {
+      finalized_plans: {
         Row: {
-          id: string
-          event_id: string
-          user_id: string | null
-          invite_token: string
-          name: string
-          email: string
-          status: Database['public']['Enums']['invite_status']
-          responded_at: string | null
+          calendar_data: Json
+          confirmed_time: string
           created_at: string
+          event_id: string
+          id: string
+          notes: string | null
+          proposal_id: string
           updated_at: string
         }
         Insert: {
-          id?: string | undefined
+          calendar_data?: Json
+          confirmed_time: string
+          created_at?: string
           event_id: string
-          user_id?: string | null | undefined
-          invite_token?: string | undefined
-          name: string
-          email: string
-          status?: Database['public']['Enums']['invite_status'] | undefined
-          responded_at?: string | null | undefined
-          created_at?: string | undefined
-          updated_at?: string | undefined
+          id?: string
+          notes?: string | null
+          proposal_id: string
+          updated_at?: string
         }
         Update: {
-          id?: string | undefined
-          event_id?: string | undefined
-          user_id?: string | null | undefined
-          invite_token?: string | undefined
-          name?: string | undefined
-          email?: string | undefined
-          status?: Database['public']['Enums']['invite_status'] | undefined
-          responded_at?: string | null | undefined
-          created_at?: string | undefined
-          updated_at?: string | undefined
+          calendar_data?: Json
+          confirmed_time?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          notes?: string | null
+          proposal_id?: string
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "finalized_plans_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finalized_plans_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       guest_preferences: {
         Row: {
+          availability: Json | null
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string
+          cuisine_avoid: string[]
+          cuisine_prefs: string[]
+          dietary: string[]
+          event_id: string
           id: string
           invitation_id: string
-          event_id: string
-          dietary: string[]
-          cuisine_prefs: string[]
-          cuisine_avoid: string[]
-          budget_min: number | null
-          budget_max: number | null
           location_pref: string | null
-          availability: Json | null
-          vibe_pref: string | null
           notes: string | null
-          created_at: string
           updated_at: string
+          vibe_pref: string | null
         }
         Insert: {
-          id?: string | undefined
-          invitation_id: string
+          availability?: Json | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          cuisine_avoid?: string[]
+          cuisine_prefs?: string[]
+          dietary?: string[]
           event_id: string
-          dietary?: string[] | undefined
-          cuisine_prefs?: string[] | undefined
-          cuisine_avoid?: string[] | undefined
-          budget_min?: number | null | undefined
-          budget_max?: number | null | undefined
-          location_pref?: string | null | undefined
-          availability?: Json | null | undefined
-          vibe_pref?: string | null | undefined
-          notes?: string | null | undefined
-          created_at?: string | undefined
-          updated_at?: string | undefined
+          id?: string
+          invitation_id: string
+          location_pref?: string | null
+          notes?: string | null
+          updated_at?: string
+          vibe_pref?: string | null
         }
         Update: {
-          id?: string | undefined
-          invitation_id?: string | undefined
-          event_id?: string | undefined
-          dietary?: string[] | undefined
-          cuisine_prefs?: string[] | undefined
-          cuisine_avoid?: string[] | undefined
-          budget_min?: number | null | undefined
-          budget_max?: number | null | undefined
-          location_pref?: string | null | undefined
-          availability?: Json | null | undefined
-          vibe_pref?: string | null | undefined
-          notes?: string | null | undefined
-          created_at?: string | undefined
-          updated_at?: string | undefined
+          availability?: Json | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          cuisine_avoid?: string[]
+          cuisine_prefs?: string[]
+          dietary?: string[]
+          event_id?: string
+          id?: string
+          invitation_id?: string
+          location_pref?: string | null
+          notes?: string | null
+          updated_at?: string
+          vibe_pref?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guest_preferences_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_preferences_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: true
+            referencedRelation: "invitations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invitations: {
+        Row: {
+          created_at: string
+          email: string
+          event_id: string
+          fcm_token: string | null
+          id: string
+          invite_token: string
+          name: string
+          responded_at: string | null
+          status: Database["public"]["Enums"]["invite_status"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          event_id: string
+          fcm_token?: string | null
+          id?: string
+          invite_token?: string
+          name: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["invite_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          event_id?: string
+          fcm_token?: string | null
+          id?: string
+          invite_token?: string
+          name?: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["invite_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       proposals: {
         Row: {
-          id: string
-          event_id: string
-          rank: number
-          restaurant_name: string
-          restaurant_addr: string
+          booking_url: string | null
+          confidence_score: number | null
+          constraint_coverage: Json | null
+          constraints_gap: Json
+          constraints_met: Json
+          created_at: string
           cuisine_type: string
-          price_range: string
-          rating: number | null
+          envy_scores: Json | null
+          event_id: string
+          id: string
           image_url: string | null
           maps_url: string | null
-          booking_url: string | null
-          reasoning: string
-          constraints_met: Json
-          constraints_gap: Json
-          suggested_time: string | null
-          envy_scores: Json | null
           narrative_group: string | null
           narrative_personal: Json | null
-          confidence_score: number | null
-          created_at: string
+          price_range: string
+          rank: number
+          rating: number | null
+          reasoning: string
+          restaurant_addr: string
+          restaurant_name: string
+          suggested_time: string | null
           updated_at: string
         }
         Insert: {
-          id?: string | undefined
-          event_id: string
-          rank: number
-          restaurant_name: string
-          restaurant_addr: string
+          booking_url?: string | null
+          confidence_score?: number | null
+          constraint_coverage?: Json | null
+          constraints_gap?: Json
+          constraints_met?: Json
+          created_at?: string
           cuisine_type: string
+          envy_scores?: Json | null
+          event_id: string
+          id?: string
+          image_url?: string | null
+          maps_url?: string | null
+          narrative_group?: string | null
+          narrative_personal?: Json | null
           price_range: string
-          rating?: number | null | undefined
-          image_url?: string | null | undefined
-          maps_url?: string | null | undefined
-          booking_url?: string | null | undefined
+          rank: number
+          rating?: number | null
           reasoning: string
-          constraints_met?: Json | undefined
-          constraints_gap?: Json | undefined
-          suggested_time?: string | null | undefined
-          envy_scores?: Json | null | undefined
-          narrative_group?: string | null | undefined
-          narrative_personal?: Json | null | undefined
-          confidence_score?: number | null | undefined
-          created_at?: string | undefined
-          updated_at?: string | undefined
+          restaurant_addr: string
+          restaurant_name: string
+          suggested_time?: string | null
+          updated_at?: string
         }
         Update: {
-          id?: string | undefined
-          event_id?: string | undefined
-          rank?: number | undefined
-          restaurant_name?: string | undefined
-          restaurant_addr?: string | undefined
-          cuisine_type?: string | undefined
-          price_range?: string | undefined
-          rating?: number | null | undefined
-          image_url?: string | null | undefined
-          maps_url?: string | null | undefined
-          booking_url?: string | null | undefined
-          reasoning?: string | undefined
-          constraints_met?: Json | undefined
-          constraints_gap?: Json | undefined
-          suggested_time?: string | null | undefined
-          envy_scores?: Json | null | undefined
-          narrative_group?: string | null | undefined
-          narrative_personal?: Json | null | undefined
-          confidence_score?: number | null | undefined
-          created_at?: string | undefined
-          updated_at?: string | undefined
+          booking_url?: string | null
+          confidence_score?: number | null
+          constraint_coverage?: Json | null
+          constraints_gap?: Json
+          constraints_met?: Json
+          created_at?: string
+          cuisine_type?: string
+          envy_scores?: Json | null
+          event_id?: string
+          id?: string
+          image_url?: string | null
+          maps_url?: string | null
+          narrative_group?: string | null
+          narrative_personal?: Json | null
+          price_range?: string
+          rank?: number
+          rating?: number | null
+          reasoning?: string
+          restaurant_addr?: string
+          restaurant_name?: string
+          suggested_time?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_cache: {
+        Row: {
+          dietary_analysis: Json | null
+          id: string
+          last_analyzed: string | null
+          menu_analysis: Json | null
+          name: string
+          place_id: string
+          review_summary: string | null
+          ttl_days: number | null
+          vibe_embedding: string | null
+        }
+        Insert: {
+          dietary_analysis?: Json | null
+          id?: string
+          last_analyzed?: string | null
+          menu_analysis?: Json | null
+          name: string
+          place_id: string
+          review_summary?: string | null
+          ttl_days?: number | null
+          vibe_embedding?: string | null
+        }
+        Update: {
+          dietary_analysis?: Json | null
+          id?: string
+          last_analyzed?: string | null
+          menu_analysis?: Json | null
+          name?: string
+          place_id?: string
+          review_summary?: string | null
+          ttl_days?: number | null
+          vibe_embedding?: string | null
+        }
+        Relationships: []
+      }
+      structured_constraints: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string | null
+          cuisine_avoids: string[] | null
+          cuisine_likes: Json | null
+          dealbreaker_flags: string[] | null
+          dietary_hard: string[] | null
+          dietary_soft: string[] | null
+          event_id: string
+          guest_id: string | null
+          id: string
+          intensity_tier: string | null
+          invitation_id: string
+          raw_text: string | null
+          vibe_tags: string[] | null
+          weight_multiplier: number | null
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string | null
+          cuisine_avoids?: string[] | null
+          cuisine_likes?: Json | null
+          dealbreaker_flags?: string[] | null
+          dietary_hard?: string[] | null
+          dietary_soft?: string[] | null
+          event_id: string
+          guest_id?: string | null
+          id?: string
+          intensity_tier?: string | null
+          invitation_id: string
+          raw_text?: string | null
+          vibe_tags?: string[] | null
+          weight_multiplier?: number | null
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string | null
+          cuisine_avoids?: string[] | null
+          cuisine_likes?: Json | null
+          dealbreaker_flags?: string[] | null
+          dietary_hard?: string[] | null
+          dietary_soft?: string[] | null
+          event_id?: string
+          guest_id?: string | null
+          id?: string
+          intensity_tier?: string | null
+          invitation_id?: string
+          raw_text?: string | null
+          vibe_tags?: string[] | null
+          weight_multiplier?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "structured_constraints_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "structured_constraints_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "structured_constraints_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: true
+            referencedRelation: "invitations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usage_log: {
+        Row: {
+          cost_micros: number
+          created_at: string
+          event_id: string | null
+          id: string
+          input_tokens: number | null
+          kind: Database["public"]["Enums"]["usage_kind"]
+          metadata: Json
+          model: string | null
+          output_tokens: number | null
+          provider: string
+          request_count: number
+        }
+        Insert: {
+          cost_micros?: number
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          input_tokens?: number | null
+          kind: Database["public"]["Enums"]["usage_kind"]
+          metadata?: Json
+          model?: string | null
+          output_tokens?: number | null
+          provider: string
+          request_count?: number
+        }
+        Update: {
+          cost_micros?: number
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          input_tokens?: number | null
+          kind?: Database["public"]["Enums"]["usage_kind"]
+          metadata?: Json
+          model?: string | null
+          output_tokens?: number | null
+          provider?: string
+          request_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          id: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
       votes: {
         Row: {
-          id: string
-          proposal_id: string
-          invitation_id: string
-          rank: number
           created_at: string
+          id: string
+          invitation_id: string
+          proposal_id: string
+          rank: number
           updated_at: string
         }
         Insert: {
-          id?: string | undefined
-          proposal_id: string
+          created_at?: string
+          id?: string
           invitation_id: string
+          proposal_id: string
           rank: number
-          created_at?: string | undefined
-          updated_at?: string | undefined
+          updated_at?: string
         }
         Update: {
-          id?: string | undefined
-          proposal_id?: string | undefined
-          invitation_id?: string | undefined
-          rank?: number | undefined
-          created_at?: string | undefined
-          updated_at?: string | undefined
+          created_at?: string
+          id?: string
+          invitation_id?: string
+          proposal_id?: string
+          rank?: number
+          updated_at?: string
         }
-        Relationships: []
-      }
-      finalized_plans: {
-        Row: {
-          id: string
-          event_id: string
-          proposal_id: string
-          confirmed_time: string
-          notes: string | null
-          calendar_data: Json
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string | undefined
-          event_id: string
-          proposal_id: string
-          confirmed_time: string
-          notes?: string | null | undefined
-          calendar_data?: Json | undefined
-          created_at?: string | undefined
-          updated_at?: string | undefined
-        }
-        Update: {
-          id?: string | undefined
-          event_id?: string | undefined
-          proposal_id?: string | undefined
-          confirmed_time?: string | undefined
-          notes?: string | null | undefined
-          calendar_data?: Json | undefined
-          created_at?: string | undefined
-          updated_at?: string | undefined
-        }
-        Relationships: []
-      }
-      usage_log: {
-        Row: {
-          id: string
-          event_id: string | null
-          kind: Database['public']['Enums']['usage_kind']
-          provider: string
-          model: string | null
-          input_tokens: number | null
-          output_tokens: number | null
-          cost_micros: number
-          request_count: number
-          metadata: Json
-          created_at: string
-        }
-        Insert: {
-          id?: string | undefined
-          event_id?: string | null | undefined
-          kind: Database['public']['Enums']['usage_kind']
-          provider: string
-          model?: string | null | undefined
-          input_tokens?: number | null | undefined
-          output_tokens?: number | null | undefined
-          cost_micros?: number | undefined
-          request_count?: number | undefined
-          metadata?: Json | undefined
-          created_at?: string | undefined
-        }
-        Update: {
-          id?: string | undefined
-          event_id?: string | null | undefined
-          kind?: Database['public']['Enums']['usage_kind'] | undefined
-          provider?: string | undefined
-          model?: string | null | undefined
-          input_tokens?: number | null | undefined
-          output_tokens?: number | null | undefined
-          cost_micros?: number | undefined
-          request_count?: number | undefined
-          metadata?: Json | undefined
-          created_at?: string | undefined
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "votes_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
-    Views: Record<string, never>
+    Views: {
+      [_ in never]: never
+    }
     Functions: {
+      is_event_guest: { Args: { p_event_id: string }; Returns: boolean }
+      is_event_host: { Args: { p_event_id: string }; Returns: boolean }
       replace_proposals_and_advance: {
         Args: { p_event_id: string; p_rows: Json }
         Returns: undefined
       }
     }
     Enums: {
-      event_status: 'draft' | 'open' | 'collecting' | 'deciding' | 'finalized' | 'cancelled'
-      event_category: 'dinner'
-      invite_status: 'pending' | 'accepted' | 'declined'
-      usage_kind: 'ai_synthesis' | 'venue_search' | 'photo_proxy'
+      event_category: "dinner"
+      event_status:
+        | "draft"
+        | "open"
+        | "collecting"
+        | "deciding"
+        | "finalized"
+        | "cancelled"
+      invite_status: "pending" | "accepted" | "declined"
+      usage_kind: "ai_synthesis" | "venue_search" | "photo_proxy"
     }
-    CompositeTypes: Record<string, never>
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      event_category: ["dinner"],
+      event_status: [
+        "draft",
+        "open",
+        "collecting",
+        "deciding",
+        "finalized",
+        "cancelled",
+      ],
+      invite_status: ["pending", "accepted", "declined"],
+      usage_kind: ["ai_synthesis", "venue_search", "photo_proxy"],
+    },
+  },
+} as const
