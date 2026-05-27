@@ -99,7 +99,11 @@ export async function POST(request: Request) {
     preferences: DEMO_PREFERENCES,
     candidates,
     count: 5,
-  });
+  }).catch(() => null);
+
+  if (!synthesis) {
+    return NextResponse.json({ error: 'AI synthesis unavailable — try again shortly.' }, { status: 503 });
+  }
 
   // 3. Return proposals enriched with venue data — no DB write for demo
   // Replace direct Google photo URLs (which contain the API key) with proxy URLs

@@ -165,3 +165,6 @@
   box-shadow: var(--shh);
   border-color: var(--border);
 }
+
+.event-back-link:hover { color: var(--text) !important; }
+.event-manage-link:hover { color: var(--text) !important; }

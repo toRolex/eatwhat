@@ -6,7 +6,7 @@ import { getEventById, getInvitationBySlug } from '@groupplan/db';
 export const metadata: Metadata = { title: 'GroupPlan — Group event planning, simplified' };
 
 interface Props {
-  searchParams: Promise<{ from?: string; slug?: string }>;
+  searchParams: Promise<{ from?: string; slug?: string; error?: string }>;
 }
 
 const FEATURES = [
@@ -57,7 +57,7 @@ const STEPS = [
 ];
 
 export default async function LoginPage({ searchParams }: Props) {
-  const { from, slug } = await searchParams;
+  const { from, slug, error } = await searchParams;
   let inviteContext: { guestName: string; eventTitle: string } | null = null;
 
   if (from === 'invite' && slug) {
@@ -85,7 +85,7 @@ export default async function LoginPage({ searchParams }: Props) {
           </div>
           <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: '-.02em', color: 'var(--text)', fontFamily: 'var(--fb)' }}>GroupPlan</span>
         </div>
-        <a href="/dashboard" style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none' }}>
+        <a href="#sign-in" style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none' }}>
           Sign in →
         </a>
       </div>
@@ -106,7 +106,7 @@ export default async function LoginPage({ searchParams }: Props) {
             <a href="#sign-in" style={{ display: 'inline-flex', alignItems: 'center', padding: '11px 22px', borderRadius: 'var(--rs)', background: 'var(--text)', color: 'var(--bg)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none', letterSpacing: '-.01em' }}>
               Get started free →
             </a>
-            <a href="/e/demo" style={{ display: 'inline-flex', alignItems: 'center', padding: '11px 22px', borderRadius: 'var(--rs)', background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border2)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none', letterSpacing: '-.01em' }}>
+            <a href="/e/seed-team-dinner-nobu" style={{ display: 'inline-flex', alignItems: 'center', padding: '11px 22px', borderRadius: 'var(--rs)', background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border2)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none', letterSpacing: '-.01em' }}>
               See a live demo
             </a>
           </div>
@@ -131,6 +131,7 @@ export default async function LoginPage({ searchParams }: Props) {
                 </p>
               </div>
             )}
+            {error === 'link-expired' && (<div style={{padding:'10px 14px',borderRadius:'var(--rs)',background:'var(--bg)',border:'1px solid oklch(82% .12 26)',marginBottom:14}}><p style={{fontSize:12,color:'oklch(42% .18 26)',fontFamily:'var(--fb)',margin:0}}>That link has expired or already been used. Request a new one below.</p></div>)}
             <MagicLinkForm redirectTo={redirectTo} />
             <p style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: '14px 0 0', lineHeight: 1.5 }}>
               No password needed — we&apos;ll email you a magic link.

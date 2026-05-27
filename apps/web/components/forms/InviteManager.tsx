@@ -67,10 +67,10 @@ export default function InviteManager({ eventId, initialInvitations }: Props) {
     setEmail('');
   }
 
-  function copyLink(token: string) {
+  function copyLink(slug: string) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-    navigator.clipboard.writeText(`${appUrl}/invite/${token}`);
-    setCopied(token);
+    navigator.clipboard.writeText(`${appUrl}/invite/${slug}`);
+    setCopied(slug);
     setTimeout(() => setCopied(null), 2000);
   }
 
@@ -148,10 +148,10 @@ export default function InviteManager({ eventId, initialInvitations }: Props) {
                 </span>
                 <button
                   type="button"
-                  onClick={() => copyLink(inv.invite_token)}
-                  style={{ fontSize: 11, color: copied === inv.invite_token ? 'var(--sage)' : 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--fb)', padding: 0, transition: 'color .15s' }}
+                  onClick={() => copyLink(inv.slug)}
+                  style={{ fontSize: 11, color: copied === inv.slug ? 'var(--sage)' : 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--fb)', padding: 0, transition: 'color .15s' }}
                 >
-                  {copied === inv.invite_token ? 'Copied!' : 'Copy link'}
+                  {copied === inv.slug ? 'Copied!' : 'Copy link'}
                 </button>
               </div>
             </div>
