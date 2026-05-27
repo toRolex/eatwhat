@@ -100,20 +100,21 @@ export default function InviteManager({ eventId, initialInvitations }: Props) {
       <form onSubmit={addGuest} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 10, alignItems: 'end' }}>
         <div>
           <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: 'var(--fb)' }}>Name</label>
-          <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="Alex" style={inputStyle}
+          <input type="text" required data-testid="invite-name-input" value={name} onChange={e => setName(e.target.value)} placeholder="Alex" style={inputStyle}
             onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
             onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}
           />
         </div>
         <div>
           <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: 'var(--fb)' }}>Email</label>
-          <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="alex@example.com" style={inputStyle}
+          <input type="email" required data-testid="invite-email-input" value={email} onChange={e => setEmail(e.target.value)} placeholder="alex@example.com" style={inputStyle}
             onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
             onBlur={e => (e.currentTarget.style.borderColor = 'var(--border2)')}
           />
         </div>
         <button
           type="submit" disabled={loading}
+          data-testid="invite-add-submit"
           style={{ padding: '9px 18px', borderRadius: 'var(--rs)', border: 'none', background: 'var(--text)', color: 'var(--bg)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, whiteSpace: 'nowrap', transition: 'opacity .15s' }}
         >
           {loading ? '…' : 'Add guest'}
@@ -121,7 +122,7 @@ export default function InviteManager({ eventId, initialInvitations }: Props) {
       </form>
 
       {error && (
-        <p style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
+        <p data-testid="invite-add-error" style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
       )}
 
       {/* Guest list */}
@@ -130,9 +131,9 @@ export default function InviteManager({ eventId, initialInvitations }: Props) {
           No guests yet — add someone above.
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div data-testid="invite-guest-list" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {invitations.map((inv) => (
-            <div key={inv.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 14px', borderRadius: 'var(--rs)', border: '1px solid var(--border2)', background: 'var(--surface)' }}>
+            <div key={inv.id} data-testid="invite-guest-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 14px', borderRadius: 'var(--rs)', border: '1px solid var(--border2)', background: 'var(--surface)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--bg2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--muted)', fontFamily: 'var(--fb)', flexShrink: 0 }}>
                   {(inv.name ?? '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
@@ -148,6 +149,7 @@ export default function InviteManager({ eventId, initialInvitations }: Props) {
                 </span>
                 <button
                   type="button"
+                  data-testid="invite-copy-link"
                   onClick={() => copyLink(inv.slug)}
                   style={{ fontSize: 11, color: copied === inv.slug ? 'var(--sage)' : 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--fb)', padding: 0, transition: 'color .15s' }}
                 >

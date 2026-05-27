@@ -100,7 +100,7 @@ export default function VotingInterface({ proposals, token, initialRankings }: P
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <div style={{ padding: '12px 14px', borderRadius: 'var(--rs)', background: 'oklch(96% .04 148)', border: '1px solid oklch(82% .12 148)' }}>
+        <div data-testid="vote-success" style={{ padding: '12px 14px', borderRadius: 'var(--rs)', background: 'oklch(96% .04 148)', border: '1px solid oklch(82% .12 148)' }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'oklch(36% .13 148)', fontFamily: 'var(--fb)', marginBottom: 2 }}>
             ✓ Your votes are in
           </div>
@@ -195,6 +195,7 @@ export default function VotingInterface({ proposals, token, initialRankings }: P
                       key={rank}
                       type="button"
                       className="vote-rank-btn"
+                      data-testid={`vote-rank-${rank}`}
                       onClick={() => assignRank(p.id, rank)}
                       style={{
                         flex: '1 0 36px',
@@ -222,7 +223,7 @@ export default function VotingInterface({ proposals, token, initialRankings }: P
       })}
 
       {error && (
-        <p style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
+        <p data-testid="vote-error" style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
       )}
 
       <div style={{ display: 'flex', gap: 10 }}>
@@ -236,6 +237,7 @@ export default function VotingInterface({ proposals, token, initialRankings }: P
           </button>
         )}
         <button
+          data-testid="vote-submit"
           onClick={submitVotes}
           disabled={!allRanked || loading}
           style={{

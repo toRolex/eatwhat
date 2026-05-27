@@ -171,13 +171,13 @@ export default async function InvitePage({ params }: Props) {
               </div>
             )}
 
-            <div style={{ marginTop: 24 }}>
+            <div data-testid="invite-accept-btn" style={{ marginTop: 24 }}>
               <AcceptButton slug={slug} alreadyAccepted={invitation.status === 'accepted'} />
             </div>
 
             {invitation.status === 'accepted' && (
               <div style={{ marginTop: 12, textAlign: 'center' }}>
-                <Link href={`/invite/${slug}/preferences`} style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none' }}>
+                <Link href={`/invite/${slug}/preferences`} data-testid="invite-update-prefs-link" style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none' }}>
                   Update preferences
                 </Link>
               </div>

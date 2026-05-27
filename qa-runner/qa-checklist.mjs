@@ -140,7 +140,7 @@ async function run() {
     });
 
     await hostPage.goto(`${BASE}/events/new`, { waitUntil: "networkidle" });
-    const createFormLoaded = (await hostPage.locator("#title").count()) > 0;
+    const createFormLoaded = (await hostPage.locator('[data-testid="event-title-input"]').count()) > 0;
     addCheck(flow, "NAV-2", "/events/new form loads", createFormLoaded, { finalUrl: hostPage.url() });
 
     await hostPage.goto(`${BASE}/dev`, { waitUntil: "networkidle" });
@@ -154,14 +154,14 @@ async function run() {
     );
 
     await hostPage.goto(`${BASE}/events/new`, { waitUntil: "networkidle" });
-    const eventNameInput = hostPage.locator("#title");
-    const locationInput = hostPage.locator("#location");
-    const deadlineInput = hostPage.locator("#deadline");
+    const eventNameInput = hostPage.locator('[data-testid="event-title-input"]');
+    const locationInput = hostPage.locator('[data-testid="event-location-input"]');
+    const deadlineInput = hostPage.locator('[data-testid="event-deadline-input"]');
     const unique = `QA Event ${Date.now()}`;
     if ((await eventNameInput.count()) > 0) await eventNameInput.fill(unique);
     if ((await locationInput.count()) > 0) await locationInput.fill("Toronto");
     if ((await deadlineInput.count()) > 0) await deadlineInput.fill("2026-12-31T18:00");
-    const createBtn = hostPage.locator("button[type='submit']").first();
+    const createBtn = hostPage.locator('[data-testid="event-create-submit"]').first();
     await Promise.all([
       hostPage.waitForURL(/\/events\/(?!new$)[^/?#]+$/, { timeout: 10000 }).catch(() => {}),
       createBtn.click(),
@@ -192,9 +192,9 @@ async function run() {
     // Invite management lives at /events/[id]/invite, not on the detail page
     await hostPage.goto(`${BASE}/events/${eventId}/invite`, { waitUntil: "networkidle" });
 
-    const guestName = hostPage.locator("input[placeholder='Alex']").first();
-    const guestEmail = hostPage.locator("input[placeholder='alex@example.com']").first();
-    const addGuestBtn = hostPage.locator("button:has-text('Add guest')").first();
+    const guestName = hostPage.locator('[data-testid="invite-name-input"]').first();
+    const guestEmail = hostPage.locator('[data-testid="invite-email-input"]').first();
+    const addGuestBtn = hostPage.locator('[data-testid="invite-add-submit"]').first();
 
     // Intercept the POST response to capture the invite slug for the GUEST flow
     let createdInviteSlug = null;
@@ -218,7 +218,7 @@ async function run() {
       excerpt: postInviteText.slice(0, 300),
     });
 
-    const copyLinkBtn = hostPage.locator("button:has-text('Copy link')").first();
+    const copyLinkBtn = hostPage.locator('[data-testid="invite-copy-link"]').first();
     let copyClicked = false;
     if ((await copyLinkBtn.count()) > 0) {
       await copyLinkBtn.click();
@@ -226,9 +226,9 @@ async function run() {
     }
     addCheck(flow, "HOST-4", "Copy invite link button works", copyClicked, {});
 
-    const aiLocation = hostPage.locator("input[name='searchLocation'], input[placeholder*='location' i]").first();
+    const aiLocation = hostPage.locator('[data-testid="ai-location-input"]').first();
     if ((await aiLocation.count()) > 0) await aiLocation.fill("Toronto");
-    const runAiBtn = hostPage.locator("button:has-text('Run AI')").first();
+    const runAiBtn = hostPage.locator('[data-testid="ai-trigger-btn"]').first();
     let aiLoaded = false;
     if ((await runAiBtn.count()) > 0) {
       await runAiBtn.click();
@@ -244,7 +244,7 @@ async function run() {
     const existingAction = await devSignIn(existingEventPage);
     await existingPage.goto(existingAction, { waitUntil: "networkidle" });
     await existingPage.goto(`${BASE}/events/${TEST_EVENT_ID}`, { waitUntil: "networkidle" });
-    const runAiExisting = existingPage.locator("button:has-text('Run AI')").first();
+    const runAiExisting = existingPage.locator('[data-testid="ai-trigger-btn"]').first();
     let rerunSeen = false;
     if ((await runAiExisting.count()) > 0) {
       await runAiExisting.click();
@@ -254,7 +254,7 @@ async function run() {
     }
     addCheck(flow, "HOST-8", "Re-run AI shows confirmation", rerunSeen, { finalUrl: existingPage.url() });
 
-    const finalizeBtn = existingPage.locator("button:has-text('Finalize'), button:has-text('Finalise')").first();
+    const finalizeBtn = existingPage.locator('[data-testid="finalize-btn"]').first();
     let finalized = false;
     if ((await finalizeBtn.count()) > 0) {
       await finalizeBtn.click();
@@ -266,7 +266,7 @@ async function run() {
 
     // Missing-preference and missing-location edge checks on fresh event
     await hostPage.goto(eventUrl, { waitUntil: "networkidle" });
-    const runAiNoPrefs = hostPage.locator("button:has-text('Run AI')").first();
+    const runAiNoPrefs = hostPage.locator('[data-testid="ai-trigger-btn"]').first();
     let noPrefsError = false;
     if ((await runAiNoPrefs.count()) > 0) {
       await runAiNoPrefs.click();
@@ -299,7 +299,7 @@ async function run() {
       });
 
       // accept → /confirmed (not /preferences — accept route always redirects there)
-      const acceptInvite = guestPage.locator("button:has-text('Accept invite')").first();
+      const acceptInvite = guestPage.locator('[data-testid="invite-accept-btn"] button').first();
       if ((await acceptInvite.count()) > 0) {
         await Promise.all([
           guestPage.waitForURL(/\/confirmed/, { timeout: 8000 }).catch(() => {}),
@@ -312,9 +312,9 @@ async function run() {
 
       // Preferences page is separate — navigate explicitly after accept
       await guestPage.goto(`${BASE}/invite/${inviteSlug}/preferences`, { waitUntil: "networkidle" });
-      const cuisineChip = guestPage.locator("button:has-text('Italian'), button:has-text('Vegetarian')").first();
+      const cuisineChip = guestPage.locator('[data-testid="pref-cuisine-italian"]').first();
       if ((await cuisineChip.count()) > 0) await cuisineChip.click();
-      const prefSubmit = guestPage.locator("button[type='submit']").first();
+      const prefSubmit = guestPage.locator('[data-testid="pref-submit"]').first();
       if ((await prefSubmit.count()) > 0) {
         await Promise.all([
           guestPage.waitForURL(/\/confirmed/, { timeout: 8000 }).catch(() => {}),

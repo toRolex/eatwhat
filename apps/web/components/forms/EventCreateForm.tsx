@@ -95,6 +95,7 @@ export default function EventCreateForm() {
         <label htmlFor="title" style={labelStyle}>Event name</label>
         <input
           id="title" type="text" required maxLength={120}
+          data-testid="event-title-input"
           value={title} onChange={(e) => setTitle(e.target.value)}
           placeholder="Friday Night Dinner"
           style={inputStyle}
@@ -109,6 +110,7 @@ export default function EventCreateForm() {
         </label>
         <textarea
           id="description" maxLength={500} rows={3}
+          data-testid="event-description-input"
           value={description} onChange={(e) => setDescription(e.target.value)}
           placeholder="A quick note for your guests…"
           style={{ ...inputStyle, resize: 'none' }}
@@ -123,6 +125,7 @@ export default function EventCreateForm() {
         </label>
         <input
           id="location" type="text" maxLength={200}
+          data-testid="event-location-input"
           value={location} onChange={(e) => setLocation(e.target.value)}
           placeholder="Downtown Toronto, ON"
           style={inputStyle}
@@ -135,6 +138,7 @@ export default function EventCreateForm() {
         <label htmlFor="deadline" style={labelStyle}>RSVP deadline</label>
         <input
           id="deadline" type="datetime-local" required
+          data-testid="event-deadline-input"
           value={deadline} onChange={(e) => setDeadline(e.target.value)}
           style={inputStyle}
           onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
@@ -147,6 +151,7 @@ export default function EventCreateForm() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: dateFlexible ? 0 : 10 }}>
           <button
             type="button"
+            data-testid="event-date-flexible-toggle"
             onClick={() => setDateFlexible(f => !f)}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 7,
@@ -176,6 +181,7 @@ export default function EventCreateForm() {
         {!dateFlexible && (
           <input
             id="proposed-date" type="datetime-local"
+            data-testid="event-proposed-date-input"
             value={proposedDate} onChange={(e) => setProposedDate(e.target.value)}
             style={inputStyle}
             onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
@@ -190,6 +196,7 @@ export default function EventCreateForm() {
         </label>
         <input
           id="vote-deadline" type="datetime-local"
+          data-testid="event-vote-deadline-input"
           value={voteDeadline} onChange={(e) => setVoteDeadline(e.target.value)}
           style={inputStyle}
           onFocus={e => (e.currentTarget.style.borderColor = 'var(--text)')}
@@ -202,7 +209,7 @@ export default function EventCreateForm() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
           {CATEGORIES.map((c) => (
             <button
-              key={c.id} type="button" onClick={() => !c.disabled && setCategory(c.id)}
+              key={c.id} type="button" data-testid={`event-category-${c.id}`} onClick={() => !c.disabled && setCategory(c.id)}
               style={{
                 padding: '12px 10px',
                 borderRadius: 'var(--rs)',
@@ -227,7 +234,7 @@ export default function EventCreateForm() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
           {TEMPLATES.map((t) => (
             <button
-              key={t.id} type="button" onClick={() => setTemplate(t.id)}
+              key={t.id} type="button" data-testid={`event-template-${t.id}`} onClick={() => setTemplate(t.id)}
               style={{
                 padding: '12px 10px',
                 borderRadius: 'var(--rs)',
@@ -247,11 +254,12 @@ export default function EventCreateForm() {
       </div>
 
       {error && (
-        <p style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
+        <p data-testid="event-create-error" style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
       )}
 
       <button
         type="submit" disabled={loading}
+        data-testid="event-create-submit"
         style={{ width: '100%', padding: '12px 0', borderRadius: 'var(--rs)', border: 'none', background: 'var(--text)', color: 'var(--bg)', fontSize: 14, fontWeight: 600, fontFamily: 'var(--fb)', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, transition: 'opacity .15s', letterSpacing: '-.01em' }}
         onMouseEnter={e => !loading && (e.currentTarget.style.opacity = '0.85')}
         onMouseLeave={e => !loading && (e.currentTarget.style.opacity = '1')}

@@ -23,6 +23,7 @@ export default async function DashboardPage() {
         </div>
         <Link
           href="/events/new"
+          data-testid="dashboard-new-event-btn"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 'var(--rs)', background: 'var(--text)', color: 'var(--bg)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none', transition: 'opacity .15s', letterSpacing: '-.01em' }}
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
@@ -73,12 +74,13 @@ export default async function DashboardPage() {
           </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div data-testid="dashboard-event-list" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {events.map((event, i) => (
             <Link
               key={event.id}
               href={`/events/${event.id}`}
               className="event-card"
+              data-testid="dashboard-event-card"
               style={{ display: 'block', padding: '16px 20px', borderRadius: 'var(--r)', border: '1px solid var(--border2)', background: 'var(--surface)', textDecoration: 'none', boxShadow: 'var(--sh)', transition: 'box-shadow .2s, border-color .2s', animation: `fu .35s var(--sp) ${i * 0.05}s both` }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>

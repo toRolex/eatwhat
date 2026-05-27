@@ -124,6 +124,7 @@ export default function FinalizeFlow({ eventId, proposedDate, status, finalizedI
             />
           </div>
           <button
+            data-testid="finalize-btn"
             disabled={!pickedId || busy || !time}
             onClick={async () => {
               if (!pickedId || !time) return;
@@ -169,7 +170,7 @@ export default function FinalizeFlow({ eventId, proposedDate, status, finalizedI
           disabled={!pickedId || busy}
           style={{ width: '100%', padding: '9px 12px', marginTop: 10, border: '1px solid var(--border2)', borderRadius: 'var(--rs)', fontSize: 12, fontFamily: 'var(--fb)', color: 'var(--text)', background: 'var(--bg)', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }}
         />
-        {err && <p style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: '8px 0 0' }}>{err}</p>}
+        {err && <p data-testid="finalize-error" style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: '8px 0 0' }}>{err}</p>}
         {emailNote && <p style={{ fontSize: 12, color: emailNote.startsWith('⚠') ? 'oklch(52% 0.16 72)' : 'oklch(46% 0.14 148)', fontFamily: 'var(--fb)', margin: '8px 0 0' }}>{emailNote}</p>}
       </div>
     </div>

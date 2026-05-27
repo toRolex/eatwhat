@@ -147,6 +147,7 @@ export default function AITriggerButton({ eventId, locationHint, eventStatus = '
         <div>
           <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: 'var(--fb)' }}>Location</label>
           <input
+            data-testid="ai-location-input"
             value={location}
             onChange={e => setLocation(e.target.value)}
             placeholder="Downtown Toronto, ON"
@@ -168,6 +169,7 @@ export default function AITriggerButton({ eventId, locationHint, eventStatus = '
           </select>
         </div>
         <button
+          data-testid="ai-trigger-btn"
           onClick={run}
           disabled={running}
           style={{ padding: '9px 20px', borderRadius: 'var(--rs)', border: 'none', background: 'var(--text)', color: 'var(--bg)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', cursor: running ? 'not-allowed' : 'pointer', opacity: running ? 0.7 : 1, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 7 }}
@@ -184,7 +186,7 @@ export default function AITriggerButton({ eventId, locationHint, eventStatus = '
       </div>
 
       {phase === 'error' && errHint && (
-        <div style={{ marginTop: 14, padding: '12px 14px', borderRadius: 'var(--rs)', background: 'oklch(96% .03 26)', border: '1px solid oklch(82% .12 26)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div data-testid="ai-trigger-error" style={{ marginTop: 14, padding: '12px 14px', borderRadius: 'var(--rs)', background: 'oklch(96% .03 26)', border: '1px solid oklch(82% .12 26)', display: 'flex', flexDirection: 'column', gap: 6 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'oklch(40% .18 26)', fontFamily: 'var(--fb)' }}>{errHint.title}</div>
           <div style={{ fontSize: 12, color: 'oklch(38% .12 26)', fontFamily: 'var(--fb)', lineHeight: 1.5 }}>{errHint.body}</div>
           {errHint.cta && (

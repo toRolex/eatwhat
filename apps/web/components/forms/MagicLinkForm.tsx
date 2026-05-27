@@ -43,6 +43,7 @@ export default function MagicLinkForm({ redirectTo }: Props) {
         </label>
         <input
           id="email"
+          data-testid="magic-link-email"
           type="email"
           required
           value={email}
@@ -55,10 +56,11 @@ export default function MagicLinkForm({ redirectTo }: Props) {
       </div>
 
       {error && (
-        <p style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
+        <p data-testid="magic-link-error" style={{ fontSize: 12, color: 'oklch(50% 0.18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
       )}
 
       <button
+        data-testid="magic-link-submit"
         type="submit"
         disabled={loading}
         style={{ width: '100%', padding: '11px 0', borderRadius: 'var(--rs)', border: 'none', background: 'var(--text)', color: 'var(--bg)', fontSize: 14, fontWeight: 600, fontFamily: 'var(--fb)', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, transition: 'opacity .15s, transform .1s', letterSpacing: '-.01em' }}

@@ -82,7 +82,7 @@ export default function PreferenceForm({ token, existing, category }: Props) {
       </Section>
 
       <Section title="Cuisines you love">
-        <ChipRow options={CUISINE_OPTIONS} active={cuisinePrefs} onToggle={v => toggle(cuisinePrefs, setCuisinePrefs, v)} />
+        <ChipRow options={CUISINE_OPTIONS} active={cuisinePrefs} onToggle={v => toggle(cuisinePrefs, setCuisinePrefs, v)} testIdFn={opt => `pref-cuisine-${opt.toLowerCase().replace(/ /g, '-')}`} />
       </Section>
 
       <Section title="Cuisines to avoid">
@@ -97,6 +97,7 @@ export default function PreferenceForm({ token, existing, category }: Props) {
             const i = BUDGET_PRESETS.findIndex(p => p.label === label);
             setBudgetIndex(budgetIndex === i ? null : i);
           }}
+          testIdFn={(_, i) => `pref-budget-${i + 1}`}
         />
       </Section>
 
@@ -110,6 +111,7 @@ export default function PreferenceForm({ token, existing, category }: Props) {
 
       <Section title="Anything else?" hint="Allergies, mobility needs, the one place you've been dying to try…">
         <textarea
+          data-testid="pref-notes-input"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Optional notes for the host"
@@ -121,13 +123,14 @@ export default function PreferenceForm({ token, existing, category }: Props) {
       </Section>
 
       {error && (
-        <div style={{ padding: '10px 14px', borderRadius: 'var(--rs)', background: 'var(--surface)', border: '1px solid oklch(72% .15 26)' }}>
+        <div data-testid="pref-error" style={{ padding: '10px 14px', borderRadius: 'var(--rs)', background: 'var(--surface)', border: '1px solid oklch(72% .15 26)' }}>
           <p style={{ fontSize: 12, color: 'oklch(48% .2 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
         </div>
       )}
 
       <button
         type="submit"
+        data-testid="pref-submit"
         disabled={loading}
         style={{
           padding: '13px 0', borderRadius: 'var(--rs)', border: 'none',
@@ -154,15 +157,16 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   );
 }
 
-function ChipRow({ options, active, onToggle }: { options: string[]; active: string[]; onToggle: (v: string) => void }) {
+function ChipRow({ options, active, onToggle, testIdFn }: { options: string[]; active: string[]; onToggle: (v: string) => void; testIdFn?: (opt: string, i: number) => string }) {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-      {options.map(opt => {
+      {options.map((opt, i) => {
         const on = active.includes(opt);
         return (
           <button
             key={opt}
             type="button"
+            data-testid={testIdFn?.(opt, i)}
             onClick={() => onToggle(opt)}
             style={{
               padding: '10px 14px', borderRadius: 999,

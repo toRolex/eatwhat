@@ -36,10 +36,10 @@ export default async function EventPage({ params }: Props) {
   );
 
   const actions = [
-    { href: `/events/${id}/invite`, label: 'Manage invites', primary: true },
-    { href: `/e/${event.slug}`, label: 'Status page', primary: false },
+    { href: `/events/${id}/invite`, label: 'Manage invites', primary: true, testId: 'event-manage-invites-btn' },
+    { href: `/e/${event.slug}`, label: 'Status page', primary: false, testId: undefined },
     ...(event.status === 'deciding' || event.status === 'finalized'
-      ? [{ href: `/events/${id}/results`, label: 'View results', primary: false }]
+      ? [{ href: `/events/${id}/results`, label: 'View results', primary: false, testId: 'event-view-results-btn' }]
       : []),
   ];
 
@@ -55,7 +55,7 @@ export default async function EventPage({ params }: Props) {
       {/* Header */}
       <div style={{ marginBottom: 32, animation: 'fu .35s var(--sp) both' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 500, color: STATUS_COLORS[event.status] ?? 'var(--muted)', fontFamily: 'var(--fb)', background: 'var(--bg2)', border: '1px solid var(--border2)', borderRadius: 6, padding: '3px 9px', textTransform: 'capitalize' }}>
+          <span data-testid="event-status-badge" style={{ fontSize: 11, fontWeight: 500, color: STATUS_COLORS[event.status] ?? 'var(--muted)', fontFamily: 'var(--fb)', background: 'var(--bg2)', border: '1px solid var(--border2)', borderRadius: 6, padding: '3px 9px', textTransform: 'capitalize' }}>
             {event.status}
           </span>
         </div>
@@ -71,6 +71,7 @@ export default async function EventPage({ params }: Props) {
           <Link
             key={a.href}
             href={a.href}
+            data-testid={a.testId}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
