@@ -1,24 +1,26 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase/server';
-import { getInvitationByToken, getPreferencesByInvitation, getEventById } from '@groupplan/db';
+import { getInvitationBySlug, getInvitationByToken, getPreferencesByInvitation, getEventById } from '@groupplan/db';
 import PreferenceForm from '@/components/forms/PreferenceForm';
 
 export const metadata: Metadata = { title: 'Your preferences' };
 
 interface Props {
-  params: Promise<{ token: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export default async function PreferencesPage({ params }: Props) {
-  const { token } = await params;
+  const { slug } = await params;
   const db = createServiceClient();
 
-  const { data: invitation } = await getInvitationByToken(db, token);
+  const { data: invitation } = slug.length === 64
+    ? await getInvitationByToken(db, slug)
+    : await getInvitationBySlug(db, slug);
   if (!invitation) notFound();
 
   if (invitation.status !== 'accepted') {
-    redirect(`/invite/${token}/rsvp`);
+    redirect(`/invite/${slug}/rsvp`);
   }
 
   const [{ data: existing }, { data: event }] = await Promise.all([
@@ -43,7 +45,7 @@ export default async function PreferencesPage({ params }: Props) {
         </div>
 
         <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', boxShadow: 'var(--sh)', padding: '28px', animation: 'fu .4s var(--sp) .05s both' }}>
-          <PreferenceForm token={token} existing={existing ?? null} category={event?.category ?? "dinner"} />
+          <PreferenceForm token={slug} existing={existing ?? null} category={event?.category ?? "dinner"} />
         </div>
       </div>
     </main>

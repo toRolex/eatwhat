@@ -2,21 +2,23 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { createServiceClient } from '@/lib/supabase/server';
-import { getInvitationByToken, getProposalsByEvent, getVotesByInvitation } from '@groupplan/db';
+import { getInvitationBySlug, getInvitationByToken, getProposalsByEvent, getVotesByInvitation } from '@groupplan/db';
 import { getEventById } from '@groupplan/db';
 import VotingInterface from '@/components/voting/VotingInterface';
 
 export const metadata: Metadata = { title: 'Vote' };
 
 interface Props {
-  params: Promise<{ token: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export default async function VotePage({ params }: Props) {
-  const { token } = await params;
+  const { slug } = await params;
   const db = createServiceClient();
 
-  const { data: invitation } = await getInvitationByToken(db, token);
+  const { data: invitation } = slug.length === 64
+    ? await getInvitationByToken(db, slug)
+    : await getInvitationBySlug(db, slug);
   if (!invitation) notFound();
 
   const { data: event } = await getEventById(db, invitation.event_id);
@@ -54,12 +56,12 @@ export default async function VotePage({ params }: Props) {
 
         <VotingInterface
           proposals={proposals}
-          token={token}
+          token={slug}
           initialRankings={initialRankings}
         />
 
         <div style={{ marginTop: 24, textAlign: 'center' }}>
-          <Link href={`/invite/${token}`} style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none' }}>
+          <Link href={`/invite/${slug}`} style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none' }}>
             Back to invite
           </Link>
         </div>

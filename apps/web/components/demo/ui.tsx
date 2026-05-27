@@ -83,7 +83,7 @@ export function Btn({ children, onClick, style = {} }: { children: ReactNode; on
         fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "var(--fb)",
         transition: "all .25s var(--sp)",
         transform: h ? "translateY(-2px) scale(1.02)" : "none",
-        boxShadow: h ? "0 8px 24px rgba(0,0,0,.2)" : "none",
+        boxShadow: h ? "var(--shh)" : "none",
         ...style,
       }}
     >
@@ -102,7 +102,7 @@ export function Modal({ children, onClose, width = 500 }: { children: ReactNode;
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, background: "rgba(0,0,0,.5)",
+        position: "fixed", inset: 0, background: "var(--scrim)",
         backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
         zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center",
         animation: "fi .2s both",
@@ -113,7 +113,7 @@ export function Modal({ children, onClose, width = 500 }: { children: ReactNode;
         style={{
           background: "var(--surface)", borderRadius: "var(--r)",
           width: "90%", maxWidth: width, maxHeight: "90vh", overflowY: "auto",
-          boxShadow: "0 24px 80px rgba(0,0,0,.3)",
+          boxShadow: "var(--shh)",
           border: "1px solid var(--border2)", animation: "slideUp .32s var(--sp) both",
         }}
       >

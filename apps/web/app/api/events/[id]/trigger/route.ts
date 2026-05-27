@@ -48,7 +48,9 @@ export async function POST(request: Request, { params }: Context) {
   const body = await request.json().catch(() => ({}));
   const parsed = TriggerEventSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    const flat = parsed.error.flatten();
+    const message = flat.formErrors[0] ?? Object.values(flat.fieldErrors).flat()[0] ?? 'Invalid request';
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 
   // Re-running in `deciding` wipes existing proposals (and their votes via FK

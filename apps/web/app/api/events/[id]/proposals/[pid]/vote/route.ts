@@ -7,12 +7,12 @@ interface Context {
   params: Promise<{ id: string; pid: string }>;
 }
 
-// Guest votes are submitted via invite token in the Authorization header
+// Guest votes are submitted via invite slug/token in the Authorization header
 // because guests may not have a Supabase auth session
 export async function POST(request: Request, { params }: Context) {
   const { id: eventId, pid } = await params;
-  const token = request.headers.get('x-invite-token');
-  if (!token) return NextResponse.json({ error: 'Missing invite token' }, { status: 401 });
+  const invite = request.headers.get('x-invite-token');
+  if (!invite) return NextResponse.json({ error: 'Missing invite token' }, { status: 401 });
 
   const db = createServiceClient();
 
@@ -21,7 +21,7 @@ export async function POST(request: Request, { params }: Context) {
   const { data: invitation } = await db
     .from('invitations')
     .select('id, status, event_id')
-    .eq('invite_token', token)
+    .eq(invite.length === 64 ? 'invite_token' : 'slug', invite)
     .single();
 
   if (!invitation || invitation.status !== 'accepted') {

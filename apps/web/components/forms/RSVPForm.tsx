@@ -51,11 +51,11 @@ export default function RSVPForm({ token, currentStatus }: Props) {
   if (currentStatus === 'accepted') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div style={{ padding: '14px 16px', background: 'oklch(96% .04 148)', borderRadius: 'var(--rs)', border: '1px solid oklch(82% .12 148)' }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'oklch(36% .13 148)', fontFamily: 'var(--fb)', marginBottom: 2 }}>
+        <div style={{ padding: '14px 16px', background: 'var(--surface)', borderRadius: 'var(--rs)', border: '1px solid oklch(72% .15 148)' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'oklch(42% .15 148)', fontFamily: 'var(--fb)', marginBottom: 2 }}>
             ✓ You&apos;re going
           </div>
-          <p style={{ fontSize: 12, color: 'oklch(38% .12 148)', fontFamily: 'var(--fb)', margin: 0 }}>
+          <p style={{ fontSize: 12, color: 'oklch(42% .15 148)', fontFamily: 'var(--fb)', margin: 0 }}>
             Next: tell us your dietary needs and budget so the picks fit you.
           </p>
         </div>
@@ -72,8 +72,8 @@ export default function RSVPForm({ token, currentStatus }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {error && (
-        <div style={{ padding: '10px 14px', borderRadius: 'var(--rs)', background: 'oklch(96% .03 26)', border: '1px solid oklch(82% .12 26)' }}>
-          <p style={{ fontSize: 12, color: 'oklch(40% .18 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
+        <div style={{ padding: '10px 14px', borderRadius: 'var(--rs)', background: 'var(--surface)', border: '1px solid oklch(72% .15 26)' }}>
+          <p style={{ fontSize: 12, color: 'oklch(48% .2 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
         </div>
       )}
       <button

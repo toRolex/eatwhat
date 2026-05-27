@@ -27,7 +27,7 @@ function shell(title: string, bodyHtml: string): string {
           ${bodyHtml}
         </td></tr>
         <tr><td style="padding:0 36px 32px;font-size:11px;color:#999;border-top:1px solid #f0ece5;padding-top:16px">
-          Sent by GroupPlan — group dining, decided.
+          Sent by GroupPlan — group plans, decided.
         </td></tr>
       </table>
     </td></tr>

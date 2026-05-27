@@ -63,14 +63,14 @@ export default async function ResultsPage({ params }: Props) {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', fontFamily: 'var(--fb)', flexShrink: 0 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--bg)', fontFamily: 'var(--fb)', flexShrink: 0 }}>
                   {p.rank ?? i + 1}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--fb)', letterSpacing: '-.01em' }}>{p.restaurant_name}</span>
                     {p.cuisine_type && <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)' }}>{p.cuisine_type}</span>}
-                    {p.price_range && <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', marginLeft: 'auto' }}>{p.price_range}</span>}
+                    {p.price_range && <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)' }}>{p.price_range}</span>}
                   </div>
                   {p.reasoning && (
                     <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: '6px 0 0', lineHeight: 1.55 }}>{p.reasoning}</p>
@@ -88,8 +88,46 @@ export default async function ResultsPage({ params }: Props) {
         })}
 
         {sorted.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--muted)', fontSize: 13, fontFamily: 'var(--fb)' }}>
-            No proposals yet — AI is still processing guest preferences.
+          <div
+            style={{
+              background: 'var(--surface)',
+              borderRadius: 'var(--r)',
+              border: '1px solid var(--border2)',
+              padding: '24px 22px',
+              boxShadow: 'var(--sh)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+            }}
+          >
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 'var(--rs)',
+                background: 'oklch(92% .06 228)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <circle cx="9" cy="9" r="7.5" stroke="oklch(38% .14 228)" strokeWidth="1.5" />
+                <path d="M9 5v4.5l2.5 2.5" stroke="oklch(38% .14 228)" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </div>
+            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--fb)', margin: '14px 0 6px' }}>
+              Waiting for AI recommendations
+            </p>
+            <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: 0, lineHeight: 1.55 }}>
+              Trigger the AI analysis from the event page once all RSVPs are in.
+            </p>
+            <Link
+              href={`/events/${id}`}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 16, fontSize: 12, fontWeight: 600, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none' }}
+            >
+              ← Back to event
+            </Link>
           </div>
         )}
       </div>

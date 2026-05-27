@@ -9,6 +9,7 @@ export default defineConfig({
   },
   test: {
     include: [
+      'apps/web/app/**/*.test.ts',
       'apps/web/lib/**/*.test.ts',
       'packages/*/src/**/*.test.ts',
     ],

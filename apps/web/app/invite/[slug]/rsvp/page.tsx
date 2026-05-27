@@ -1,21 +1,23 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase/server';
-import { getInvitationByToken } from '@groupplan/db';
+import { getInvitationBySlug, getInvitationByToken } from '@groupplan/db';
 import { getEventById } from '@groupplan/db';
 import RSVPForm from '@/components/forms/RSVPForm';
 
 export const metadata: Metadata = { title: 'RSVP' };
 
 interface Props {
-  params: Promise<{ token: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export default async function RSVPPage({ params }: Props) {
-  const { token } = await params;
+  const { slug } = await params;
   const db = createServiceClient();
 
-  const { data: invitation } = await getInvitationByToken(db, token);
+  const { data: invitation } = slug.length === 64
+    ? await getInvitationByToken(db, slug)
+    : await getInvitationBySlug(db, slug);
   if (!invitation) notFound();
 
   const { data: event } = await getEventById(db, invitation.event_id);
@@ -30,7 +32,7 @@ export default async function RSVPPage({ params }: Props) {
     <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
 
-        <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', boxShadow: 'var(--sh)', padding: '32px 32px 28px', animation: 'fu .35s var(--sp) both' }}>
+        <div className="invite-card-pad" style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', boxShadow: 'var(--sh)', animation: 'fu .35s var(--sp) both' }}>
 
           <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: 'var(--fb)' }}>
             You&apos;re invited
@@ -55,7 +57,7 @@ export default async function RSVPPage({ params }: Props) {
               </p>
             </div>
           ) : (
-            <RSVPForm token={token} currentStatus={invitation.status} />
+            <RSVPForm token={slug} currentStatus={invitation.status} />
           )}
         </div>
 

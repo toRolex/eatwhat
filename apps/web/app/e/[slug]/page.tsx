@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase/server';
 import { getEventBySlug, getInvitationsByEvent, getFinalizedPlanByEvent } from '@groupplan/db';
 import { maybeAutoFinalize } from '@/lib/auto-finalize';
-import { STATUS_COLORS, STATUS_LABELS } from '@/lib/status-ui';
+import { STATUS_COLORS, STATUS_LABELS } from '@/lib/event-status';
 import GuestStatusList from '@/components/realtime/GuestStatusList';
 
 interface Props {

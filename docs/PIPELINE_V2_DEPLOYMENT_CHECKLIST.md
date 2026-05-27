@@ -35,6 +35,10 @@ Apply in order. Each is idempotent (uses `IF NOT EXISTS` or `CREATE OR REPLACE`)
 | `009_ai_pipeline.sql` | Creates `ai_logs`, `structured_constraints`, `restaurant_cache`; adds v2 columns to `proposals`; enables RLS | **Yes** |
 | `010_add_structured_constraint_columns.sql` | Adds `guest_id`, `weight_multiplier` to `structured_constraints`; idempotent UNIQUE on `invitation_id` | **Yes** |
 | `011_v2_hardening.sql` | Updates `replace_proposals_and_advance` RPC to write v2 proposal columns; adds RLS COMMENT documentation | **Yes** |
+| `012_event_categories.sql` | Adds `category` column to `events` | **Yes** |
+| `013_ai_logs_month_index.sql` | Adds `idx_ai_logs_event_created` index on `ai_logs(event_id, created_at DESC)` — required for cost circuit breaker query performance | **Yes** |
+| `014_invitation_slugs.sql` | Adds `slug` column to `invitations` for human-readable invite URLs | **Yes** |
+| `015_funnel_and_flags.sql` | Creates `funnel_events` and `feature_flags` tables for analytics and per-user feature flags | **Yes** |
 
 **Verification after applying:**
 ```sql

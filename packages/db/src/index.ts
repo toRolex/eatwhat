@@ -7,3 +7,5 @@ export * from './queries/votes';
 export * from './queries/usage';
 export * from './queries/finalized-plans';
 export * from './queries/ai-logs';
+export * from './queries/funnel';
+export * from './queries/flags';

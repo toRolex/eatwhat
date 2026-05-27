@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function MagicLinkForm() {
+interface Props {
+  redirectTo?: string;
+}
+
+export default function MagicLinkForm({ redirectTo }: Props) {
   const router = useRouter();
   const [email, setEmail]     = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,7 +21,7 @@ export default function MagicLinkForm() {
     const res = await fetch('/api/auth/magic-link', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, redirectTo }),
     });
 
     setLoading(false);

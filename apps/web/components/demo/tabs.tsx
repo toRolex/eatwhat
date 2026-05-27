@@ -433,7 +433,7 @@ function RealRestCard({ p, delay, tweaks, open, onToggle }: { p: RealProposal; d
           {/* Gradient overlay */}
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 50%, rgba(0,0,0,.55))", pointerEvents: "none" }} />
           {/* Rank badge */}
-          <div style={{ position: "absolute", top: 12, left: 12, width: 36, height: 36, borderRadius: "50%", background: accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--fd)", fontSize: 16, boxShadow: "0 2px 8px rgba(0,0,0,.25)" }}>
+          <div style={{ position: "absolute", top: 12, left: 12, width: 36, height: 36, borderRadius: "50%", background: accent, color: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--fd)", fontSize: 16, boxShadow: "0 2px 8px rgba(0,0,0,.25)" }}>
             {p.rank}
           </div>
           {/* Match ring */}

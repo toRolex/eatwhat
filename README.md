@@ -1,16 +1,14 @@
 # GroupPlan
 
-![Planner View](./assets/planner_dashboard.png)
-
-AI-powered group restaurant planning. Hosts create beautiful shareable invitations, guests submit preferences, and Claude proposes real nearby venues the whole group will love. The group votes using Borda count scoring; the host finalizes with one click and everyone gets a calendar invite.
+AI-powered group restaurant planning. Hosts create shareable invitations, guests submit preferences, and a 12-stage multi-provider AI pipeline proposes real nearby venues ranked to fit the whole group. Guests vote using Borda count scoring; the host finalizes with one click and everyone gets a calendar invite.
 
 ## How it works
 
-1. Host creates an event, sets a location and RSVP deadline, and sends invitation links
-2. Guests RSVP and submit dietary restrictions, cuisine preferences, budget range, and vibe
-3. Host triggers AI synthesis — Claude searches real nearby venues via Google Places and ranks them against every guest's preferences, returning 3–10 proposals
+1. Host creates an event with a location hint and RSVP deadline, then sends personalized invitation links
+2. Guests RSVP and submit dietary restrictions, cuisine preferences, budget range, and a free-text vibe
+3. Host triggers AI synthesis — the V2 pipeline runs across Anthropic, Gemini, and Voyage AI to extract constraints, discover real nearby venues, embed vibe preferences, score and rerank candidates, verify proposals against hard constraints, and generate personalized reasoning for each guest
 4. Guests rank proposals; Borda count tallies votes in real time
-5. Host picks the winner (or sets a vote deadline for auto-finalize), confirms the time, and GroupPlan sends a `winner-announced` email with a `.ics` calendar attachment to every accepted guest
+5. Host picks the winner (or sets a vote deadline for auto-finalize), confirms the time, and GroupPlan sends a winner email with a `.ics` calendar attachment to every accepted guest
 
 ## Tech stack
 
@@ -18,7 +16,9 @@ AI-powered group restaurant planning. Hosts create beautiful shareable invitatio
 |---|---|
 | Frontend | Next.js 14 (App Router) |
 | Database / Auth | Supabase (PostgreSQL + RLS + Realtime) |
-| AI synthesis | Claude Haiku (`claude-haiku-4-5-20251001`, Anthropic) |
+| AI — reasoning | Claude Haiku + Sonnet (Anthropic) |
+| AI — venue discovery | Gemini Flash (Google) |
+| AI — vibe embeddings | Voyage AI (`voyage-3`) |
 | Venue search | Google Places API v1 (Yelp Fusion as fallback) |
 | Email | SendGrid |
 | Hosting | AWS Amplify |
@@ -32,35 +32,31 @@ groupplan/
 │       ├── app/
 │       │   ├── (auth)/         # Login + magic-link verify pages
 │       │   ├── (host)/         # Dashboard, event management, results
+│       │   │   └── dev/        # Internal tools: log viewer, cost dashboard, pipeline inspector
 │       │   ├── api/            # Route handlers (events, invites, votes, calendar…)
-│       │   ├── e/[slug]/       # Public event status page
-│       │   └── invite/[token]/ # Guest RSVP, preferences, and voting pages
+│       │   ├── e/[slug]/       # Public event status page (shareable group chat link)
+│       │   └── invite/[slug]/  # Guest RSVP, preferences, vote, and confirmed pages
 │       ├── components/
-│       │   ├── forms/          # EventCreateForm, AITriggerButton, FinalizeFlow
-│       │   ├── host/           # UsageBadge, ThemeToggle
-│       │   ├── voting/         # VotingInterface (live Borda tally)
-│       │   └── realtime/       # GuestStatusList (Supabase realtime)
+│       │   ├── forms/          # EventCreateForm, PreferenceForm, RSVPForm, FinalizeFlow
+│       │   ├── groupplan/      # Demo UI, tab components, modals
+│       │   ├── invite-templates/ # InviteView template system
+│       │   ├── realtime/       # GuestStatusList (Supabase realtime)
+│       │   └── ui/             # PreviewBanner, shared primitives
 │       └── lib/
 │           ├── auto-finalize.ts   # Check-on-read auto-finalize logic
 │           ├── calendar.ts        # ICS calendar export
 │           ├── email.ts           # SendGrid email rendering + sending
-│           ├── env.ts             # Force-loads .env.local (Windows shadow workaround)
-│           ├── notifications.ts   # sendBatch() helper + email service factory
-│           ├── photo-signing.ts   # HMAC-SHA256 photo proxy token signing
-│           ├── rate-limit.ts      # In-memory sliding-window rate limiter
-│           ├── scoring.ts         # bordaScore(), computeBorda(), DINNER_DURATION_MS
-│           └── status-ui.ts       # STATUS_COLORS and STATUS_LABELS constants
+│           ├── scoring.ts         # bordaScore(), computeBorda()
+│           └── event-status.ts    # STATUS_COLORS and STATUS_LABELS constants
 ├── packages/
 │   ├── types/        # Shared TypeScript types + Zod schemas
 │   ├── db/           # Supabase client + typed query helpers
-│   ├── ai/           # AI provider interface + Claude adapter
+│   ├── ai/           # 12-stage V2 pipeline + legacy Claude adapter
 │   └── venues/       # Venue provider interface + Google Places / Yelp adapters
 └── supabase/
-    ├── migrations/   # PostgreSQL schema migrations (run in order)
+    ├── migrations/   # PostgreSQL schema migrations (run in order, 001–015)
     └── setup.sql     # Full schema for fresh installs
 ```
-
-Business logic, API types, and adapters live in `packages/` so a future React Native app can import them without duplicating code.
 
 ## Getting started
 
@@ -90,7 +86,7 @@ Fill in all values in `apps/web/.env.local`. Required keys are listed below.
 
 In the Supabase dashboard **SQL editor**, paste and run `supabase/setup.sql` for a fresh install.
 
-If you already have the base schema and are migrating, run each file in `supabase/migrations/` in numerical order:
+If migrating an existing schema, run each file in `supabase/migrations/` in numerical order:
 
 ```
 001_enums.sql
@@ -101,6 +97,13 @@ If you already have the base schema and are migrating, run each file in `supabas
 006_usage_log.sql
 007_vote_deadline.sql
 008_replace_proposals_rpc.sql
+009_ai_pipeline.sql
+010_add_structured_constraint_columns.sql
+011_v2_hardening.sql
+012_event_categories.sql
+013_ai_logs_month_index.sql
+014_invitation_slugs.sql
+015_funnel_and_flags.sql
 ```
 
 ### 4. Run the dev server
@@ -109,89 +112,120 @@ If you already have the base schema and are migrating, run each file in `supabas
 pnpm dev
 ```
 
-App runs at [http://localhost:3000](http://localhost:3000). The interactive demo is at `/` (no login required). The host dashboard is at `/dashboard`.
+App runs at [http://localhost:3000](http://localhost:3000). The host dashboard is at `/dashboard`.
 
 ## Environment variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | ✓ | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✓ | Supabase anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✓ | Service role key (server-only) |
-| `ANTHROPIC_API_KEY` | ✓ | Claude API key |
-| `GOOGLE_PLACES_API_KEY` | ✓ | Google Places API v1 key |
-| `YELP_API_KEY` | — | Fallback if Google Places is unavailable |
-| `SENDGRID_API_KEY` | — | Email notifications (skipped if absent) |
-| `SENDGRID_FROM_EMAIL` | — | Sender address (required if SendGrid key set) |
-| `SENDGRID_FROM_NAME` | — | Sender display name (defaults to `GroupPlan`) |
-| `NEXT_PUBLIC_APP_URL` | — | Full origin for email links (defaults to `http://localhost:3000`) |
-| `PHOTO_PROXY_SECRET` | ✓ | HMAC secret for photo proxy tokens |
+### Core (required)
+
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key — server-only, never expose to client |
+| `ANTHROPIC_API_KEY` | Anthropic API key (Haiku + Sonnet) |
+| `ANTHROPIC_MODEL_FAST` | Haiku model ID, e.g. `claude-haiku-4-5-20251001` |
+| `ANTHROPIC_MODEL_REASONING` | Sonnet model ID, e.g. `claude-sonnet-4-6` |
+| `GOOGLE_PLACES_API_KEY` | Google Places API v1 key |
+| `PHOTO_PROXY_SECRET` | HMAC secret for photo proxy tokens |
+
+### Pipeline V2 (required when `PIPELINE_V2=true`)
+
+| Variable | Description |
+|---|---|
+| `GEMINI_API_KEY` | Google Gemini API key |
+| `GEMINI_MODEL` | Gemini model ID, e.g. `gemini-2.5-flash` |
+| `VOYAGE_API_KEY` | Voyage AI API key |
+| `VOYAGE_MODEL` | Voyage model ID, e.g. `voyage-3` |
+| `PIPELINE_V2` | Feature flag — `false` by default, set `true` to enable |
+| `PIPELINE_COST_CAP_MICROS` | Monthly spend cap per event in micros (default: 5000000 = $5.00) |
+| `PIPELINE_LOG_LEVEL` | `info` for production; `debug` logs raw AI payloads — never use in prod |
+| `ANTHROPIC_EXTENDED_THINKING` | `false` by default — only enable after verifying beta on your Anthropic account |
+
+### Optional
+
+| Variable | Description |
+|---|---|
+| `YELP_API_KEY` | Yelp Fusion fallback if Google Places is unavailable |
+| `SENDGRID_API_KEY` | Email notifications (skipped gracefully if absent) |
+| `SENDGRID_FROM_EMAIL` | Sender address (required if SendGrid key set) |
+| `SENDGRID_FROM_NAME` | Sender display name (defaults to `GroupPlan`) |
+| `NEXT_PUBLIC_APP_URL` | Full origin for email links (defaults to `http://localhost:3000`) |
 
 ## Key features
 
-### AI synthesis
-- Searches up to 20 real nearby venues via Google Places (Yelp fallback)
-- Claude reads all guest preferences and ranks venues into 3–10 proposals
-- Each proposal includes reasoning, constraints met/missed, and a suggested time
-- AI and venue search spend logged to `usage_log`; shown in the host UI via `UsageBadge`
-- Demo endpoint (`/api/demo/synthesize`) rate-limited to 3 runs/hour per IP
+### AI Pipeline V2
+
+A 12-stage multi-provider pipeline, feature-flagged behind `PIPELINE_V2`. Each stage is independently logged to `ai_logs` for cost tracking and debugging.
+
+| Stage | Provider | Purpose |
+|---|---|---|
+| Dealbreaker detector | Anthropic Haiku | Identifies hard dietary/preference blocks |
+| Constraint extractor | Anthropic Haiku | Parses structured constraints from free-text preferences |
+| Implicit inference | Anthropic Haiku | Surfaces unstated preferences from vibe text |
+| Gemini discovery | Gemini Flash | Discovers real nearby venues via function calling |
+| Menu Phantom (Tier 1) | — | Infers dietary compatibility from venue signals |
+| Restaurant cache | Supabase | Deduplicates venue lookups across pipeline runs |
+| Deterministic scorer | — | TOPSIS scoring: dietary 30%, budget 25%, cuisine 20%, location 15%, review 10% |
+| Vibe embedder | Voyage AI | Embeds free-text vibe signals for semantic matching |
+| Deterministic reranker | — | Reranks candidates combining score + vibe similarity |
+| Fairness checker | — | Flags proposals that leave any guest without viable options |
+| Reasoning engine | Anthropic Sonnet | Generates group narrative and per-guest personalized reasoning |
+| Critic verifier | Anthropic Haiku | Removes any proposal that violates hard constraints |
+
+Guest references in all AI prompts are anonymized (`guest_0`, `guest_1`, etc.) — invitation UUIDs never enter a model context.
+
+**Cost circuit breaker:** triggers return HTTP 402 when monthly spend for an event reaches `PIPELINE_COST_CAP_MICROS`. Spend is tracked in `ai_logs` and visible in the host's usage badge and `/dev/costs`.
 
 ### Voting
+
 - Guests rank proposals using a numbered rank selector
-- Borda count scoring: with N proposals, rank-1 = N pts, rank-N = 1 pt
-- Live tally polled every 4 s while the guest is on the voting page
-- Re-ranking safe: tally polling is paused during in-flight submissions to prevent race conditions
-- Host can re-run AI synthesis from the deciding state (two-click confirm that wipes existing votes)
+- Borda count: with N proposals, rank-1 = N pts, rank-N = 1 pt
+- Live tally polled every 4s; paused during in-flight submissions to prevent race conditions
+- Host can re-run AI synthesis from `deciding` state (two-click confirm wipes existing votes)
 
 ### Vote deadline & auto-finalize
-- Optional `vote_deadline` field on events; set at creation time or left null for manual control
-- On any read of the results, tally, or event page, `maybeAutoFinalize()` checks whether the deadline has passed and, if so, locks in the current Borda winner, inserts a `finalized_plans` row, and sends winner emails — all idempotently
+
+- Optional `vote_deadline` on events; left null for manual control
+- `maybeAutoFinalize()` runs on any read of the results, tally, or event page — idempotently locks in the Borda winner, inserts a `finalized_plans` row, and sends winner emails
 
 ### Email notifications
-- All three send sites (invite, trigger, finalize) use `sendBatch()` for consistent error logging
-- Individual failures logged to `console.error` with recipient email and message
-- API responses include `{ emails: { sent, failed } }` so the host UI can surface bounce counts
 
-### Photo proxy
-- Google Places photo URLs contain the API key; they are never sent to the browser
-- Server-side proxy at `/api/demo/photo` accepts HMAC-SHA256 signed tokens with a 24-hour TTL
-- Tokens sign `<ref>.<expiry>`; expired or tampered tokens return 403
+- All send sites use `sendBatch()` for consistent error logging
+- API responses include `{ emails: { sent, failed } }` so the host can see bounce counts
 
 ### Dark mode
+
 - Toggled via the sun/moon button in the host header
 - State persisted to `localStorage.gp_tweaks.darkMode`
-- Synchronous `<script>` in `<head>` applies `html[data-theme="dark"]` before first paint to eliminate flash
-- CSS responds to either `html[data-theme="dark"]` or `body.dark`
+- Synchronous `<script>` in `<head>` applies `html[data-theme="dark"]` before first paint to prevent flash
 
 ### Public status page (`/e/[slug]`)
-- Shows live guest RSVP status via Supabase realtime
-- After finalization, shows a venue card: name, cuisine, address, confirmed time, and an "Open in Maps" button
+
+- Shareable link for the group chat — shows live RSVP status via Supabase realtime
+- After finalization: venue card with name, cuisine, address, confirmed time, and "Open in Maps" button
 
 ### Calendar export
-- `.ics` download at `/api/events/[id]/calendar`
-- Accessible without auth (guests click from their email)
-- Times emitted as UTC with `Z` suffix (`startInputType: 'utc'`) so every calendar app interprets them correctly
+
+- `.ics` download at `/api/events/[id]/calendar` — auth-free (guests click from email)
+- Times emitted as UTC with `Z` suffix so every calendar app interprets them correctly
 - Includes `PRODID`, `STATUS:CONFIRMED`, and all accepted guests as attendees
+
+### Developer tools (`/dev/*`)
+
+Internal tooling for debugging and monitoring (host-auth gated):
+
+- `/dev/logs` — per-stage `ai_logs` viewer with cost and latency
+- `/dev/costs` — monthly spend by event with circuit breaker status
+- `/dev/pipeline/[id]` — full pipeline run inspector for a specific event
 
 ## Security notes
 
-- All host-scoped API routes verify `event.host_id === user.id` before mutating (defense-in-depth on top of RLS)
+- All host-scoped API routes verify `event.host_id === user.id` (defense-in-depth on top of RLS)
 - Vote endpoint verifies the invite token belongs to the correct event and that the event is in `deciding` state
-- Service client (`SUPABASE_SERVICE_ROLE_KEY`) is only used in server-only paths that require bypassing RLS (auto-finalize, calendar download, tally)
-
-## Shared utilities reference
-
-| File | Exports |
-|---|---|
-| `apps/web/lib/scoring.ts` | `bordaScore`, `computeBorda`, `DINNER_DURATION_MS` |
-| `apps/web/lib/status-ui.ts` | `STATUS_COLORS`, `STATUS_LABELS` |
-| `apps/web/lib/email.ts` | `sendEmail`, `renderEmail`, `EmailTemplate` |
-| `apps/web/lib/calendar.ts` | `IcsCalendarExporter` |
-| `apps/web/lib/notifications.ts` | `getNotificationService`, `sendBatch`, `appUrl` |
-| `apps/web/lib/env.ts` | `ensureEnvLoaded` — force-loads `.env.local` on Windows where system env vars can shadow it |
-| `apps/web/lib/auto-finalize.ts` | `maybeAutoFinalize` |
-| `apps/web/lib/photo-signing.ts` | `signPhotoRef`, `verifyPhotoRef` |
-| `apps/web/lib/rate-limit.ts` | `rateLimit`, `clientIp` |
+- Service client is only used in server-only paths that require bypassing RLS (auto-finalize, calendar, tally)
+- Google Places photo URLs contain the API key — served through an HMAC-SHA256 signed proxy with a 24-hour TTL; expired or tampered tokens return 403
+- `PIPELINE_LOG_LEVEL=debug` must never be used in production — it persists raw AI payloads to `ai_logs`
 
 ## Contributing
 

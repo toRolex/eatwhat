@@ -1,5 +1,5 @@
 export type { AIProvider, SynthesisInput, SynthesisOutput, RestaurantCandidate, ProposalOutput } from './interface';
-export { ClaudeAIProvider } from './adapters/claude';
+export { ClaudeAIProvider } from './adapters/anthropic-legacy';
 export { buildSynthesisPrompt } from './prompts/restaurant-synthesis';
 export { runPipeline } from './pipeline/orchestrator';
 export type { PipelineResult, PipelineStage, ImplicitContext, StructuredConstraint, RestaurantScore, EnvyScore, ProposalWithNarrative } from './pipeline/types';

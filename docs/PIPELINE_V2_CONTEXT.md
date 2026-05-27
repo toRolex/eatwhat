@@ -52,7 +52,7 @@ structured_constraints — per-guest structured output from constraint-extractor
 restaurant_cache — vibe embeddings + dietary analysis cache (added migration 009)
 ```
 
-### Legacy AI adapter (packages/ai/src/adapters/claude.ts)
+### Legacy AI adapter (packages/ai/src/adapters/anthropic-legacy.ts)
 
 Single-shot pattern — takes raw preferences + restaurant list, returns 3
 ranked proposals via assistant prefill JSON hack. **Do not delete** — stays

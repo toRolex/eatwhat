@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Tweaks, TWEAKS_DEFAULTS, GUESTS_DATA, INITIAL_ACTIVITIES, Guest, Activity } from "../components/groupplan/types";
-import { Sidebar, ShareModal, CreateEventModal } from "../components/groupplan/modals";
-import { NotificationPanel } from "../components/groupplan/notifications";
-import { OverviewTab, PreferencesTab, AITab, VoteTab } from "../components/groupplan/tabs";
+import { Tweaks, TWEAKS_DEFAULTS, GUESTS_DATA, INITIAL_ACTIVITIES, Guest, Activity } from "../components/demo/types";
+import { Sidebar, ShareModal, CreateEventModal } from "../components/demo/modals";
+import { NotificationPanel } from "../components/demo/notifications";
+import { OverviewTab, PreferencesTab, AITab, VoteTab } from "../components/demo/tabs";
 
 function TweaksPanel({ tweaks, setTweaks }: { tweaks: Tweaks; setTweaks: (t: Tweaks) => void }) {
   const toggle = (k: keyof Tweaks) => {
