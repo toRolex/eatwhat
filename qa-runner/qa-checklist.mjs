@@ -163,12 +163,12 @@ async function run() {
     if ((await deadlineInput.count()) > 0) await deadlineInput.fill("2026-12-31T18:00");
     const createBtn = hostPage.locator("button[type='submit']").first();
     await Promise.all([
-      hostPage.waitForURL(/\/events\/[^/]+$/, { timeout: 10000 }).catch(() => {}),
+      hostPage.waitForURL(/\/events\/(?!new$)[^/?#]+$/, { timeout: 10000 }).catch(() => {}),
       createBtn.click(),
     ]);
     const eventUrl = hostPage.url();
     const eventId = eventUrl.split("/events/")[1]?.split(/[/?#]/)[0];
-    addCheck(flow, "HOST-1", "Create event redirects to event detail", /\/events\/[^/]+$/.test(eventUrl), {
+    addCheck(flow, "HOST-1", "Create event redirects to event detail", /\/events\/(?!new$)[^/?#]+$/.test(eventUrl), {
       finalUrl: eventUrl,
       eventId: eventId || null,
     });
