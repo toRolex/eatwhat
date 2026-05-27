@@ -181,21 +181,36 @@ async function run() {
       excerpt: eventPageText.slice(0, 250),
     });
 
-    const guestName = hostPage.locator("input[name='guestName'], input[placeholder*='name' i]").first();
-    const guestEmail = hostPage.locator("input[name='guestEmail'], input[type='email']").last();
-    if ((await guestName.count()) > 0) await guestName.fill("QA Guest");
-    if ((await guestEmail.count()) > 0) await guestEmail.fill(`qa+${Date.now()}@example.com`);
-    const addGuestBtn = hostPage.locator("button:has-text('Add guest'), button:has-text('Send invite')").first();
-    if ((await addGuestBtn.count()) > 0) {
-      await addGuestBtn.click();
-      await hostPage.waitForTimeout(800);
+    // Invite management lives at /events/[id]/invite, not on the detail page
+    await hostPage.goto(`${BASE}/events/${eventId}/invite`, { waitUntil: "networkidle" });
+
+    const guestName = hostPage.locator("input[placeholder='Alex']").first();
+    const guestEmail = hostPage.locator("input[placeholder='alex@example.com']").first();
+    const addGuestBtn = hostPage.locator("button:has-text('Add guest')").first();
+
+    // Intercept the POST response to capture the invite slug for the GUEST flow
+    let createdInviteSlug = null;
+    if ((await guestName.count()) > 0 && (await addGuestBtn.count()) > 0) {
+      await guestName.fill("QA Guest");
+      await guestEmail.fill(`qa+${Date.now()}@example.com`);
+      const [inviteRes] = await Promise.all([
+        hostPage.waitForResponse(
+          (r) => r.url().includes(`/api/events/${eventId}/invite`) && r.request().method() === "POST",
+          { timeout: 8000 },
+        ),
+        addGuestBtn.click(),
+      ]);
+      const inviteData = await inviteRes.json().catch(() => ({}));
+      createdInviteSlug = inviteData.invitations?.[0]?.slug ?? null;
+      await hostPage.waitForTimeout(400);
     }
+
     const postInviteText = await hostPage.locator("body").innerText();
     addCheck(flow, "HOST-3", "Add guest appears in list", /QA Guest|qa\+/i.test(postInviteText), {
       excerpt: postInviteText.slice(0, 300),
     });
 
-    const copyLinkBtn = hostPage.locator("button:has-text('Copy invite link')").first();
+    const copyLinkBtn = hostPage.locator("button:has-text('Copy link')").first();
     let copyClicked = false;
     if ((await copyLinkBtn.count()) > 0) {
       await copyLinkBtn.click();
@@ -263,10 +278,8 @@ async function run() {
       excerpt: noLocText.slice(0, 240),
     });
 
-    // Guest flow: use first invite link found on host event page
-    const inviteAnchor = hostPage.locator("a[href*='/invite/']").first();
-    const inviteHref = (await inviteAnchor.count()) > 0 ? await inviteAnchor.getAttribute("href") : null;
-    const inviteSlug = inviteHref?.split("/invite/")[1]?.split(/[/?#]/)[0] ?? null;
+    // Guest flow: use slug captured from the POST /invite response in HOST-3
+    const inviteSlug = createdInviteSlug;
     const guestCtx = await browser.newContext();
     const guestPage = await guestCtx.newPage();
     attachCapture(guestPage, flow);
