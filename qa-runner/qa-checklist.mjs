@@ -173,8 +173,10 @@ async function run() {
       eventId: eventId || null,
     });
 
+    // Wait for the event detail page to fully render before reading content
+    await hostPage.waitForLoadState("networkidle").catch(() => {});
     const eventPageText = await hostPage.locator("body").innerText();
-    addCheck(flow, "HOST-2", "Event detail shows status badge", /status|draft|planning|deciding|finalized|finalised/i.test(eventPageText), {
+    addCheck(flow, "HOST-2", "Event detail shows status badge", /status|collecting|draft|planning|deciding|finalized|finalised/i.test(eventPageText), {
       excerpt: eventPageText.slice(0, 250),
     });
 
