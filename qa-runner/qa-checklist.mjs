@@ -181,6 +181,14 @@ async function run() {
       excerpt: eventPageText.slice(0, 250),
     });
 
+    // Events are created in draft status; transition to open before sending invites
+    // (draft → open → collecting is the required state machine path)
+    if (eventId && eventId !== "new") {
+      await hostCtx.request.patch(`${BASE}/api/events/${eventId}`, {
+        data: { status: "open" },
+      });
+    }
+
     // Invite management lives at /events/[id]/invite, not on the detail page
     await hostPage.goto(`${BASE}/events/${eventId}/invite`, { waitUntil: "networkidle" });
 
