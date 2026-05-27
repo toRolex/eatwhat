@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import MagicLinkForm from '@/components/forms/MagicLinkForm';
 import { createServiceClient } from '@/lib/supabase/server';
 import { getEventById, getInvitationBySlug } from '@groupplan/db';
@@ -106,9 +107,9 @@ export default async function LoginPage({ searchParams }: Props) {
             <a href="#sign-in" style={{ display: 'inline-flex', alignItems: 'center', padding: '11px 22px', borderRadius: 'var(--rs)', background: 'var(--text)', color: 'var(--bg)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none', letterSpacing: '-.01em' }}>
               Get started free →
             </a>
-            <a href="/e/seed-team-dinner-nobu" style={{ display: 'inline-flex', alignItems: 'center', padding: '11px 22px', borderRadius: 'var(--rs)', background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border2)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none', letterSpacing: '-.01em' }}>
+            <Link href="/e/seed-team-dinner-nobu" style={{ display: 'inline-flex', alignItems: 'center', padding: '11px 22px', borderRadius: 'var(--rs)', background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border2)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none', letterSpacing: '-.01em' }}>
               See a live demo
-            </a>
+            </Link>
           </div>
         </div>
 

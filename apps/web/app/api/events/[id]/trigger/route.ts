@@ -187,7 +187,10 @@ export async function POST(request: Request, { params }: Context) {
   const venues = googleKey
     ? new GooglePlacesVenueProvider(googleKey)
     : new YelpVenueProvider(process.env.YELP_API_KEY!);
-  const candidates = await venues.searchVenues({ location, limit: 20 });
+  const candidates = await venues.searchVenues({ location, limit: 20 }).catch(() => null);
+  if (!candidates) {
+    return NextResponse.json({ error: 'Venue search unavailable — try again shortly.' }, { status: 503 });
+  }
 
   // Log venue search spend. Google Places Text Search New is $32/1k, ~$0.032/call.
   // Yelp Fusion is free at moderate volume; log 0 cost.
@@ -224,7 +227,10 @@ export async function POST(request: Request, { params }: Context) {
     preferences,
     candidates: aiCandidates,
     count: parsed.data.count ?? 5,
-  });
+  }).catch(() => null);
+  if (!synthesis) {
+    return NextResponse.json({ error: 'AI synthesis unavailable — try again shortly.' }, { status: 503 });
+  }
 
   // 3. Persist proposals and advance the event state
   const proposalRows = synthesis.proposals.flatMap((p) => {
