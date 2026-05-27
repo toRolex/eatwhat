@@ -173,8 +173,9 @@ async function run() {
       eventId: eventId || null,
     });
 
-    // Wait for the event detail page to fully render before reading content
-    await hostPage.waitForLoadState("networkidle").catch(() => {});
+    // Wait for RSC payload to flush: "All events" back-link is only in the
+    // event detail page, not in the /events/new shell.
+    await hostPage.waitForSelector('a[href="/dashboard"]', { timeout: 8000 }).catch(() => {});
     const eventPageText = await hostPage.locator("body").innerText();
     addCheck(flow, "HOST-2", "Event detail shows status badge", /status|collecting|draft|planning|deciding|finalized|finalised/i.test(eventPageText), {
       excerpt: eventPageText.slice(0, 250),
