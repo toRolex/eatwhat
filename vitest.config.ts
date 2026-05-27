@@ -13,6 +13,10 @@ export default defineConfig({
       'apps/web/lib/**/*.test.ts',
       'packages/*/src/**/*.test.ts',
     ],
+    exclude: [
+      '**/node_modules/**',
+      '**/*.integration.test.ts',
+    ],
     environment: 'node',
   },
 });
