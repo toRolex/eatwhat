@@ -66,14 +66,18 @@ export async function POST(request: Request) {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
   if ((!googleKey && !yelpKey) || !anthropicKey) {
-    return NextResponse.json({ error: 'API keys not configured — set GOOGLE_PLACES_API_KEY and ANTHROPIC_API_KEY in .env.local' }, { status: 503 });
+    return NextResponse.json({ error: 'Service unavailable — please try again later.' }, { status: 503 });
   }
 
   // Prefer Google Places; fall back to Yelp if only Yelp key is present
   const venues = googleKey
     ? new GooglePlacesVenueProvider(googleKey)
     : new YelpVenueProvider(yelpKey!);
-  const results = await venues.searchVenues({ location, limit: 20 });
+  const results = await venues.searchVenues({ location, limit: 20 }).catch(() => null);
+
+  if (!results) {
+    return NextResponse.json({ error: 'Venue search unavailable — try again shortly.' }, { status: 503 });
+  }
 
   if (!results.length) {
     return NextResponse.json({ error: 'No venues found for that location' }, { status: 422 });

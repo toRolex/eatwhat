@@ -224,7 +224,7 @@ export default function App() {
         onClick={() => setTweaksOn(v => !v)}
         title="Tweaks"
         className="gp-tweaks-gear"
-        style={{ position: "fixed", bottom: tweaksOn ? 270 : 22, right: 22, zIndex: 299, width: 36, height: 36, borderRadius: "50%", border: "1px solid var(--border2)", background: "var(--surface)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "var(--sh)", transition: "bottom .25s var(--sp), opacity .15s", opacity: tweaksOn ? 1 : 0.7 }}
+        style={{ position: "fixed", bottom: tweaksOn ? 270 : 22, right: 22, zIndex: 450, width: 36, height: 36, borderRadius: "50%", border: "1px solid var(--border2)", background: "var(--surface)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "var(--sh)", transition: "bottom .25s var(--sp), opacity .15s", opacity: tweaksOn ? 1 : 0.7 }}
         onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
         onMouseLeave={e => (e.currentTarget.style.opacity = tweaksOn ? "1" : "0.7")}
       >

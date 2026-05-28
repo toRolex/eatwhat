@@ -20,7 +20,7 @@ export default async function HostLayout({ children }: { children: React.ReactNo
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <Link href="/dashboard" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--fb)', transition: 'color .15s' }}>Events</Link>
-          <Link href="/dev" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--fb)' }}>Dev</Link>
+          {process.env.NODE_ENV === 'development' && <Link href="/dev" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--fb)' }}>Dev</Link>}
           <Link href="/" style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--fb)' }}>Demo</Link>
           <ThemeToggle />
           <span style={{ fontSize: 11, color: 'var(--muted)', background: 'var(--bg)', border: '1px solid var(--border2)', borderRadius: 'var(--rs)', padding: '3px 8px', fontFamily: 'var(--fb)' }}>{user.email}</span>
