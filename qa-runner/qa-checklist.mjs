@@ -6,8 +6,10 @@ const BASE = "http://localhost:3000";
 const EMAIL = "anderson.mcalpine@gmail.com";
 const TEST_EVENT_ID = "028d68fa-4900-4bc1-891e-e4d84d2014f0";
 // Seeded events (fixed UUIDs from scripts/seed.ts — reset to known state on every pnpm seed run)
-const SEED_COLLECTING_EVENT_ID = "22222222-2222-2222-2222-222222222201"; // team dinner, collecting, has preferences
-const SEED_DECIDING_EVENT_ID   = "22222222-2222-2222-2222-222222222202"; // escape room, deciding, has proposals
+const SEED_COLLECTING_EVENT_ID = "22222222-2222-2222-2222-222222222201"; // team dinner, collecting, has preferences — owned by SARAH
+const SEED_DECIDING_EVENT_ID   = "22222222-2222-2222-2222-222222222202"; // escape room, deciding, has proposals — owned by MARCUS
+const SARAH_EMAIL  = "sarah.chen@example.com";   // host of SEED_COLLECTING_EVENT_ID
+const MARCUS_EMAIL = "marcus.wright@example.com"; // host of SEED_DECIDING_EVENT_ID
 const OUT_DIR = path.join(process.cwd(), "qa-results");
 const OUT_FILE = path.join(OUT_DIR, "checklist-results.json");
 
@@ -229,27 +231,33 @@ async function run() {
     }
     addCheck(flow, "HOST-4", "Copy invite link button works", copyClicked, {});
 
-    // HOST-5: use the seeded collecting event (has preferences) so the preferences
-    // guard passes. Fresh test events have no preferences and would 422 immediately.
-    await hostPage.goto(`${BASE}/events/${SEED_COLLECTING_EVENT_ID}`, { waitUntil: "networkidle" });
-    const aiLocation = hostPage.locator('[data-testid="ai-location-input"]').first();
-    if ((await aiLocation.count()) > 0) await aiLocation.fill("New York");
-    const runAiBtn = hostPage.locator('[data-testid="ai-trigger-btn"]').first();
+    // HOST-5: sign in as Sarah (owner of the seeded collecting event) so the host
+    // ownership check passes. Anderson owns the fresh test event, not the seed events.
+    const sarahCtx = await browser.newContext();
+    const sarahPage = await sarahCtx.newPage();
+    attachCapture(sarahPage, flow);
+    const sarahAction = await devSignIn(sarahCtx, SARAH_EMAIL);
+    await sarahPage.goto(sarahAction, { waitUntil: "networkidle" });
+    await sarahPage.goto(`${BASE}/events/${SEED_COLLECTING_EVENT_ID}`, { waitUntil: "networkidle" });
+    const aiLocation = sarahPage.locator('[data-testid="ai-location-input"]').first();
+    const runAiBtn = sarahPage.locator('[data-testid="ai-trigger-btn"]').first();
     let aiLoaded = false;
     if ((await runAiBtn.count()) > 0) {
       await runAiBtn.click();
-      await hostPage.waitForTimeout(3000);
-      const txt = await hostPage.locator("body").innerText();
+      await sarahPage.waitForTimeout(3000);
+      const txt = await sarahPage.locator("body").innerText();
       // Pass if "No preferences submitted yet" does NOT appear — means preferences guard was bypassed.
       // Proposals may or may not appear depending on whether API keys are configured.
-      aiLoaded = (await runAiBtn.count()) > 0 && !/no preferences submitted/i.test(txt);
+      aiLoaded = !/no preferences submitted/i.test(txt);
     }
-    addCheck(flow, "HOST-5", "Run AI trigger passes preferences guard", aiLoaded, { finalUrl: hostPage.url() });
+    addCheck(flow, "HOST-5", "Run AI trigger passes preferences guard", aiLoaded, { finalUrl: sarahPage.url() });
+    await sarahCtx.close();
 
+    // HOST-8/9: sign in as Marcus (owner of the seeded deciding event).
     const existingEventPage = await browser.newContext();
     const existingPage = await existingEventPage.newPage();
     attachCapture(existingPage, flow);
-    const existingAction = await devSignIn(existingEventPage);
+    const existingAction = await devSignIn(existingEventPage, MARCUS_EMAIL);
     await existingPage.goto(existingAction, { waitUntil: "networkidle" });
     await existingPage.goto(`${BASE}/events/${SEED_DECIDING_EVENT_ID}`, { waitUntil: "networkidle" });
     const runAiExisting = existingPage.locator('[data-testid="ai-trigger-btn"]').first();
