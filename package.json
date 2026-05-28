@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "qa:visual": "playwright test -c qa-runner/playwright.visual.config.ts",
     "build": "turbo run build",
     "dev": "turbo run dev",
