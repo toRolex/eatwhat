@@ -185,7 +185,7 @@ After enabling V2, check these regularly:
 ## 10. Rollout sequence (recommended)
 
 ```
-Step 1: Apply migrations 009, 010, 011 with PIPELINE_V2=false
+Step 1: Apply migrations 009–015 with PIPELINE_V2=false
         → Verify legacy path still works
 
 Step 2: Add all V2 provider env vars (GEMINI_API_KEY, GEMINI_MODEL, etc.)
