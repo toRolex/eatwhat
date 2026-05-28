@@ -29,5 +29,11 @@ export default defineConfig({
       dependencies: ['setup'],
       use: { storageState: AUTH_FILE },
     },
+    {
+      name: 'a11y',
+      testMatch: /a11y\.spec\.ts/,
+      dependencies: ['setup'],
+      use: { storageState: AUTH_FILE },
+    },
   ],
 });
