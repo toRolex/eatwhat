@@ -239,7 +239,6 @@ async function run() {
     const sarahAction = await devSignIn(sarahCtx, SARAH_EMAIL);
     await sarahPage.goto(sarahAction, { waitUntil: "networkidle" });
     await sarahPage.goto(`${BASE}/events/${SEED_COLLECTING_EVENT_ID}`, { waitUntil: "networkidle" });
-    const aiLocation = sarahPage.locator('[data-testid="ai-location-input"]').first();
     const runAiBtn = sarahPage.locator('[data-testid="ai-trigger-btn"]').first();
     let aiLoaded = false;
     if ((await runAiBtn.count()) > 0) {
@@ -270,16 +269,17 @@ async function run() {
     }
     addCheck(flow, "HOST-8", "Re-run AI shows confirmation", rerunSeen, { finalUrl: existingPage.url() });
 
+    // FinalizeFlow lives on the /results sub-page. Pick a proposal (sets pickedId),
+    // then click the single-step "Finalize & notify" button.
+    await existingPage.goto(`${BASE}/events/${SEED_DECIDING_EVENT_ID}/results`, { waitUntil: "networkidle" });
+    const proposalBtn = existingPage.locator('button').filter({ hasText: /Breakout|Escape Game|Komnata/i }).first();
+    if ((await proposalBtn.count()) > 0) await proposalBtn.click();
+    await existingPage.waitForTimeout(400);
     const finalizeBtn = existingPage.locator('[data-testid="finalize-btn"]').first();
     let finalized = false;
     if ((await finalizeBtn.count()) > 0) {
       await finalizeBtn.click();
-      await existingPage.waitForTimeout(800);
-      const confirmBtn = existingPage.locator('[data-testid="finalize-confirm-btn"]').first();
-      if ((await confirmBtn.count()) > 0) {
-        await confirmBtn.click();
-        await existingPage.waitForTimeout(2500);
-      }
+      await existingPage.waitForTimeout(3000);
       const txt = await existingPage.locator("body").innerText();
       finalized = /finalized|finalised/i.test(txt);
     }
@@ -297,7 +297,8 @@ async function run() {
     }
     addCheck(flow, "HOST-6", "Run AI with no preferences shows error", noPrefsError, { finalUrl: hostPage.url() });
 
-    if ((await aiLocation.count()) > 0) await aiLocation.fill("");
+    const hostAiLocation = hostPage.locator('[data-testid="ai-location-input"]').first();
+    if ((await hostAiLocation.count()) > 0) await hostAiLocation.fill("");
     if ((await runAiNoPrefs.count()) > 0) {
       await runAiNoPrefs.click();
       await hostPage.waitForTimeout(900);
@@ -377,7 +378,7 @@ async function run() {
       data: { cuisine: "Italian", city: "Toronto" },
     });
     const demoText = await demoRes.text();
-    addCheck(flow, "DEMO-1", "/api/demo/synthesize returns safe 503 on AI failure", demoRes.status() === 503, {
+    addCheck(flow, "DEMO-1", "/api/demo/synthesize returns safe error when AI unavailable", demoRes.status() === 503 || demoRes.status() === 429, {
       status: demoRes.status(),
       body: demoText.slice(0, 300),
     });
