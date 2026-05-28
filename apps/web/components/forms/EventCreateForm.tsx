@@ -147,7 +147,7 @@ export default function EventCreateForm() {
       </div>
 
       <div>
-        <label style={labelStyle}>Event date</label>
+        <label htmlFor="proposed-date" style={labelStyle}>Event date</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: dateFlexible ? 0 : 10 }}>
           <button
             type="button"
