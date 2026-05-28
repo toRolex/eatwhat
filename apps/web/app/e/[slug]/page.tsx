@@ -132,7 +132,7 @@ export default async function EventStatusPage({ params }: Props) {
         {/* RSVP deadline */}
         {currentEvent.status !== 'finalized' && (
           <p style={{ marginTop: 16, fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textAlign: 'center' }}>
-            RSVP by {new Date(currentEvent.rsvp_deadline).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            RSVP by <span data-testid="rsvp-deadline">{new Date(currentEvent.rsvp_deadline).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
           </p>
         )}
       </div>

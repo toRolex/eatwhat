@@ -41,7 +41,7 @@ export default async function RSVPPage({ params }: Props) {
             {event.title}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: '0 0 24px' }}>
-            Hi {invitation.name} — please respond by <strong style={{ color: 'var(--text)' }}>{deadlineDisplay}</strong>.
+            Hi {invitation.name} — please respond by <strong data-testid="rsvp-deadline" style={{ color: 'var(--text)' }}>{deadlineDisplay}</strong>.
           </p>
 
           {event.description && (

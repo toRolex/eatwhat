@@ -20,6 +20,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RESULTS_FILE = path.join(__dirname, "qa-results", "checklist-results.json");
 const CHECKLIST = path.join(__dirname, "qa-checklist.mjs");
+const RUN_VISUAL = process.env.QA_LAYER4_VISUAL === "1" || process.env.QA_VISUAL === "1";
 
 // Checks we do not attempt to fix (external dependencies, spend caps, etc.)
 const SKIP_IDS = new Set([
@@ -59,6 +60,51 @@ function run() {
   );
 
   if (actionable.length === 0) {
+    if (RUN_VISUAL) {
+      console.error("[qa-loop] Running Layer 4 visual regression …");
+      const visual =
+        process.platform === "win32"
+          ? spawnSync("cmd.exe", ["/c", "corepack pnpm qa:visual"], {
+              stdio: ["ignore", "pipe", "pipe"],
+              cwd: path.join(__dirname, ".."),
+              env: process.env,
+            })
+          : spawnSync("corepack", ["pnpm", "qa:visual"], {
+              stdio: ["ignore", "pipe", "pipe"],
+              cwd: path.join(__dirname, ".."),
+              env: process.env,
+            });
+
+      const exitCode = typeof visual.status === "number" ? visual.status : null;
+      const spawnError = visual.error ? String(visual.error) : null;
+
+      if (exitCode !== 0) {
+        const stdout = (visual.stdout ?? Buffer.from("")).toString("utf8").slice(0, 2000);
+        const stderr = (visual.stderr ?? Buffer.from("")).toString("utf8").slice(0, 2000);
+        const issue = {
+          status: "issue_found",
+          check_id: "VISUAL-1",
+          description: "Layer 4 — visual regression",
+          passed: false,
+          details: {
+            id: "VISUAL-1",
+            name: "Visual regression",
+            passed: false,
+            message:
+              "Visual regression step failed. If this is an expected UI change, run `pnpm qa:visual --update-snapshots` to accept new baselines.",
+            exitCode,
+            spawnError,
+            stdout,
+            stderr,
+          },
+          remaining_failures: [],
+          context: { network_errors: [], console_errors: [] },
+        };
+        console.log(JSON.stringify(issue, null, 2));
+        process.exit(1);
+      }
+    }
+
     console.log(JSON.stringify({ status: "all_pass", passed: passed.length, skipped: skipped.length }, null, 2));
     process.exit(0);
   }

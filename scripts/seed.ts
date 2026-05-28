@@ -41,6 +41,9 @@ const INV_2_ID = '33333333-3333-3333-3333-333333333302';
 const INV_3_ID = '33333333-3333-3333-3333-333333333303';
 const INV_4_ID = '33333333-3333-3333-3333-333333333304';
 const INV_5_ID = '33333333-3333-3333-3333-333333333305';
+const PROP_1_ID = '66666666-6666-6666-6666-666666666601';
+const PROP_2_ID = '66666666-6666-6666-6666-666666666602';
+const PROP_3_ID = '66666666-6666-6666-6666-666666666603';
 const PREF_1_ID = '44444444-4444-4444-4444-444444444401';
 const PREF_2_ID = '44444444-4444-4444-4444-444444444402';
 const PREF_3_ID = '44444444-4444-4444-4444-444444444403';
@@ -54,16 +57,17 @@ async function upsertAndReport<T extends Record<string, unknown>>(
   table: string,
   rows: T[],
   conflictColumn: string,
+  overwrite = false,
 ): Promise<InsertResult> {
-  const { error, count } = await (db as ReturnType<typeof createClient>)
+  const { error, data } = await (db as ReturnType<typeof createClient>)
     .from(table)
-    .upsert(rows, { onConflict: conflictColumn, ignoreDuplicates: true })
+    .upsert(rows, { onConflict: conflictColumn, ignoreDuplicates: !overwrite })
     .select();
   if (error) {
     console.error(`Error inserting into ${table}:`, error.message);
     return { table, inserted: 0, skipped: rows.length };
   }
-  const inserted = count ?? 0;
+  const inserted = data?.length ?? 0;
   return { table, inserted, skipped: rows.length - inserted };
 }
 
@@ -88,9 +92,9 @@ async function main() {
     },
   ], 'id'));
 
-  // Events
-  const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-  const rsvpDeadline = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+  // Events — fixed far-future dates so visual baselines don't drift between seed runs.
+  const futureDate = '2030-07-04T19:00:00.000Z';
+  const rsvpDeadline = '2030-06-27T23:59:59.000Z';
 
   results.push(await upsertAndReport('events', [
     {
@@ -104,8 +108,8 @@ async function main() {
       proposed_date: futureDate,
       rsvp_deadline: rsvpDeadline,
       date_flexible: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: '2025-01-01T00:00:00.000Z',
+      updated_at: '2025-01-01T00:00:00.000Z',
     },
     {
       id: EVENT_2_ID,
@@ -118,8 +122,8 @@ async function main() {
       proposed_date: futureDate,
       rsvp_deadline: rsvpDeadline,
       date_flexible: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: '2025-01-01T00:00:00.000Z',
+      updated_at: '2025-01-01T00:00:00.000Z',
     },
     {
       id: EVENT_3_ID,
@@ -132,10 +136,10 @@ async function main() {
       proposed_date: futureDate,
       rsvp_deadline: rsvpDeadline,
       date_flexible: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: '2025-01-01T00:00:00.000Z',
+      updated_at: '2025-01-01T00:00:00.000Z',
     },
-  ], 'id'));
+  ], 'id', true));
 
   // Invitations
   results.push(await upsertAndReport('invitations', [
@@ -147,9 +151,9 @@ async function main() {
       status: 'accepted',
       invite_token: 'seed-token-inv1',
       slug: 'seed-inv-alice-dinner',
-      responded_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      responded_at: '2025-01-15T14:00:00.000Z',
+      created_at: '2025-01-10T09:00:00.000Z',
+      updated_at: '2025-01-15T14:00:00.000Z',
     },
     {
       id: INV_2_ID,
@@ -159,8 +163,8 @@ async function main() {
       status: 'pending',
       invite_token: 'seed-token-inv2',
       slug: 'seed-inv-bob-dinner',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: '2025-01-10T09:05:00.000Z',
+      updated_at: '2025-01-10T09:05:00.000Z',
     },
     {
       id: INV_3_ID,
@@ -170,9 +174,9 @@ async function main() {
       status: 'accepted',
       invite_token: 'seed-token-inv3',
       slug: 'seed-inv-carol-escape',
-      responded_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      responded_at: '2025-01-15T15:00:00.000Z',
+      created_at: '2025-01-10T09:10:00.000Z',
+      updated_at: '2025-01-15T15:00:00.000Z',
     },
     {
       id: INV_4_ID,
@@ -182,8 +186,8 @@ async function main() {
       status: 'pending',
       invite_token: 'seed-token-inv4',
       slug: 'seed-inv-david-escape',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: '2025-01-10T09:15:00.000Z',
+      updated_at: '2025-01-10T09:15:00.000Z',
     },
     {
       id: INV_5_ID,
@@ -193,11 +197,11 @@ async function main() {
       status: 'accepted',
       invite_token: 'seed-token-inv5',
       slug: 'seed-inv-emma-birthday',
-      responded_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      responded_at: '2025-01-15T16:00:00.000Z',
+      created_at: '2025-01-10T09:20:00.000Z',
+      updated_at: '2025-01-15T16:00:00.000Z',
     },
-  ], 'id'));
+  ], 'id', true));
 
   // Guest preferences for accepted invitations
   results.push(await upsertAndReport('guest_preferences', [
@@ -241,6 +245,53 @@ async function main() {
       updated_at: new Date().toISOString(),
     },
   ], 'id'));
+
+  // Proposals for EVENT_2 (Escape Room, status: 'deciding') — required for vote page.
+  // Inserted only if none exist to avoid duplicating on every seed run.
+  const { data: existingProposals } = await db.from('proposals').select('id').eq('event_id', EVENT_2_ID).limit(1);
+  if (!existingProposals?.length) {
+    await db.from('proposals').insert([
+      {
+        id: PROP_1_ID,
+        event_id: EVENT_2_ID,
+        rank: 1,
+        restaurant_name: 'Breakout NYC',
+        restaurant_addr: '132 W 36th St, New York, NY 10018',
+        cuisine_type: 'Experience',
+        price_range: '$$',
+        rating: 4.7,
+        reasoning: 'Top-rated escape room venue with flexible group booking.',
+        constraints_met: { budget: true, location: true },
+        constraints_gap: {},
+      },
+      {
+        id: PROP_2_ID,
+        event_id: EVENT_2_ID,
+        rank: 2,
+        restaurant_name: 'The Escape Game NYC',
+        restaurant_addr: '265 W 37th St, New York, NY 10018',
+        cuisine_type: 'Experience',
+        price_range: '$$',
+        rating: 4.6,
+        reasoning: 'Multiple room options, good for mixed groups.',
+        constraints_met: { budget: true, location: true },
+        constraints_gap: {},
+      },
+      {
+        id: PROP_3_ID,
+        event_id: EVENT_2_ID,
+        rank: 3,
+        restaurant_name: 'Komnata Quest',
+        restaurant_addr: '225 W 35th St, New York, NY 10001',
+        cuisine_type: 'Experience',
+        price_range: '$',
+        rating: 4.4,
+        reasoning: 'Budget-friendly option with unique themed rooms.',
+        constraints_met: { budget: true, location: false },
+        constraints_gap: { location: 'Slightly further from transit' },
+      },
+    ]);
+  }
 
   // AI logs
   results.push(await upsertAndReport('ai_logs', [
