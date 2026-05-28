@@ -5,9 +5,9 @@ import { createClient } from '@/lib/supabase/client';
 import type { Invitation } from '@groupplan/types';
 
 const STATUS_COLOR: Record<string, string> = {
-  pending:  'oklch(72% 0.15 72)',
-  accepted: 'oklch(60% 0.15 148)',
-  declined: 'oklch(58% 0.18 26)',
+  pending:  'oklch(50% 0.15 72)',
+  accepted: 'oklch(44% 0.15 148)',
+  declined: 'oklch(44% 0.18 26)',
 };
 
 interface Props {

@@ -106,7 +106,7 @@ export default function EventCreateForm() {
 
       <div>
         <label htmlFor="description" style={labelStyle}>
-          Description <span style={{ color: 'var(--border)', fontWeight: 400, textTransform: 'none' }}>(optional)</span>
+          Description <span style={{ color: 'var(--muted)', fontWeight: 400, textTransform: 'none' }}>(optional)</span>
         </label>
         <textarea
           id="description" maxLength={500} rows={3}
@@ -121,7 +121,7 @@ export default function EventCreateForm() {
 
       <div>
         <label htmlFor="location" style={labelStyle}>
-          General area <span style={{ color: 'var(--border)', fontWeight: 400, textTransform: 'none' }}>(optional)</span>
+          General area <span style={{ color: 'var(--muted)', fontWeight: 400, textTransform: 'none' }}>(optional)</span>
         </label>
         <input
           id="location" type="text" maxLength={200}
@@ -192,7 +192,7 @@ export default function EventCreateForm() {
 
       <div>
         <label htmlFor="vote-deadline" style={labelStyle}>
-          Vote deadline <span style={{ color: 'var(--border)', fontWeight: 400, textTransform: 'none' }}>(optional — auto-finalizes the winner if set)</span>
+          Vote deadline <span style={{ color: 'var(--muted)', fontWeight: 400, textTransform: 'none' }}>(optional — auto-finalizes the winner if set)</span>
         </label>
         <input
           id="vote-deadline" type="datetime-local"
@@ -209,7 +209,9 @@ export default function EventCreateForm() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
           {CATEGORIES.map((c) => (
             <button
-              key={c.id} type="button" data-testid={`event-category-${c.id}`} onClick={() => !c.disabled && setCategory(c.id)}
+              key={c.id} type="button" data-testid={`event-category-${c.id}`}
+              aria-disabled={c.disabled ? 'true' : undefined}
+              onClick={() => !c.disabled && setCategory(c.id)}
               style={{
                 padding: '12px 10px',
                 borderRadius: 'var(--rs)',
