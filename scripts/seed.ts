@@ -92,6 +92,11 @@ async function main() {
     },
   ], 'id'));
 
+  // Remove any finalized_plans rows for seeded events so the seed is fully idempotent.
+  // HOST-9 in the QA checklist finalizes EVENT_2; without this cleanup the finalize INSERT
+  // would fail with a unique-constraint error on subsequent runs.
+  await db.from('finalized_plans').delete().in('event_id', [EVENT_1_ID, EVENT_2_ID, EVENT_3_ID]);
+
   // Events — fixed far-future dates so visual baselines don't drift between seed runs.
   const futureDate = '2030-07-04T19:00:00.000Z';
   const rsvpDeadline = '2030-06-27T23:59:59.000Z';
