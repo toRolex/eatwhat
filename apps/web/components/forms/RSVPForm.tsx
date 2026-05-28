@@ -77,6 +77,7 @@ export default function RSVPForm({ token, currentStatus }: Props) {
         </div>
       )}
       <button
+        data-testid="rsvp-accept-btn"
         onClick={() => respond('accepted')}
         disabled={loading !== null}
         style={{
@@ -89,6 +90,7 @@ export default function RSVPForm({ token, currentStatus }: Props) {
         {loading === 'accepted' ? 'Saving…' : 'Accept invite'}
       </button>
       <button
+        data-testid="rsvp-decline-btn"
         onClick={() => respond('declined')}
         disabled={loading !== null}
         style={{

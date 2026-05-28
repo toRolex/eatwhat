@@ -48,7 +48,7 @@ export default function AcceptButton({ slug, alreadyAccepted }: Props) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div data-testid="invite-accept-btn" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {error && (
         <div style={{ padding: '10px 14px', borderRadius: 'var(--rs)', background: 'var(--surface)', border: '1px solid oklch(72% .15 26)' }}>
           <p style={{ fontSize: 12, color: 'oklch(48% .2 26)', fontFamily: 'var(--fb)', margin: 0 }}>{error}</p>
