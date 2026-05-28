@@ -621,7 +621,7 @@ Current session: [UPDATE THIS]
 - [x] Session 8: Full integration test suite (23 integration tests, data integrity checks)
 - [x] Session 8.5: Privacy hardening — anonymized envy_scores keys in all Anthropic prompts
 - [x] Phase 5: Monitoring + cost circuit breaker (HTTP 402 on monthly spend >= PIPELINE_COST_CAP_MICROS)
-- [x] QA visual regression suite — 48 Playwright tests, 12 pages × 2 viewports × 2 themes (qa-runner/)
+- [x] QA visual regression suite — 48 Playwright tests, 12 pages × 2 viewports × 2 themes (tools/qa/)
 
 ### Decisions log
 

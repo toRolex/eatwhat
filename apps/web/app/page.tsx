@@ -237,6 +237,15 @@ export default function App() {
       {showShare  && <ShareModal  onClose={() => setShowShare(false)} liveGuests={displayGuests} />}
       {showCreate && <CreateEventModal onClose={() => setShowCreate(false)} />}
       {showNotif  && <NotificationPanel onClose={() => setShowNotif(false)} activities={activities} setActivities={v => { const next = typeof v === "function" ? v(activities) : v; setActivities(next); localStorage.setItem("gp_activities", JSON.stringify(next)); }} />}
+      {/* Beta CTA — fixed bottom banner */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 400, background: "var(--surface)", borderTop: "1px solid var(--border2)", padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, boxShadow: "0 -2px 12px rgba(0,0,0,.06)" }}>
+        <p style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--fb)", margin: 0, lineHeight: 1.4 }}>
+          This is a live demo — <strong style={{ color: "var(--text)" }}>GroupPlan</strong> uses real AI to plan your next group dinner.
+        </p>
+        <a href="/login" style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "8px 16px", borderRadius: "var(--rs)", background: "var(--text)", color: "var(--bg)", fontSize: 12, fontWeight: 600, fontFamily: "var(--fb)", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
+          Plan a real dinner →
+        </a>
+      </div>
     </div>
   );
 }

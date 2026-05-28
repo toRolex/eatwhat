@@ -1,0 +1,16 @@
+{
+  "name": "@groupplan/qa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright visual regression, accessibility, and E2E checklist tests",
+  "scripts": {
+    "visual": "playwright test -c playwright.visual.config.ts --project=visual",
+    "a11y": "playwright test -c playwright.visual.config.ts --project=a11y",
+    "checklist": "node qa-checklist.mjs"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "@axe-core/playwright": "^4.10.1",
+    "playwright": "^1.49.0"
+  }
+}

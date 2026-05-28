@@ -11,7 +11,7 @@ async function resetPending() {
   const { createClient } = await import('@supabase/supabase-js');
   const fs = await import('fs');
   const path = await import('path');
-  const envPath = path.resolve('../apps/web/.env.local');
+  const envPath = path.resolve('../../apps/web/.env.local');
   for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
     const t = line.trim();
     if (!t || t.startsWith('#')) continue;

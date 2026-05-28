@@ -23,7 +23,7 @@ All 12 stages are implemented and wired through the orchestrator at `packages/ai
 ### Tests
 
 - 248/248 unit + integration tests pass
-- 48 Playwright visual regression tests in `qa-runner/` (12 pages × 2 viewports × 2 themes)
+- 48 Playwright visual regression tests in `tools/qa/` (12 pages × 2 viewports × 2 themes)
 - Run visual suite: `pnpm qa:visual`
 
 ### Schema (migrations applied to production)

@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: Request) {
-  if (process.env.NODE_ENV !== 'development') {
+  const isDev = process.env.NODE_ENV === 'development';
+  const bypassSecret = process.env.PREVIEW_BYPASS_SECRET;
+  const providedSecret = request.headers.get('x-preview-secret');
+  const hasValidBypass = bypassSecret && providedSecret === bypassSecret;
+
+  if (!isDev && !hasValidBypass) {
     return NextResponse.json({ error: 'not found' }, { status: 404 });
   }
 

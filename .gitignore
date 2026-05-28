@@ -46,5 +46,9 @@ pnpm-debug.log*
 coverage/
 .nyc_output/
 
+# QA run artifacts
+tools/qa/qa-results/
+tools/qa/.auth/
+
 # OS
 Thumbs.db
