@@ -172,6 +172,7 @@ function parseResponse(text: string): SynthesizedProposal[] {
 // ---------------------------------------------------------------------------
 export interface SynthesizeDebug {
   prompt: string;
+  reasoning: string;
   rawResponse: string;
 }
 
@@ -194,14 +195,16 @@ export async function synthesizePlanWithDebug(
     temperature: 0.7,
   }, { timeout: 90000 });
 
-  const raw = completion.choices[0]?.message?.content ?? '';
+  const message = completion.choices[0]?.message;
+  const raw = message?.content ?? '';
+  const reasoning = (message as any)?.reasoning_content ?? '';
   if (!raw) {
     throw new Error('DeepSeek returned empty response');
   }
 
   return {
     proposals: parseResponse(raw),
-    debug: { prompt, rawResponse: raw },
+    debug: { prompt, reasoning, rawResponse: raw },
   };
 }
 

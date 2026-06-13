@@ -550,6 +550,7 @@ function RealRestCard({ p, delay, tweaks, open, onToggle }: { p: RealProposal; d
 
 interface SynthesizeDebug {
   prompt: string;
+  reasoning: string;
   rawResponse: string;
 }
 
@@ -570,7 +571,7 @@ export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweak
     try { return JSON.parse(localStorage.getItem("gp_ai_proposals") || "null") || []; } catch { return []; }
   });
   const [debug, setDebug]             = useState<SynthesizeDebug>(() => {
-    try { return JSON.parse(localStorage.getItem("gp_ai_debug") || "null") || { prompt: "", rawResponse: "" }; } catch { return { prompt: "", rawResponse: "" }; }
+    try { return JSON.parse(localStorage.getItem("gp_ai_debug") || "null") || { prompt: "", reasoning: "", rawResponse: "" }; } catch { return { prompt: "", reasoning: "", rawResponse: "" }; }
   });
   const [showDebug, setShowDebug]     = useState(false);
   const [errorMsg, setErrorMsg]       = useState("");
@@ -637,7 +638,7 @@ export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweak
       const data = await res.json() as { proposals: RealProposal[]; debug?: SynthesizeDebug };
       setStep(AI_STEPS.length);
       setReal(data.proposals);
-      const dbg = data.debug || { prompt: "", rawResponse: "" };
+      const dbg = data.debug || { prompt: "", reasoning: "", rawResponse: "" };
       setDebug(dbg);
       localStorage.setItem("gp_ai_proposals", JSON.stringify(data.proposals));
       localStorage.setItem("gp_ai_debug", JSON.stringify(dbg));
@@ -659,7 +660,7 @@ export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweak
     }
   };
 
-  const reset = () => { setPhase("idle"); setStep(0); setReal([]); setDebug({ prompt: "", rawResponse: "" }); setShowDebug(false); localStorage.removeItem("gp_ai"); localStorage.removeItem("gp_ai_proposals"); localStorage.removeItem("gp_ai_debug"); };
+  const reset = () => { setPhase("idle"); setStep(0); setReal([]); setDebug({ prompt: "", reasoning: "", rawResponse: "" }); setShowDebug(false); localStorage.removeItem("gp_ai"); localStorage.removeItem("gp_ai_proposals"); localStorage.removeItem("gp_ai_debug"); };
 
   if (phase === "idle" || phase === "error") return (
     <div>
@@ -792,7 +793,7 @@ export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweak
                 🧠 思维链
               </span>
               <span style={{ color: "var(--muted)", flex: 1, textAlign: "left" }}>
-                DeepSeek 输入输出 · 共 {(debug.prompt.length + debug.rawResponse.length).toLocaleString()} 字符
+                DeepSeek 输入输出 · 共 {(debug.prompt.length + debug.reasoning.length + debug.rawResponse.length).toLocaleString()} 字符
               </span>
               <span style={{
                 display: "inline-block", transition: "transform .2s var(--sp)",
@@ -827,6 +828,31 @@ export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweak
                     maxHeight: 360, overflowY: "auto",
                   }}>{debug.prompt}</pre>
                 </div>
+
+                {/* CoT Reasoning */}
+                {debug.reasoning && (
+                  <div style={{
+                    background: "var(--surface)", borderRadius: "var(--r)",
+                    border: "1px solid oklch(85% .06 228)", overflow: "hidden",
+                  }}>
+                    <div style={{
+                      padding: "8px 14px", borderBottom: "1px solid var(--border2)",
+                      fontSize: 10, fontWeight: 600, color: "var(--muted)",
+                      fontFamily: "var(--fb)", letterSpacing: ".04em",
+                      textTransform: "uppercase",
+                      background: "oklch(97% .01 228)",
+                    }}>
+                      💭 DeepSeek CoT 推理过程
+                    </div>
+                    <pre style={{
+                      margin: 0, padding: "14px 16px",
+                      fontSize: 11, fontFamily: "var(--fb)",
+                      lineHeight: 1.55, color: "var(--text)",
+                      whiteSpace: "pre-wrap", wordBreak: "break-word",
+                      maxHeight: 300, overflowY: "auto",
+                    }}>{debug.reasoning}</pre>
+                  </div>
+                )}
 
                 {/* Raw response */}
                 <div style={{

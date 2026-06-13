@@ -334,12 +334,6 @@ export default function App() {
       {showShare  && <ShareModal  onClose={() => setShowShare(false)} liveGuests={displayGuests} />}
       {showCreate && <CreateEventModal onClose={() => setShowCreate(false)} />}
       {showNotif  && <NotificationPanel onClose={() => setShowNotif(false)} activities={activities} setActivities={v => { const next = typeof v === "function" ? v(activities) : v; setActivities(next); localStorage.setItem("gp_activities", JSON.stringify(next)); }} />}
-      {/* Beta CTA — fixed bottom banner */}
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 400, background: "var(--surface)", borderTop: "1px solid var(--border2)", padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, boxShadow: "0 -2px 12px rgba(0,0,0,.06)" }}>
-        <p style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--fb)", margin: 0, lineHeight: 1.4, textAlign: "center" }}>
-          <strong style={{ color: "var(--text)" }}>今天整点啥</strong> · AI 帮你搞定聚会方案，少废话直接出发 🐦
-        </p>
-      </div>
     </div>
   );
 }
