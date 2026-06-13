@@ -1,11 +1,20 @@
 'use client';
 
-import { createBrowserClient } from '@supabase/ssr';
-import type { Database } from '@groupplan/db';
-
+// Stub: Supabase client disabled in SQLite mode.
+// The demo page imports this but we no longer have Supabase.
+// Return a mock that doesn't crash — the demo page already has graceful fallbacks.
 export function createClient() {
-  return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  return {
+    auth: {
+      getUser: async () => ({ data: { user: null }, error: null }),
+    },
+    from: () => ({
+      select: () => ({
+        then: async () => ({ data: [], error: null }),
+        eq: () => ({
+          then: async () => ({ data: [], error: null }),
+        }),
+      }),
+    }),
+  } as unknown as ReturnType<typeof createClient>;
 }

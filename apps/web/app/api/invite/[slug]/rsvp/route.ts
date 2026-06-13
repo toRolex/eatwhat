@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/server';
 import { RSVPSchema } from '@groupplan/types';
-import { getInvitationBySlug, getInvitationByToken, getEventById } from '@groupplan/db';
+import { getInvitationBySlug, getInvitationByToken, getEventById, getDb } from '@/lib/db';
 
 interface Context {
   params: Promise<{ slug: string }>;
@@ -9,20 +8,22 @@ interface Context {
 
 export async function POST(request: Request, { params }: Context) {
   const { slug } = await params;
-  const db = createServiceClient();
 
   const { data: invitation } = slug.length === 64
-    ? await getInvitationByToken(db, slug)
-    : await getInvitationBySlug(db, slug);
+    ? getInvitationByToken(slug)
+    : getInvitationBySlug(slug);
   if (!invitation) return NextResponse.json({ error: 'Invalid invite' }, { status: 404 });
 
-  const { data: event } = await getEventById(db, invitation.event_id);
-  if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+  const inv = invitation as Record<string, unknown>;
 
-  if (new Date(event.rsvp_deadline) < new Date()) {
+  const { data: event } = getEventById(inv.event_id as string);
+  if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+  const evt = event as Record<string, unknown>;
+
+  if (new Date(evt.rsvp_deadline as string) < new Date()) {
     return NextResponse.json({ error: 'RSVP deadline has passed' }, { status: 422 });
   }
-  if (!['open', 'collecting'].includes(event.status)) {
+  if (!['open', 'collecting'].includes(evt.status as string)) {
     return NextResponse.json({ error: 'RSVPs are no longer being accepted for this event' }, { status: 422 });
   }
 
@@ -34,20 +35,17 @@ export async function POST(request: Request, { params }: Context) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  const payload = {
-    status: parsed.data.status,
-    responded_at: new Date().toISOString(),
-    ...(parsed.data.name !== undefined ? { name: parsed.data.name } : {}),
-  };
+  const db = getDb();
+  const respondedAt = new Date().toISOString();
+  if (parsed.data.name !== undefined) {
+    db.prepare('UPDATE invitations SET status = ?, responded_at = ?, name = ? WHERE id = ?')
+      .run(parsed.data.status, respondedAt, parsed.data.name, inv.id);
+  } else {
+    db.prepare('UPDATE invitations SET status = ?, responded_at = ? WHERE id = ?')
+      .run(parsed.data.status, respondedAt, inv.id);
+  }
 
-  const { data: updated, error } = await db
-    .from('invitations')
-    .update(payload)
-    .eq('id', invitation.id)
-    .select()
-    .single();
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const updated = db.prepare('SELECT * FROM invitations WHERE id = ?').get(inv.id) as Record<string, unknown>;
 
   return NextResponse.json({ invitation: updated });
 }

@@ -1,0 +1,492 @@
+{
+  "version": "0.1",
+  "purpose": "Define merchant/venue fields, category taxonomy, business-area centroid coordinates, and POI seed query strategy for the Decision Agent.",
+  "importantNote": "For MVP, use business-area centroids and POI query seeds. Do not rely on exact GPS from users. Real merchant names, ratings, addresses, and branch availability should be refreshed by Gaode/Tencent POI API before production use.",
+  "venueSchema": {
+    "id": "string, unique venue id",
+    "name": "string, merchant or venue display name",
+    "brandName": "string, optional brand name",
+    "branchName": "string, optional branch name",
+    "city": "深圳",
+    "district": "南山区 / 福田区 / 罗湖区 / 宝安区 / 龙华区 / 龙岗区 / etc.",
+    "businessAreaId": "normalized area id from shenzhen_business_area_mapping",
+    "businessAreaName": "normalized business area name",
+    "address": "string, POI API preferred; seed can be empty or area-level",
+    "lat": "number, exact POI latitude if available",
+    "lng": "number, exact POI longitude if available",
+    "locationPrecision": "poi_exact | mall_level | area_centroid | unknown",
+    "venueType": "restaurant | dessert | cafe | bar | ktv | board_game | billiards | script_murder | escape_room | arcade | nail_salon | livehouse | cinema | mall | park | landmark",
+    "cuisineTags": ["粤菜", "川菜", "湘菜", "日料", "韩餐", "火锅", "烧烤", "西餐", "甜品", "咖啡"],
+    "activityTags": ["KTV", "桌游", "桌球", "剧本杀", "密室", "清吧", "游戏厅", "美甲", "电影", "散步", "展览", "Livehouse"],
+    "tasteTags": ["清淡", "重口", "不辣友好", "辣", "适合聊天", "适合多人"],
+    "avgCost": "number, per person estimate if available",
+    "rating": "number, POI rating if available",
+    "openingHours": "string, optional",
+    "suitableEventModes": ["meal_only", "activity_only", "meal_activity"],
+    "hardConstraintSupport": {
+      "noSpicyFriendly": "boolean",
+      "vegetarianFriendly": "boolean",
+      "alcoholFreeFriendly": "boolean",
+      "lowEnergyFriendly": "boolean"
+    },
+    "source": "poi_api | manual_seed | fallback",
+    "sourceUrl": "string, optional",
+    "lastVerifiedAt": "ISO datetime or empty"
+  },
+  "categoryTaxonomy": {
+    "restaurant": {
+      "粤菜": ["粤菜", "茶餐厅", "广式", "点心", "烧腊", "椰子鸡"],
+      "川菜": ["川菜", "火锅", "串串", "麻辣", "酸菜鱼"],
+      "湘菜": ["湘菜", "小炒黄牛肉", "剁椒鱼头"],
+      "日料": ["日料", "寿司", "居酒屋", "拉面", "烧鸟"],
+      "韩餐": ["韩餐", "烤肉", "部队锅"],
+      "西餐": ["西餐", "牛排", "意面", "Brunch"],
+      "烧烤": ["烧烤", "烤串", "烤肉"],
+      "火锅": ["火锅", "牛肉火锅", "椰子鸡火锅"],
+      "东南亚菜": ["泰餐", "越南菜", "新加坡菜"],
+      "家常菜": ["家常菜", "小馆", "融合菜"]
+    },
+    "dessert": {
+      "甜品": ["甜品", "糖水", "蛋糕", "冰品"],
+      "奶茶": ["奶茶", "茶饮", "果茶"],
+      "咖啡": ["咖啡", "咖啡厅", "Brunch"]
+    },
+    "activity": {
+      "KTV": ["KTV", "唱歌", "量贩式KTV"],
+      "桌游": ["桌游", "棋牌", "狼人杀", "桌游吧"],
+      "桌球": ["桌球", "台球", " billiards", "台球厅"],
+      "剧本杀": ["剧本杀", "推理馆", "实景剧本", "沉浸式剧场"],
+      "清吧": ["清吧", "酒吧", "小酒馆", "Livehouse"],
+      "游戏厅": ["游戏厅", "电玩城", "GAME SPACE", "街机"],
+      "美甲": ["美甲", "美睫", "nail salon"],
+      "电影": ["电影院", "影院"],
+      "散步": ["公园", "海边", "步行街", "古城"],
+      "密室": ["密室", "密室逃脱", "沉浸式娱乐"],
+      "Livehouse": ["Livehouse", "演出", "现场音乐"]
+    }
+  },
+  "businessAreaCentroids": [
+    {
+      "areaId": "nanshan_tech_park",
+      "name": "科技园",
+      "district": "南山区",
+      "lat": 22.5404,
+      "lng": 113.9496,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["nanshan_shenzhen_university", "nanshan_houhai", "nanshan_shenzhen_bay", "nanshan_oct"]
+    },
+    {
+      "areaId": "nanshan_shenzhen_university",
+      "name": "深圳大学",
+      "district": "南山区",
+      "lat": 22.5335,
+      "lng": 113.9305,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["nanshan_tech_park", "nanshan_nantou", "nanshan_houhai", "nanshan_qianhai"]
+    },
+    {
+      "areaId": "nanshan_houhai",
+      "name": "后海",
+      "district": "南山区",
+      "lat": 22.5173,
+      "lng": 113.9447,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["nanshan_shenzhen_bay", "nanshan_tech_park", "nanshan_shekou", "nanshan_shenzhen_university"]
+    },
+    {
+      "areaId": "nanshan_shenzhen_bay",
+      "name": "深圳湾",
+      "district": "南山区",
+      "lat": 22.5118,
+      "lng": 113.9608,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["nanshan_houhai", "nanshan_oct", "nanshan_tech_park"]
+    },
+    {
+      "areaId": "nanshan_shekou",
+      "name": "蛇口",
+      "district": "南山区",
+      "lat": 22.4861,
+      "lng": 113.9167,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["nanshan_houhai", "nanshan_qianhai", "nanshan_shenzhen_university"]
+    },
+    {
+      "areaId": "nanshan_oct",
+      "name": "华侨城",
+      "district": "南山区",
+      "lat": 22.5376,
+      "lng": 113.9822,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["nanshan_shenzhen_bay", "nanshan_tech_park", "futian_xiangmihu"]
+    },
+    {
+      "areaId": "nanshan_qianhai",
+      "name": "前海",
+      "district": "南山区",
+      "lat": 22.5338,
+      "lng": 113.8956,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["nanshan_shenzhen_university", "nanshan_shekou", "baoan_center", "nanshan_nantou"]
+    },
+    {
+      "areaId": "nanshan_xili",
+      "name": "西丽",
+      "district": "南山区",
+      "lat": 22.5863,
+      "lng": 113.9544,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["nanshan_tech_park", "nanshan_nantou", "longhua_core"]
+    },
+    {
+      "areaId": "nanshan_nantou",
+      "name": "南头",
+      "district": "南山区",
+      "lat": 22.5455,
+      "lng": 113.9182,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["nanshan_shenzhen_university", "nanshan_qianhai", "nanshan_xili"]
+    },
+    {
+      "areaId": "futian_cbd",
+      "name": "福田CBD",
+      "district": "福田区",
+      "lat": 22.5369,
+      "lng": 114.0545,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["futian_chegongmiao", "futian_shangbu_shangcheng", "futian_xiangmihu", "futian_huaqiangbei"]
+    },
+    {
+      "areaId": "futian_huaqiangbei",
+      "name": "华强北",
+      "district": "福田区",
+      "lat": 22.5464,
+      "lng": 114.0855,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["futian_cbd", "luohu_caiwuwei", "futian_shangbu_shangcheng"]
+    },
+    {
+      "areaId": "futian_chegongmiao",
+      "name": "车公庙",
+      "district": "福田区",
+      "lat": 22.5321,
+      "lng": 114.0274,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["futian_cbd", "futian_xiangmihu", "nanshan_oct"]
+    },
+    {
+      "areaId": "futian_shangmeilin",
+      "name": "梅林",
+      "district": "福田区",
+      "lat": 22.5754,
+      "lng": 114.0634,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["futian_shangbu_shangcheng", "futian_cbd", "longhua_core"]
+    },
+    {
+      "areaId": "futian_shangbu_shangcheng",
+      "name": "深业上城",
+      "district": "福田区",
+      "lat": 22.5621,
+      "lng": 114.0668,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["futian_cbd", "futian_huaqiangbei", "futian_shangmeilin"]
+    },
+    {
+      "areaId": "futian_xiangmihu",
+      "name": "香蜜湖",
+      "district": "福田区",
+      "lat": 22.5482,
+      "lng": 114.0248,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["futian_chegongmiao", "futian_cbd", "nanshan_oct"]
+    },
+    {
+      "areaId": "luohu_dongmen",
+      "name": "东门",
+      "district": "罗湖区",
+      "lat": 22.5467,
+      "lng": 114.1176,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["luohu_caiwuwei", "luohu_guomao"]
+    },
+    {
+      "areaId": "luohu_caiwuwei",
+      "name": "蔡屋围",
+      "district": "罗湖区",
+      "lat": 22.5409,
+      "lng": 114.1071,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["luohu_dongmen", "luohu_guomao", "futian_huaqiangbei"]
+    },
+    {
+      "areaId": "luohu_guomao",
+      "name": "国贸",
+      "district": "罗湖区",
+      "lat": 22.5383,
+      "lng": 114.1195,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["luohu_dongmen", "luohu_caiwuwei"]
+    },
+    {
+      "areaId": "baoan_center",
+      "name": "宝安中心",
+      "district": "宝安区",
+      "lat": 22.5538,
+      "lng": 113.8831,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["nanshan_qianhai", "baoan_xixiang"]
+    },
+    {
+      "areaId": "longhua_core",
+      "name": "龙华中心",
+      "district": "龙华区",
+      "lat": 22.6195,
+      "lng": 114.0264,
+      "precision": "area_centroid",
+      "nearbyAreaIds": ["futian_shangmeilin", "longgang_bantian", "nanshan_xili"]
+    }
+  ],
+  "distancePolicy": {
+    "method": "haversine_on_area_centroids",
+    "decisionUse": "Use approximate centroid distance only for ranking candidate areas. Do not present as exact travel distance.",
+    "displayRule": "Show qualitative wording: 附近 / 稍微折中 / 有点远, instead of exact kilometers unless using route API.",
+    "rankingWeights": {
+      "participantAreaMajority": 0.4,
+      "organizerAreaPreference": 0.25,
+      "poiDensity": 0.2,
+      "budgetFit": 0.1,
+      "novelty": 0.05
+    }
+  },
+  "seedPoiQueries": [
+    {
+      "businessAreaId": "nanshan_houhai",
+      "businessAreaName": "后海",
+      "queries": [
+        {"venueType": "restaurant", "cuisineTag": "粤菜", "query": "深圳 南山 后海 粤菜"},
+        {"venueType": "restaurant", "cuisineTag": "日料", "query": "深圳 南山 后海 日料"},
+        {"venueType": "dessert", "cuisineTag": "甜品", "query": "深圳 南山 海岸城 甜品"},
+        {"venueType": "cafe", "cuisineTag": "咖啡", "query": "深圳 南山 后海 咖啡"},
+        {"venueType": "ktv", "activityTag": "KTV", "query": "深圳 南山 后海 KTV"},
+        {"venueType": "bar", "activityTag": "清吧", "query": "深圳 南山 后海 清吧"}
+      ]
+    },
+    {
+      "businessAreaId": "nanshan_tech_park",
+      "businessAreaName": "科技园",
+      "queries": [
+        {"venueType": "restaurant", "cuisineTag": "粤菜", "query": "深圳 南山 科技园 粤菜"},
+        {"venueType": "restaurant", "cuisineTag": "湘菜", "query": "深圳 南山 科技园 湘菜"},
+        {"venueType": "restaurant", "cuisineTag": "川菜", "query": "深圳 南山 科技园 川菜"},
+        {"venueType": "cafe", "cuisineTag": "咖啡", "query": "深圳 南山 科兴 咖啡"},
+        {"venueType": "board_game", "activityTag": "桌游", "query": "深圳 南山 科技园 桌游"},
+        {"venueType": "ktv", "activityTag": "KTV", "query": "深圳 南山 科技园 KTV"}
+      ]
+    },
+    {
+      "businessAreaId": "nanshan_shekou",
+      "businessAreaName": "蛇口",
+      "queries": [
+        {"venueType": "restaurant", "cuisineTag": "西餐", "query": "深圳 南山 蛇口 海上世界 西餐"},
+        {"venueType": "restaurant", "cuisineTag": "粤菜", "query": "深圳 南山 蛇口 粤菜"},
+        {"venueType": "bar", "activityTag": "清吧", "query": "深圳 南山 海上世界 清吧"},
+        {"venueType": "cafe", "cuisineTag": "咖啡", "query": "深圳 南山 南海意库 咖啡"},
+        {"venueType": "landmark", "activityTag": "散步", "query": "深圳 南山 蛇口 饭后散步"}
+      ]
+    },
+    {
+      "businessAreaId": "futian_cbd",
+      "businessAreaName": "福田CBD",
+      "queries": [
+        {"venueType": "restaurant", "cuisineTag": "粤菜", "query": "深圳 福田 CBD 粤菜"},
+        {"venueType": "restaurant", "cuisineTag": "日料", "query": "深圳 福田 购物公园 日料"},
+        {"venueType": "dessert", "cuisineTag": "甜品", "query": "深圳 福田 COCO Park 甜品"},
+        {"venueType": "cafe", "cuisineTag": "咖啡", "query": "深圳 福田 卓悦中心 咖啡"},
+        {"venueType": "ktv", "activityTag": "KTV", "query": "深圳 福田 CBD KTV"},
+        {"venueType": "bar", "activityTag": "清吧", "query": "深圳 福田 购物公园 清吧"}
+      ]
+    },
+    {
+      "businessAreaId": "luohu_dongmen",
+      "businessAreaName": "东门",
+      "queries": [
+        {"venueType": "restaurant", "cuisineTag": "小吃", "query": "深圳 罗湖 东门 小吃"},
+        {"venueType": "restaurant", "cuisineTag": "粤菜", "query": "深圳 罗湖 东门 粤菜"},
+        {"venueType": "dessert", "cuisineTag": "甜品", "query": "深圳 罗湖 东门 甜品"},
+        {"venueType": "ktv", "activityTag": "KTV", "query": "深圳 罗湖 东门 KTV"},
+        {"venueType": "activity", "activityTag": "逛街", "query": "深圳 罗湖 东门 步行街"}
+      ]
+    }
+  ],
+  "manualFallbackVenues": [
+    {
+      "id": "anchor_nanshan_houhai_coastal_city",
+      "name": "海岸城",
+      "city": "深圳",
+      "district": "南山区",
+      "businessAreaId": "nanshan_houhai",
+      "businessAreaName": "后海",
+      "address": "深圳市南山区文心五路附近",
+      "lat": 22.5173,
+      "lng": 113.9447,
+      "locationPrecision": "mall_level",
+      "venueType": "mall",
+      "cuisineTags": ["粤菜", "日料", "甜品", "咖啡", "火锅", "西餐"],
+      "activityTags": ["电影", "逛街", "饭后活动"],
+      "tasteTags": ["适合多人", "选择多", "地铁友好"],
+      "avgCost": null,
+      "rating": null,
+      "suitableEventModes": ["meal_only", "meal_activity"],
+      "hardConstraintSupport": {
+        "noSpicyFriendly": true,
+        "vegetarianFriendly": true,
+        "alcoholFreeFriendly": true,
+        "lowEnergyFriendly": true
+      },
+      "source": "manual_seed",
+      "sourceUrl": "https://m.maigoo.com/top/430240.html",
+      "lastVerifiedAt": ""
+    },
+    {
+      "id": "anchor_nanshan_houhai_mixc_bay",
+      "name": "深圳湾万象城",
+      "city": "深圳",
+      "district": "南山区",
+      "businessAreaId": "nanshan_houhai",
+      "businessAreaName": "后海",
+      "address": "深圳市南山区后海-深圳湾片区",
+      "lat": 22.5118,
+      "lng": 113.9608,
+      "locationPrecision": "mall_level",
+      "venueType": "mall",
+      "cuisineTags": ["粤菜", "日料", "西餐", "甜品", "咖啡"],
+      "activityTags": ["电影", "逛街", "饭后散步"],
+      "tasteTags": ["精致", "适合约会", "地铁友好"],
+      "avgCost": null,
+      "rating": null,
+      "suitableEventModes": ["meal_only", "meal_activity"],
+      "hardConstraintSupport": {
+        "noSpicyFriendly": true,
+        "vegetarianFriendly": true,
+        "alcoholFreeFriendly": true,
+        "lowEnergyFriendly": true
+      },
+      "source": "manual_seed",
+      "sourceUrl": "https://www.szns.gov.cn/mlns/fxns/content/post_12587567.html",
+      "lastVerifiedAt": ""
+    },
+    {
+      "id": "anchor_nanshan_tech_mixc_world",
+      "name": "万象天地",
+      "city": "深圳",
+      "district": "南山区",
+      "businessAreaId": "nanshan_tech_park",
+      "businessAreaName": "科技园",
+      "address": "深圳市南山区大冲片区",
+      "lat": 22.5404,
+      "lng": 113.9496,
+      "locationPrecision": "mall_level",
+      "venueType": "mall",
+      "cuisineTags": ["粤菜", "湘菜", "川菜", "日料", "甜品", "咖啡", "西餐"],
+      "activityTags": ["逛街", "咖啡", "电影", "饭后活动"],
+      "tasteTags": ["适合下班聚餐", "选择多", "年轻人友好"],
+      "avgCost": null,
+      "rating": null,
+      "suitableEventModes": ["meal_only", "meal_activity"],
+      "hardConstraintSupport": {
+        "noSpicyFriendly": true,
+        "vegetarianFriendly": true,
+        "alcoholFreeFriendly": true,
+        "lowEnergyFriendly": true
+      },
+      "source": "manual_seed",
+      "sourceUrl": "https://hk.trip.com/blog/shenzhen-nanshan/",
+      "lastVerifiedAt": ""
+    },
+    {
+      "id": "anchor_nanshan_shekou_seaworld",
+      "name": "海上世界",
+      "city": "深圳",
+      "district": "南山区",
+      "businessAreaId": "nanshan_shekou",
+      "businessAreaName": "蛇口",
+      "address": "深圳市南山区蛇口海上世界片区",
+      "lat": 22.4861,
+      "lng": 113.9167,
+      "locationPrecision": "mall_level",
+      "venueType": "landmark",
+      "cuisineTags": ["西餐", "粤菜", "日料", "东南亚菜", "咖啡"],
+      "activityTags": ["清吧", "散步", "Livehouse", "饭后活动"],
+      "tasteTags": ["适合饭后走走", "夜间友好", "不赶时间"],
+      "avgCost": null,
+      "rating": null,
+      "suitableEventModes": ["meal_only", "activity_only", "meal_activity"],
+      "hardConstraintSupport": {
+        "noSpicyFriendly": true,
+        "vegetarianFriendly": true,
+        "alcoholFreeFriendly": false,
+        "lowEnergyFriendly": true
+      },
+      "source": "manual_seed",
+      "sourceUrl": "https://hk.trip.com/blog/shenzhen-nanshan/",
+      "lastVerifiedAt": ""
+    },
+    {
+      "id": "anchor_futian_cbd_cocopark",
+      "name": "星河COCO Park",
+      "city": "深圳",
+      "district": "福田区",
+      "businessAreaId": "futian_cbd",
+      "businessAreaName": "福田CBD",
+      "address": "深圳市福田区福华三路附近",
+      "lat": 22.5369,
+      "lng": 114.0545,
+      "locationPrecision": "mall_level",
+      "venueType": "mall",
+      "cuisineTags": ["粤菜", "日料", "西餐", "甜品", "咖啡", "火锅"],
+      "activityTags": ["清吧", "KTV", "电影", "饭后活动"],
+      "tasteTags": ["适合聚餐", "夜间友好", "交通便利"],
+      "avgCost": null,
+      "rating": null,
+      "suitableEventModes": ["meal_only", "activity_only", "meal_activity"],
+      "hardConstraintSupport": {
+        "noSpicyFriendly": true,
+        "vegetarianFriendly": true,
+        "alcoholFreeFriendly": true,
+        "lowEnergyFriendly": true
+      },
+      "source": "manual_seed",
+      "sourceUrl": "https://m.maigoo.com/top/430240.html",
+      "lastVerifiedAt": ""
+    },
+    {
+      "id": "anchor_luohu_dongmen",
+      "name": "东门步行街",
+      "city": "深圳",
+      "district": "罗湖区",
+      "businessAreaId": "luohu_dongmen",
+      "businessAreaName": "东门",
+      "address": "深圳市罗湖区东门片区",
+      "lat": 22.5467,
+      "lng": 114.1176,
+      "locationPrecision": "area_centroid",
+      "venueType": "landmark",
+      "cuisineTags": ["小吃", "粤菜", "甜品", "茶餐厅", "烧烤"],
+      "activityTags": ["逛街", "KTV", "电玩城", "饭后活动"],
+      "tasteTags": ["平价", "热闹", "选择多"],
+      "avgCost": null,
+      "rating": null,
+      "suitableEventModes": ["meal_only", "activity_only", "meal_activity"],
+      "hardConstraintSupport": {
+        "noSpicyFriendly": true,
+        "vegetarianFriendly": false,
+        "alcoholFreeFriendly": true,
+        "lowEnergyFriendly": false
+      },
+      "source": "manual_seed",
+      "sourceUrl": "https://m.maigoo.com/top/430240.html",
+      "lastVerifiedAt": ""
+    }
+  ]
+}

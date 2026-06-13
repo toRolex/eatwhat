@@ -1,6 +1,8 @@
-# GroupPlan
+# 今天整点啥 (EatWhat)
 
-AI-powered group restaurant planning. Hosts create shareable invitations, guests submit preferences, and a 12-stage multi-provider AI pipeline proposes real nearby venues ranked to fit the whole group. Guests vote using Borda count scoring; the host finalizes with one click and everyone gets a calendar invite.
+AI 驱动的聚餐规划工具。发起人创建可分享的邀请链接，参与者提交口味偏好，12 阶段多模型 AI 流水线推荐真实附近餐厅并按群体匹配度排序。参与者通过 Borda 计分投票，发起人一键定案，所有人收到日历邀请。
+
+![今天整点啥 截图](assets/image.jpg)
 
 ## How it works
 
@@ -8,7 +10,7 @@ AI-powered group restaurant planning. Hosts create shareable invitations, guests
 2. Guests RSVP and submit dietary restrictions, cuisine preferences, budget range, and a free-text vibe
 3. Host triggers AI synthesis — the V2 pipeline runs across Anthropic, Gemini, and Voyage AI to extract constraints, discover real nearby venues, embed vibe preferences, score and rerank candidates, verify proposals against hard constraints, and generate personalized reasoning for each guest
 4. Guests rank proposals; Borda count tallies votes in real time
-5. Host picks the winner (or sets a vote deadline for auto-finalize), confirms the time, and GroupPlan sends a winner email with a `.ics` calendar attachment to every accepted guest
+5. Host picks the winner (or sets a vote deadline for auto-finalize), confirms the time, and EatWhat sends a winner email with a `.ics` calendar attachment to every accepted guest
 
 ## Tech stack
 
@@ -26,7 +28,7 @@ AI-powered group restaurant planning. Hosts create shareable invitations, guests
 ## Project structure
 
 ```
-groupplan/
+eatwhat/
 ├── apps/
 │   └── web/                    # Next.js 14 app
 │       ├── app/
@@ -38,7 +40,7 @@ groupplan/
 │       │   └── invite/[slug]/  # Guest RSVP, preferences, vote, and confirmed pages
 │       ├── components/
 │       │   ├── forms/          # EventCreateForm, PreferenceForm, RSVPForm, FinalizeFlow
-│       │   ├── groupplan/      # Demo UI, tab components, modals
+│       │   ├── demo/           # Demo UI, tab components, modals
 │       │   ├── invite-templates/ # InviteView template system
 │       │   ├── realtime/       # GuestStatusList (Supabase realtime)
 │       │   └── ui/             # PreviewBanner, shared primitives
@@ -69,8 +71,8 @@ groupplan/
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/andersonmcalpine/groupplan.git
-cd groupplan
+git clone https://github.com/toRolex/eatwhat.git
+cd eatwhat
 pnpm install
 ```
 
@@ -149,7 +151,7 @@ App runs at [http://localhost:3000](http://localhost:3000). The host dashboard i
 | `YELP_API_KEY` | Yelp Fusion fallback if Google Places is unavailable |
 | `SENDGRID_API_KEY` | Email notifications (skipped gracefully if absent) |
 | `SENDGRID_FROM_EMAIL` | Sender address (required if SendGrid key set) |
-| `SENDGRID_FROM_NAME` | Sender display name (defaults to `GroupPlan`) |
+| `SENDGRID_FROM_NAME` | Sender display name (defaults to `EatWhat`) |
 | `NEXT_PUBLIC_APP_URL` | Full origin for email links (defaults to `http://localhost:3000`) |
 
 ## Key features

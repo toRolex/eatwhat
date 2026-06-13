@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import MagicLinkForm from '@/components/forms/MagicLinkForm';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getEventById, getInvitationBySlug } from '@groupplan/db';
+import { getEventById, getInvitationBySlug } from '@/lib/db';
 
 export const metadata: Metadata = { title: 'GroupPlan — Group event planning, simplified' };
 
@@ -62,13 +61,13 @@ export default async function LoginPage({ searchParams }: Props) {
   let inviteContext: { guestName: string; eventTitle: string } | null = null;
 
   if (from === 'invite' && slug) {
-    const db = createServiceClient();
-    const { data: invitation } = await getInvitationBySlug(db, slug);
+    const { data: invitation } = getInvitationBySlug(slug);
+    const inv = invitation as Record<string, unknown> | null;
 
-    if (invitation) {
-      const { data: event } = await getEventById(db, invitation.event_id);
+    if (inv) {
+      const { data: event } = getEventById(inv.event_id as string);
       inviteContext = event
-        ? { guestName: invitation.name, eventTitle: event.title }
+        ? { guestName: inv.name as string, eventTitle: (event as Record<string, unknown>).title as string }
         : null;
     }
   }
@@ -87,7 +86,7 @@ export default async function LoginPage({ searchParams }: Props) {
           <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: '-.02em', color: 'var(--text)', fontFamily: 'var(--fb)' }}>GroupPlan</span>
         </div>
         <a href="#sign-in" style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none' }}>
-          Sign in →
+          Sign in
         </a>
       </div>
 
@@ -95,7 +94,7 @@ export default async function LoginPage({ searchParams }: Props) {
       <div className="gp-hero-grid" style={{ maxWidth: 900, margin: '0 auto', padding: '52px 24px 56px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
         <div style={{ animation: 'fu .5s var(--sp) both' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 20, padding: '4px 12px', borderRadius: 20, background: 'var(--surface)', border: '1px solid var(--border2)', fontSize: 11, fontWeight: 500, color: 'var(--lav)', fontFamily: 'var(--fb)' }}>
-            ✦ Powered by Claude AI
+            Powered by Claude AI
           </div>
           <h1 style={{ fontFamily: 'var(--fd)', fontSize: 48, letterSpacing: '-.035em', color: 'var(--text)', lineHeight: 1.05, margin: '0 0 18px' }}>
             Group dinners,<br /><em>finally easy.</em>
@@ -105,7 +104,7 @@ export default async function LoginPage({ searchParams }: Props) {
           </p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <a href="#sign-in" style={{ display: 'inline-flex', alignItems: 'center', padding: '11px 22px', borderRadius: 'var(--rs)', background: 'var(--text)', color: 'var(--bg)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none', letterSpacing: '-.01em' }}>
-              Get started free →
+              Get started free
             </a>
             <Link href="/e/seed-team-dinner-nobu" style={{ display: 'inline-flex', alignItems: 'center', padding: '11px 22px', borderRadius: 'var(--rs)', background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border2)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--fb)', textDecoration: 'none', letterSpacing: '-.01em' }}>
               See a live demo

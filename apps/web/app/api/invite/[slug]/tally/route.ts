@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getInvitationBySlug, getInvitationByToken, getProposalsByEvent, getVotesByEvent } from '@groupplan/db';
+import { getInvitationBySlug, getInvitationByToken, getProposalsByEvent, getVotesByEvent } from '@/lib/db';
 import { maybeAutoFinalize } from '@/lib/auto-finalize';
 import { computeBorda } from '@/lib/scoring';
 
@@ -8,27 +7,25 @@ interface Context {
   params: Promise<{ slug: string }>;
 }
 
-// Public live tally for voters — accessed by invite slug or legacy token, not the host session.
-// Returns per-proposal weighted Borda score so the voting UI can render bars.
 export async function GET(_req: Request, { params }: Context) {
   const { slug } = await params;
-  const db = createServiceClient();
 
   const { data: invitation } = slug.length === 64
-    ? await getInvitationByToken(db, slug)
-    : await getInvitationBySlug(db, slug);
+    ? getInvitationByToken(slug)
+    : getInvitationBySlug(slug);
   if (!invitation) return NextResponse.json({ error: 'Invalid invite' }, { status: 404 });
 
-  await maybeAutoFinalize(invitation.event_id).catch(() => {});
+  const inv = invitation as Record<string, unknown>;
+  await maybeAutoFinalize(inv.event_id as string).catch(() => {});
 
   const [{ data: proposals }, { data: votes }] = await Promise.all([
-    getProposalsByEvent(db, invitation.event_id),
-    getVotesByEvent(db, invitation.event_id),
+    Promise.resolve(getProposalsByEvent(inv.event_id as string)),
+    Promise.resolve(getVotesByEvent(inv.event_id as string)),
   ]);
 
   const { tally, totalVoters } = computeBorda(
-    (proposals ?? []).map((p) => p.id),
-    votes ?? [],
+    ((proposals ?? []) as Array<{ id: string }>).map((p) => p.id),
+    (votes ?? []) as Array<{ proposal_id: string; invitation_id: string; rank: number }>,
   );
 
   return NextResponse.json({ tally, total_voters: totalVoters });

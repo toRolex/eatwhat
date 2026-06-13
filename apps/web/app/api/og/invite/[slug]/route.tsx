@@ -1,6 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getEventById, getInvitationBySlug } from '@groupplan/db';
+import { getEventById, getInvitationBySlug } from '@/lib/db';
 
 interface Context {
   params: Promise<{ slug: string }>;
@@ -28,27 +27,22 @@ function initials(name: string): string {
 
 export async function GET(_request: Request, { params }: Context) {
   const { slug } = await params;
-  const db = createServiceClient();
-  const { data: invitation } = await getInvitationBySlug(db, slug);
+  const { data: invitation } = getInvitationBySlug(slug);
 
   if (!invitation) {
     return new Response('Not found', { status: 404 });
   }
 
-  const { data: event } = await getEventById(db, invitation.event_id);
+  const inv = invitation as Record<string, unknown>;
+  const { data: event } = getEventById(inv.event_id as string);
 
   if (!event) {
     return new Response('Not found', { status: 404 });
   }
 
-  const { data: host } = await db
-    .from('users')
-    .select('name, email, avatar_url')
-    .eq('id', event.host_id)
-    .single();
-
-  const hostName = host?.name ?? host?.email?.split('@')[0] ?? 'Your host';
-  const background = CATEGORY_BG[event.category] ?? CATEGORY_BG.dinner;
+  const evt = event as Record<string, unknown>;
+  const hostName = 'Host';
+  const background = (CATEGORY_BG[evt.category as string] ?? CATEGORY_BG.dinner) as string;
 
   return new ImageResponse(
     (
@@ -67,16 +61,16 @@ export async function GET(_request: Request, { params }: Context) {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: -1 }}>GroupPlan</div>
-          <div style={{ fontSize: 26, color: '#57534E' }}>{formatDate(event.proposed_date)}</div>
+          <div style={{ fontSize: 26, color: '#57534E' }}>{formatDate(evt.proposed_date as string)}</div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div style={{ fontSize: 34, color: '#57534E' }}>You&apos;re invited to</div>
           <div style={{ fontSize: 84, fontWeight: 800, letterSpacing: -4, lineHeight: 0.95, maxWidth: 900 }}>
-            {event.title}
+            {evt.title as string}
           </div>
-          {event.location_hint && (
-            <div style={{ fontSize: 32, color: '#44403C' }}>{event.location_hint}</div>
+          {evt.location_hint && (
+            <div style={{ fontSize: 32, color: '#44403C' }}>{evt.location_hint as string}</div>
           )}
         </div>
 
@@ -96,12 +90,7 @@ export async function GET(_request: Request, { params }: Context) {
               overflow: 'hidden',
             }}
           >
-            {host?.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={host.avatar_url} alt="" width="88" height="88" style={{ objectFit: 'cover' }} />
-            ) : (
-              initials(hostName)
-            )}
+            {initials(hostName)}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ fontSize: 24, color: '#57534E' }}>Hosted by</div>

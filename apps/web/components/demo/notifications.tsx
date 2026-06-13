@@ -5,7 +5,6 @@ import { Activity, avColor, bgMap, fgMap } from "./types";
 const typeColor: Record<string, string> = {
   rsvp:   "var(--sage)",
   vibe:   "var(--sky)",
-  vote:   "var(--amber)",
   system: "var(--amber)",
   ai:     "var(--lav)",
 };
@@ -84,17 +83,17 @@ export function NotificationPanel({
       }}>
         <div style={{ padding: "20px 16px 14px", borderBottom: "1px solid var(--border2)", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
-            <h3 style={{ fontFamily: "var(--fd)", fontSize: 20, letterSpacing: "-.02em", color: "var(--text)" }}>Activity</h3>
+            <h3 style={{ fontFamily: "var(--fd)", fontSize: 20, letterSpacing: "-.02em", color: "var(--text)" }}>动态</h3>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               {unread > 0 && (
                 <button onClick={markAll} style={{ fontSize: 11, color: "var(--muted)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)" }}>
-                  Mark all read
+                  全部已读
                 </button>
               )}
               <button onClick={onClose} style={{ width: 26, height: 26, borderRadius: "50%", background: "var(--bg)", border: "none", cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted)" }}>×</button>
             </div>
           </div>
-          <div style={{ fontSize: 11, color: "var(--muted)" }}>{unread > 0 ? `${unread} unread` : "All caught up"}</div>
+          <div style={{ fontSize: 11, color: "var(--muted)" }}>{unread > 0 ? `${unread} 条未读` : "暂无新消息"}</div>
         </div>
         <div style={{ flex: 1, overflowY: "auto" }}>
           {activities.map((item, i) => (
@@ -103,7 +102,7 @@ export function NotificationPanel({
             </div>
           ))}
           {activities.length === 0 && (
-            <div style={{ padding: "40px 16px", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>All quiet — invite your guests to get started</div>
+            <div style={{ padding: "40px 16px", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>还没有动态 — 邀请好友来开始吧</div>
           )}
         </div>
 

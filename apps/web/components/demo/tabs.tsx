@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Guest, Restaurant, Tweaks, RESTAURANTS_DATA, avColor, bgMap, fgMap } from "./types";
+import { Guest, Restaurant, Tweaks, avColor, bgMap, fgMap } from "./types";
 import { Av, Badge, Card, Btn, Bracket, SectionLabel } from "./ui";
 import { Activity } from "./types";
 
@@ -52,15 +52,15 @@ function LiveActivity({ liveGuests }: { liveGuests: Guest[] }) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 9 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--sage)", animation: "pd 2s infinite" }} />
-          <span style={{ fontSize: 10, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".06em" }}>Live Activity</span>
+          <span style={{ fontSize: 10, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".06em" }}>实时动态</span>
         </div>
-        <span style={{ fontSize: 10, color: "var(--muted)" }}>{typing.length} pending</span>
+        <span style={{ fontSize: 10, color: "var(--muted)" }}>{typing.length} 待回复</span>
       </div>
       <div style={{ opacity: show ? 1 : 0, transition: "opacity .3s var(--eo)", display: "flex", alignItems: "center", gap: 8, minHeight: 28 }}>
         <Av ini={cur.ini} size={22} />
         <span style={{ fontSize: 12, color: "var(--text)" }}>
           <strong style={{ fontWeight: 500 }}>{cur.name.split(" ")[0]}</strong>
-          {" "}<span style={{ color: "var(--muted)" }}>{!cur.vibe ? "is adding their vibe" : "just joined"}</span>
+          {" "}<span style={{ color: "var(--muted)" }}>{!cur.vibe ? "正在填偏好" : "刚刚加入"}</span>
           {!cur.vibe && <TypingDots />}
         </span>
       </div>
@@ -68,14 +68,14 @@ function LiveActivity({ liveGuests }: { liveGuests: Guest[] }) {
         {liveGuests.map(g => (
           <div key={g.id} title={g.name} style={{ width: 18, height: 18, borderRadius: "50%", background: bgMap[avColor(g.ini)], color: fgMap[avColor(g.ini)], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 600, opacity: g.vibe ? 1 : 0.35, transition: "opacity .4s", border: g.vibe ? "1.5px solid var(--sage)" : "1.5px solid transparent" }}>{g.ini}</div>
         ))}
-        <div style={{ marginLeft: "auto", fontSize: 10, color: "var(--muted)" }}>{liveGuests.filter(g => g.vibe).length}/{liveGuests.length} vibes in</div>
+        <div style={{ marginLeft: "auto", fontSize: 10, color: "var(--muted)" }}>{liveGuests.filter(g => g.vibe).length}/{liveGuests.length} 人已填偏好</div>
       </div>
     </div>
   );
 }
 
 // ── Massive Footer ───────────────────────────────────────────────────────────
-export function MassiveFooter({ eventName = "The Friday Gathering" }: { eventName?: string }) {
+export function MassiveFooter({ eventName = "周五聚餐计划" }: { eventName?: string }) {
   return (
     <footer style={{ background: "var(--text)", marginTop: 72, position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(var(--border2) 1px,transparent 1px),linear-gradient(90deg,var(--border2) 1px,transparent 1px)", backgroundSize: "40px 40px", opacity: .06, pointerEvents: "none" }} />
@@ -87,21 +87,21 @@ export function MassiveFooter({ eventName = "The Friday Gathering" }: { eventNam
               <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="5" r="3" fill="rgba(255,255,255,.9)" /><circle cx="9" cy="9" r="3" fill="rgba(255,255,255,.4)" /></svg>
               </div>
-              <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-.02em", color: "white" }}>GroupPlan</span>
+              <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-.02em", color: "white" }}>今天整点啥</span>
             </div>
             <div style={{ fontFamily: "var(--fd)", fontSize: 32, lineHeight: 1.1, letterSpacing: "-.03em", color: "white", marginBottom: 12 }}>{eventName}</div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,.45)", lineHeight: 1.7 }}>
-              <div>Fri, Apr 25 · 7:00 PM</div>
-              <div>Lower Manhattan, NYC</div>
+              <div>周五 19:00</div>
+              <div>深圳南山区</div>
             </div>
           </div>
 
         </div>
         <div style={{ height: 1, background: "rgba(255,255,255,.08)", marginBottom: 20 }} />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,.3)" }}>© 2026 GroupPlan</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,.3)" }}>© 2026 今天整点啥</div>
           <div style={{ display: "flex", gap: 16 }}>
-            {["Privacy", "Terms", "GitHub", "Docs"].map(l => (
+            {["隐私", "条款", "GitHub", "文档"].map(l => (
               <span key={l} style={{ fontSize: 11, color: "rgba(255,255,255,.35)", cursor: "pointer", transition: "color .2s" }}
                 onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,.7)")}
                 onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.35)")}>{l}</span>
@@ -114,7 +114,7 @@ export function MassiveFooter({ eventName = "The Friday Gathering" }: { eventNam
 }
 
 // ── Overview Tab ─────────────────────────────────────────────────────────────
-export function OverviewTab({ setTab, liveGuests }: { setTab: (t: string) => void; liveGuests: Guest[] }) {
+export function OverviewTab({ setTab, liveGuests, inviteCode, isOwner }: { setTab: (t: string) => void; liveGuests: Guest[]; inviteCode?: string; isOwner?: boolean }) {
   const confirmed = liveGuests.filter(g => g.status === "confirmed");
   const dietary: Record<string, number> = {};
   confirmed.forEach(g => g.dietary.forEach(d => { dietary[d] = (dietary[d] || 0) + 1; }));
@@ -139,17 +139,29 @@ export function OverviewTab({ setTab, liveGuests }: { setTab: (t: string) => voi
           </svg>
         </div>
         <div style={{ animation: "fu .45s var(--sp) both", maxWidth: 480, position: "relative" }}>
-          <SectionLabel style={{ marginBottom: 10 }}>Event Overview</SectionLabel>
+          <SectionLabel style={{ marginBottom: 10 }}>活动概览</SectionLabel>
           <h2 style={{ fontFamily: "var(--fd)", fontSize: 56, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", marginBottom: 14, textWrap: "balance" as React.CSSProperties["textWrap"] }}>
-            The Friday<br /><em>Gathering</em>
+            周五<br /><em>聚餐计划</em>
           </h2>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <Badge color="green"><span style={{ width: 5, height: 5, borderRadius: "50%", background: "currentColor", display: "inline-block", animation: "pd 2s infinite" }} />Active Plan</Badge>
-            <Badge>Fri Apr 25 · 7 PM</Badge>
-            <Badge>Lower Manhattan</Badge>
+            <Badge color="green"><span style={{ width: 5, height: 5, borderRadius: "50%", background: "currentColor", display: "inline-block", animation: "pd 2s infinite" }} />进行中</Badge>
+            <Badge>周五 19:00</Badge>
+            <Badge>深圳南山区</Badge>
           </div>
         </div>
       </div>
+
+      {isOwner && inviteCode && (
+        <div style={{ padding: "12px 32px", background: "oklch(95% .04 228)", borderBottom: "1px solid oklch(85% .08 228)", display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 11, color: "var(--muted)", fontFamily: "var(--fb)" }}>邀请码</span>
+          <span style={{ fontFamily: "var(--fd)", fontSize: 28, letterSpacing: "6px", color: "var(--text)" }}>
+            {inviteCode}
+          </span>
+          <span style={{ fontSize: 10, color: "var(--muted)", fontFamily: "var(--fb)" }}>
+            分享给朋友即可加入
+          </span>
+        </div>
+      )}
 
       <div style={{ padding: "24px 32px 0", maxWidth: 820 }}>
         <LiveActivity liveGuests={liveGuests} />
@@ -157,9 +169,9 @@ export function OverviewTab({ setTab, liveGuests }: { setTab: (t: string) => voi
         {/* Stat cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 12 }}>
           {[
-            { label: "Confirmed", val: confirmed.length, sub: "of 8 invited",  acc: "var(--sage)"  },
-            { label: "Dietary Flags", val: Object.keys(dietary).length, sub: "unique needs", acc: "var(--sky)" },
-            { label: "Days Until",  val: 5,               sub: "Fri Apr 25",   acc: "var(--amber)" },
+            { label: "已确认", val: confirmed.length, sub: `共 ${liveGuests.length} 人`,  acc: "var(--sage)"  },
+            { label: "饮食需求", val: Object.keys(dietary).length, sub: "不同需求", acc: "var(--sky)" },
+            { label: "距离活动",  val: 5,               sub: "周五",   acc: "var(--amber)" },
           ].map((s, i) => (
             <Card key={s.label} delay={50 + i * 55} style={{ padding: "18px 20px", overflow: "hidden", position: "relative" }}>
               <Bracket size={16} color="var(--border2)" style={{ position: "absolute", top: 8, right: 8 }} />
@@ -175,12 +187,12 @@ export function OverviewTab({ setTab, liveGuests }: { setTab: (t: string) => voi
 
         {/* Cuisine chart */}
         <Card delay={180} style={{ padding: "18px 20px", marginBottom: 10 }}>
-          <SectionLabel style={{ marginBottom: 12 }}>Cuisine Preferences</SectionLabel>
+          <SectionLabel style={{ marginBottom: 12 }}>口味偏好</SectionLabel>
           {topC.map(([name, count], i) => (
             <div key={name} style={{ marginBottom: 10, animation: `fu .4s var(--sp) ${260 + i * 48}ms both` }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                 <span style={{ fontSize: 13, fontWeight: i === 0 ? 600 : 500, color: "var(--text)", fontFamily: i === 0 ? "var(--fd)" : "var(--fb)", letterSpacing: i === 0 ? "-.01em" : 0 }}>{name}</span>
-                <span style={{ fontSize: 10, color: "var(--muted)" }}>{count} votes</span>
+                <span style={{ fontSize: 10, color: "var(--muted)" }}>{count} 票</span>
               </div>
               <div style={{ height: i === 0 ? 7 : 5, borderRadius: 99, background: "var(--border2)", overflow: "hidden" }}>
                 <div style={{ height: "100%", borderRadius: 99, background: i === 0 ? "var(--text)" : i === 1 ? "var(--muted)" : "var(--border)", width: `${(count / maxC) * 100}%`, animation: `bg .8s var(--eo) ${340 + i * 48}ms both` } as React.CSSProperties} />
@@ -192,13 +204,13 @@ export function OverviewTab({ setTab, liveGuests }: { setTab: (t: string) => voi
         {/* Dietary + Budget */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
           <Card delay={310} style={{ padding: "16px 18px" }}>
-            <SectionLabel style={{ marginBottom: 9 }}>Dietary Needs</SectionLabel>
+            <SectionLabel style={{ marginBottom: 9 }}>饮食需求</SectionLabel>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
               {Object.entries(dietary).map(([d, c]) => <Badge key={d} color="blue">{d} ×{c}</Badge>)}
             </div>
           </Card>
           <Card delay={355} style={{ padding: "16px 18px" }}>
-            <SectionLabel style={{ marginBottom: 9 }}>Budget Split</SectionLabel>
+            <SectionLabel style={{ marginBottom: 9 }}>预算分布</SectionLabel>
             <div style={{ display: "flex", gap: 8, alignItems: "flex-end", height: 52 }}>
               {Object.entries(budgets).map(([tier, cnt]) => (
                 <div key={tier} style={{ textAlign: "center", flex: 1 }}>
@@ -217,8 +229,8 @@ export function OverviewTab({ setTab, liveGuests }: { setTab: (t: string) => voi
           <div style={{ position: "absolute", bottom: -20, left: 120, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,.03)", pointerEvents: "none" }} />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, position: "relative" }}>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 500, color: "white", marginBottom: 2 }}>Ready to synthesize</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,.45)" }}>5 of 7 vibes collected — strong signal</div>
+              <div style={{ fontSize: 14, fontWeight: 500, color: "white", marginBottom: 2 }}>可以生成方案了</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,.45)" }}>已收集 {liveGuests.filter(g => g.vibe).length}/{liveGuests.filter(g => g.status !== "declined").length} 人偏好 — 信号够强了</div>
             </div>
             <button onClick={() => setTab("ai")}
               style={{ padding: "9px 18px", borderRadius: "var(--rs)", border: "1px solid rgba(255,255,255,.2)", background: "rgba(255,255,255,.12)", color: "white", fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "var(--fb)", whiteSpace: "nowrap", transition: "background .2s", backdropFilter: "blur(8px)" }}
@@ -252,25 +264,25 @@ export function PreferencesTab({ liveGuests }: { liveGuests: Guest[] }) {
             <line x1="60" y1="10" x2="60" y2="110" stroke="var(--text)" strokeWidth="1" />
           </svg>
         </div>
-        <SectionLabel style={{ marginBottom: 10 }}>Guest Preferences</SectionLabel>
+        <SectionLabel style={{ marginBottom: 10 }}>好友偏好</SectionLabel>
         <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", textWrap: "balance" as React.CSSProperties["textWrap"] }}>
-          What everyone<br /><em>wants</em>
+          每个人<br /><em>想要什么</em>
         </h2>
       </div>
 
       <div style={{ padding: "24px 32px 0", maxWidth: 820 }}>
         {/* Host notes */}
         <Card delay={0} style={{ padding: "16px 18px", marginBottom: 14 }}>
-          <SectionLabel style={{ marginBottom: 8 }}>Host Notes & Additional Preferences</SectionLabel>
+          <SectionLabel style={{ marginBottom: 8 }}>组织者备注 & 额外偏好</SectionLabel>
           <textarea value={notes}
             onChange={e => { setNotes(e.target.value); localStorage.setItem("gp_notes", e.target.value); }}
-            placeholder={"Add constraints, special occasions, or preferences for the AI engine…\ne.g. \"Someone is celebrating a birthday\" or \"Avoid noisy areas\""}
+            placeholder={"添加约束条件、特殊需求，或给 AI 的额外提示…\n例如「有人过生日」或「避开太吵的地方」"}
             style={{ width: "100%", minHeight: 76, padding: "10px 12px", borderRadius: "var(--rs)", border: "1px solid var(--border2)", background: "var(--bg)", fontSize: 12, outline: "none", resize: "vertical", lineHeight: 1.65, transition: "border-color .2s", color: "var(--text)", fontFamily: "var(--fb)" }}
             onFocus={e => (e.target.style.borderColor = "var(--border)")}
             onBlur={e => (e.target.style.borderColor = "var(--border2)")} />
           {notes && (
             <div style={{ marginTop: 5, fontSize: 10, color: "var(--muted)", display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ color: "var(--sage)" }}>✓</span> Saved · will be included in AI synthesis
+              <span style={{ color: "var(--sage)" }}>✓</span> 已保存 · 将被纳入 AI 方案生成
             </div>
           )}
         </Card>
@@ -293,7 +305,7 @@ export function PreferencesTab({ liveGuests }: { liveGuests: Guest[] }) {
                 ? <div style={{ fontSize: 10, color: "var(--muted)", fontStyle: "italic", lineHeight: 1.5 }}>&quot;{guest.vibe}&quot;</div>
                 : guest.status === "pending" && (
                   <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "var(--muted)" }}>
-                    <span>Adding vibe</span><TypingDots />
+                    <span>正在填偏好</span><TypingDots />
                   </div>
                 )}
             </Card>
@@ -306,11 +318,11 @@ export function PreferencesTab({ liveGuests }: { liveGuests: Guest[] }) {
               <Av ini={g.ini} size={34} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{g.name}</div>
-                <div style={{ fontSize: 11, color: "var(--muted)" }}>Full breakdown</div>
+                <div style={{ fontSize: 11, color: "var(--muted)" }}>详细信息</div>
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-              {([["Dietary", g.dietary.length ? g.dietary.join(", ") : "None"], ["Cuisine", g.cuisine.join(", ")], ["Budget", g.budget]] as [string,string][]).map(([label, val]) => (
+              {([["饮食", g.dietary.length ? g.dietary.join(", ") : "无"], ["口味", g.cuisine.join(", ")], ["预算", g.budget]] as [string,string][]).map(([label, val]) => (
                 <div key={label}>
                   <div style={{ fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--muted)", marginBottom: 3 }}>{label}</div>
                   <div style={{ fontSize: label === "Budget" ? 22 : 12, fontFamily: label === "Budget" ? "var(--fd)" : "var(--fb)", color: "var(--text)" }}>{val}</div>
@@ -333,12 +345,12 @@ export function PreferencesTab({ liveGuests }: { liveGuests: Guest[] }) {
 
 // ── AI Tab ───────────────────────────────────────────────────────────────────
 const AI_STEPS = [
-  { l: "Collecting guest preferences", d: "Dietary, cuisine, budget, vibe" },
-  { l: "Searching nearby venues", d: "Google Places API v1 (Yelp fallback)" },
-  { l: "Building synthesis prompt", d: "Preference matrix → structured input" },
-  { l: "Running Claude Haiku synthesis", d: "claude-haiku-4-5-20251001" },
-  { l: "Ranking by preference match", d: "Constraints met/gap per proposal" },
-  { l: "Generating proposal reasoning", d: "Per-venue explanation for the group" },
+  { l: "收集好友偏好", d: "饮食、口味、预算、氛围" },
+  { l: "搜索附近商家", d: "高德地图 POI API" },
+  { l: "构建决策提示词", d: "偏好矩阵 → 结构化输入" },
+  { l: "DeepSeek 合成方案", d: "deepseek-v4-pro" },
+  { l: "按偏好匹配排序", d: "每个方案的约束满足度" },
+  { l: "生成推荐理由", d: "为每个商家写推荐语" },
 ];
 
 function RestCard({ r, rank, delay, tweaks, open, onToggle }: { r: Restaurant; rank: number; delay: number; tweaks: Tweaks; open: boolean; onToggle: () => void }) {
@@ -536,56 +548,119 @@ function RealRestCard({ p, delay, tweaks, open, onToggle }: { p: RealProposal; d
   );
 }
 
-export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (item: Omit<Activity, "id" | "read">) => void }) {
+interface SynthesizeDebug {
+  prompt: string;
+  reasoning: string;
+  rawResponse: string;
+}
+
+export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweaks: Tweaks; addActivity: (item: Omit<Activity, "id" | "read">) => void; isOwner?: boolean; group?: any; onAiDone?: (proposals: any[]) => void }) {
   const [phase, setPhase] = useState<"idle" | "running" | "done" | "error">(() => {
-    if (typeof window !== "undefined") return (localStorage.getItem("gp_ai") as any) || "idle";
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("gp_ai") as any;
+      // Never restore "running" — it's a dead-end state
+      if (saved === "running") return "idle";
+      return saved || "idle";
+    }
     return "idle";
   });
   const [step, setStep]               = useState(0);
   const [open, setOpen]               = useState<Record<number, boolean>>({});
-  const [location, setLocation]       = useState("New York, NY");
+  const [location, setLocation]       = useState("深圳南山区");
   const [realProposals, setReal]      = useState<RealProposal[]>(() => {
     try { return JSON.parse(localStorage.getItem("gp_ai_proposals") || "null") || []; } catch { return []; }
   });
+  const [debug, setDebug]             = useState<SynthesizeDebug>(() => {
+    try { return JSON.parse(localStorage.getItem("gp_ai_debug") || "null") || { prompt: "", reasoning: "", rawResponse: "" }; } catch { return { prompt: "", reasoning: "", rawResponse: "" }; }
+  });
+  const [showDebug, setShowDebug]     = useState(false);
   const [errorMsg, setErrorMsg]       = useState("");
+  const [waitMsg, setWaitMsg]         = useState(0);
+  const abortRef                      = useRef<AbortController | null>(null);
+  const storedProposals = group?.aiProposals;
   useEffect(() => { localStorage.setItem("gp_ai", phase); }, [phase]);
 
+  const WAIT_MESSAGES = [
+    "正在解析 6 人偏好矩阵…",
+    "正在匹配南山区 56 家商家…",
+    "正在构建决策提示词…",
+    "正在调用 DeepSeek 综合打分…",
+    "正在解析 AI 推荐结果…",
+    "正在校验约束满足度…",
+  ];
+
   const run = async () => {
-    setPhase("running"); setStep(0); setErrorMsg("");
-    // Animate steps while the real fetch runs in parallel
+    setPhase("running"); setStep(0); setErrorMsg(""); setWaitMsg(0);
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    // Collect preferences from group members
+    const prefs = (group?.members || [])
+      .filter((m: any) => m.preferenceStatus === "done" || m.vibe)
+      .map((m: any) => ({
+        name: m.name,
+        dietary: m.dietary || [],
+        cuisine: m.cuisine || [],
+        budget: m.budget || "$$",
+        vibe: m.vibe || null,
+      }));
+
+    // Animate 6 steps evenly over ~60s (10s per step)
+    const STEP_MS = 10000;
     let s = 0;
     const iv = setInterval(() => {
       s = Math.min(s + 1, AI_STEPS.length - 1);
       setStep(s);
-    }, 700);
+    }, STEP_MS);
+
+    // Cycle the status message every 3s
+    const wm = setInterval(() => {
+      setWaitMsg(prev => (prev + 1) % WAIT_MESSAGES.length);
+    }, 3000);
+
+    // Safety timeout: 120s total
+    const timeoutId = setTimeout(() => controller.abort(), 120_000);
 
     try {
       const res = await fetch("/api/demo/synthesize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ location }),
+        body: JSON.stringify({ location, preferences: prefs }),
+        signal: controller.signal,
       });
       clearInterval(iv);
+      clearInterval(wm);
+      clearTimeout(timeoutId);
       if (!res.ok) {
         const d = await res.json();
         throw new Error(d.error || "Synthesis failed");
       }
-      const data = await res.json() as { proposals: RealProposal[] };
+      const data = await res.json() as { proposals: RealProposal[]; debug?: SynthesizeDebug };
       setStep(AI_STEPS.length);
       setReal(data.proposals);
+      const dbg = data.debug || { prompt: "", reasoning: "", rawResponse: "" };
+      setDebug(dbg);
       localStorage.setItem("gp_ai_proposals", JSON.stringify(data.proposals));
+      localStorage.setItem("gp_ai_debug", JSON.stringify(dbg));
+      if (data.proposals && onAiDone) onAiDone(data.proposals);
       setTimeout(() => {
         setPhase("done");
         addActivity({ type: "ai", ini: "AI", name: "AI Engine", msg: `Synthesis complete — 3 venues ranked in ${location}`, time: "just now" });
       }, 400);
     } catch (err: any) {
       clearInterval(iv);
-      setErrorMsg(err?.message || "Unknown error");
+      clearInterval(wm);
+      clearTimeout(timeoutId);
+      if (err?.name === "AbortError") {
+        setErrorMsg("请求超时或已取消 — 可以重试");
+      } else {
+        setErrorMsg(err?.message || "Unknown error");
+      }
       setPhase("error");
     }
   };
 
-  const reset = () => { setPhase("idle"); setStep(0); setReal([]); localStorage.removeItem("gp_ai"); localStorage.removeItem("gp_ai_proposals"); };
+  const reset = () => { setPhase("idle"); setStep(0); setReal([]); setDebug({ prompt: "", reasoning: "", rawResponse: "" }); setShowDebug(false); localStorage.removeItem("gp_ai"); localStorage.removeItem("gp_ai_proposals"); localStorage.removeItem("gp_ai_debug"); };
 
   if (phase === "idle" || phase === "error") return (
     <div>
@@ -595,15 +670,15 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
             {[0,1,2,3,4].map(i => <polygon key={i} points="70,10 130,50 130,90 70,130 10,90 10,50" stroke="var(--text)" strokeWidth="1" fill="none" transform={`rotate(${i * 18} 70 70)`} />)}
           </svg>
         </div>
-        <SectionLabel style={{ marginBottom: 10 }}>AI Synthesis</SectionLabel>
+        <SectionLabel style={{ marginBottom: 10 }}>AI 生成方案</SectionLabel>
         <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", marginBottom: 10, textWrap: "balance" as React.CSSProperties["textWrap"] }}>
-          Ready to find<br /><em>the perfect spot</em>
+          帮你找到<br /><em>最合适的地方</em>
         </h2>
-        <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.65, maxWidth: 360 }}>Real venue search via Yelp + Claude synthesis — tuned to your group&apos;s preferences.</p>
+        <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.65, maxWidth: 360 }}>AI 根据所有人的偏好，搜索周边真实商家，生成融合方案。</p>
       </div>
       <div style={{ padding: "24px 32px", maxWidth: 640 }}>
         <Card delay={85} style={{ padding: "16px 18px", marginBottom: 16 }}>
-          <SectionLabel style={{ marginBottom: 12 }}>Decision Pipeline</SectionLabel>
+          <SectionLabel style={{ marginBottom: 12 }}>决策流程</SectionLabel>
           {AI_STEPS.map((s, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: i < AI_STEPS.length - 1 ? "1px solid var(--border2)" : "none", animation: `fu .4s var(--sp) ${i * 42 + 65}ms both` }}>
               <div style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--bg)", border: "1.5px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 600, color: "var(--muted)", flexShrink: 0 }}>{i + 1}</div>
@@ -612,20 +687,26 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
           ))}
         </Card>
         <div style={{ marginBottom: 12 }}>
-          <label style={{ display: "block", fontSize: 10, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6, fontFamily: "var(--fb)" }}>Location</label>
+          <label style={{ display: "block", fontSize: 10, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6, fontFamily: "var(--fb)" }}>位置</label>
           <input
             value={location}
             onChange={e => setLocation(e.target.value)}
-            placeholder="New York, NY"
+            placeholder="深圳南山区"
             style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--border2)", borderRadius: "var(--rs)", fontSize: 13, fontFamily: "var(--fb)", color: "var(--text)", background: "var(--bg)", outline: "none", boxSizing: "border-box" }}
             onFocus={e => (e.currentTarget.style.borderColor = "var(--text)")}
             onBlur={e => (e.currentTarget.style.borderColor = "var(--border2)")}
           />
         </div>
         {phase === "error" && <p style={{ fontSize: 12, color: "oklch(55% 0.18 26)", fontFamily: "var(--fb)", marginBottom: 10 }}>{errorMsg}</p>}
-        <Btn onClick={run} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-          Run AI Synthesis →
-        </Btn>
+        {isOwner ? (
+          <Btn onClick={run} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+            生成方案 →
+          </Btn>
+        ) : (
+          <p style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--fb)", padding: "12px 0" }}>
+            等待群主生成方案…
+          </p>
+        )}
       </div>
       <MassiveFooter eventName="AI Synthesis" />
     </div>
@@ -636,9 +717,9 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
       <div style={{ animation: "fu .4s var(--sp) both", marginBottom: 26 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 11 }}>
           <div style={{ width: 12, height: 12, borderRadius: "50%", border: "2px solid var(--text)", borderTopColor: "transparent", animation: "sp2 .75s linear infinite" }} />
-          <span style={{ fontSize: 10, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".07em" }}>Processing</span>
+          <span style={{ fontSize: 10, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".07em" }}>处理中</span>
         </div>
-        <h2 style={{ fontFamily: "var(--fd)", fontSize: 36, letterSpacing: "-.03em", color: "var(--text)", textWrap: "balance" as React.CSSProperties["textWrap"] }}>Running the<br /><em>decision engine</em></h2>
+        <h2 style={{ fontFamily: "var(--fd)", fontSize: 36, letterSpacing: "-.03em", color: "var(--text)", textWrap: "balance" as React.CSSProperties["textWrap"] }}>正在运行<br /><em>决策引擎</em></h2>
       </div>
       {AI_STEPS.map((s, i) => {
         const done = i < step, active = i === step - 1;
@@ -652,7 +733,15 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
           </div>
         );
       })}
-      <p style={{ marginTop: 20, fontSize: 11, color: "var(--muted)", fontFamily: "var(--fb)" }}>Searching Yelp · calling Claude · ranking venues…</p>
+      <p style={{ marginTop: 20, fontSize: 11, color: "var(--muted)", fontFamily: "var(--fb)" }}>{WAIT_MESSAGES[waitMsg]}</p>
+      <button
+        onClick={() => { abortRef.current?.abort(); }}
+        style={{ marginTop: 14, padding: "6px 14px", borderRadius: "var(--rs)", border: "1px solid var(--border2)", background: "var(--bg)", color: "var(--muted)", fontSize: 11, cursor: "pointer", fontFamily: "var(--fb)", transition: "all .2s" }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--coral)"; e.currentTarget.style.color = "var(--coral)"; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border2)"; e.currentTarget.style.color = "var(--muted)"; }}
+      >
+        取消
+      </button>
     </div>
   );
 
@@ -660,134 +749,138 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
     <div>
       <div style={{ padding: "40px 32px 24px", borderBottom: "1px solid var(--border2)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-          <Badge color="green">✓ Complete</Badge>
-          <button onClick={reset} style={{ fontSize: 10, color: "var(--muted)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)" }}>Rerun</button>
+          <Badge color="green">✓ 完成</Badge>
+          <button onClick={reset} style={{ fontSize: 10, color: "var(--muted)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)" }}>重新生成</button>
         </div>
         <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", marginBottom: 5, textWrap: "balance" as React.CSSProperties["textWrap"] }}>
-          3 spots ranked<br /><em style={{ color: "var(--muted)" }}>for your group</em>
+          3 个推荐<br /><em style={{ color: "var(--muted)" }}>为你精选</em>
         </h2>
-        <p style={{ fontSize: 11, color: "var(--muted)" }}>Real venues in <strong style={{ color: "var(--text)" }}>{location}</strong> · ranked by Claude across 5 guest preference profiles</p>
+        <p style={{ fontSize: 11, color: "var(--muted)" }}><strong style={{ color: "var(--text)" }}>{location}</strong> 的真实商家 · DeepSeek 根据 5 人偏好综合排序</p>
       </div>
       <div style={{ padding: "24px 32px 0", maxWidth: 760 }}>
-        {realProposals.map((p, i) => (
-          <RealRestCard key={i} p={p} delay={i * 80} tweaks={tweaks} open={!!open[i]} onToggle={() => setOpen(prev => ({ ...prev, [i]: !prev[i] }))} />
-        ))}
-      </div>
-      <MassiveFooter eventName="AI Results" />
-    </div>
-  );
-}
+        {realProposals.length > 0 ? (
+          realProposals.map((p, i) => (
+            <RealRestCard key={i} p={p} delay={i * 80} tweaks={tweaks} open={!!open[i]} onToggle={() => setOpen(prev => ({ ...prev, [i]: !prev[i] }))} />
+          ))
+        ) : storedProposals?.length > 0 ? (
+          storedProposals.map((p: any, i: number) => (
+            <RealRestCard key={i} p={p} delay={i * 80} tweaks={tweaks} open={!!open[i]} onToggle={() => setOpen(prev => ({ ...prev, [i]: !prev[i] }))} />
+          ))
+        ) : null}
 
-// ── Vote Tab ─────────────────────────────────────────────────────────────────
-function downloadICS(restaurant: Restaurant) {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const dt = new Date(2026, 3, 25, 19, 0, 0), dte = new Date(2026, 3, 25, 22, 0, 0);
-  const fmt = (d: Date) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
-  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//GroupPlan//EN","BEGIN:VEVENT",`DTSTART:${fmt(dt)}`,`DTEND:${fmt(dte)}`,`SUMMARY:The Friday Gathering @ ${restaurant.name}`,`DESCRIPTION:GroupPlan event · AI-matched.`,`LOCATION:${restaurant.addr}\\, NYC`,"STATUS:CONFIRMED","END:VEVENT","END:VCALENDAR"].join("\r\n");
-  const blob = new Blob([ics], { type: "text/calendar" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = "friday-gathering.ics"; a.click(); URL.revokeObjectURL(url);
-}
-
-export function VoteTab({ addActivity }: { addActivity: (item: Omit<Activity, "id" | "read">) => void }) {
-  const [ranking, setRanking] = useState([0, 1, 2]);
-  const [scores, setScores] = useState<number[]>(() => {
-    if (typeof window !== "undefined") return JSON.parse(localStorage.getItem("gp_scores") || "[3,2,1]");
-    return [3, 2, 1];
-  });
-  const [done, setDone] = useState(() => typeof window !== "undefined" && !!localStorage.getItem("gp_voted"));
-  const moveUp   = (i: number) => { if (i === 0) return; const r = [...ranking] as number[]; const a = r[i]!; const b = r[i-1]!; r[i] = b; r[i-1] = a; setRanking(r); };
-  const moveDown = (i: number) => { if (i === ranking.length-1) return; const r = [...ranking] as number[]; const a = r[i]!; const b = r[i+1]!; r[i] = b; r[i+1] = a; setRanking(r); };
-
-  const submit = () => {
-    const s = [...scores] as number[];
-    ranking.forEach((idx, pos) => { s[idx] = (s[idx] ?? 0) + Math.max(0, 3 - pos) + 1; });
-    setScores(s); localStorage.setItem("gp_scores", JSON.stringify(s)); localStorage.setItem("gp_voted", "1");
-    addActivity({ type: "vote", ini: "◎", name: "You", msg: `Voted: ${RESTAURANTS_DATA[ranking[0] ?? 0]?.name ?? ""} as top pick`, time: "just now" });
-    setDone(true);
-  };
-
-  const maxS = Math.max(...scores, 1);
-  const winner = scores.indexOf(Math.max(...scores));
-
-  return (
-    <div>
-      <div style={{ padding: "40px 32px 24px", borderBottom: "1px solid var(--border2)" }}>
-        <SectionLabel style={{ marginBottom: 10 }}>Ranked-Choice Vote</SectionLabel>
-        <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", textWrap: "balance" as React.CSSProperties["textWrap"] }}>
-          Cast your<br /><em>ranking</em>
-        </h2>
-      </div>
-      <div style={{ padding: "24px 32px 0", maxWidth: 640 }}>
-        {!done ? (
-          <>
-            <Card delay={70} style={{ padding: "16px 18px", marginBottom: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--muted)", marginBottom: 10 }}>#1 is your top pick</div>
-              {ranking.map((ri, pos) => {
-                const r = RESTAURANTS_DATA[ri ?? 0];
-                return (
-                  <div key={r?.id ?? pos} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 11px", borderRadius: "var(--rs)", marginBottom: 4, background: pos === 0 ? "var(--bg)" : "transparent", border: "1px solid", borderColor: pos === 0 ? "var(--border)" : "transparent", transition: "all .25s var(--sp)", animation: `fu .4s var(--sp) ${pos * 50 + 75}ms both` }}>
-                    <span style={{ fontSize: 18, fontFamily: "var(--fd)", color: "var(--muted)", width: 22, textAlign: "center" }}>{["①","②","③"][pos]}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{r?.name}</div>
-                      <div style={{ fontSize: 10, color: "var(--muted)" }}>{r?.cuisine} · {r?.price}</div>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <button onClick={() => moveUp(pos)} style={{ background: "none", border: "1px solid var(--border2)", borderRadius: 4, width: 19, height: 19, cursor: "pointer", fontSize: 8, display: "flex", alignItems: "center", justifyContent: "center", opacity: pos === 0 ? .3 : 1, color: "var(--text)" }}>↑</button>
-                      <button onClick={() => moveDown(pos)} style={{ background: "none", border: "1px solid var(--border2)", borderRadius: 4, width: 19, height: 19, cursor: "pointer", fontSize: 8, display: "flex", alignItems: "center", justifyContent: "center", opacity: pos === ranking.length - 1 ? .3 : 1, color: "var(--text)" }}>↓</button>
-                    </div>
-                  </div>
-                );
-              })}
-            </Card>
-            <Btn onClick={submit} style={{ fontSize: 12 }}>Submit Vote</Btn>
-          </>
-        ) : (
-          <div>
-            <Card delay={0} style={{ padding: "16px 18px", marginBottom: 11, animation: "si .4s var(--sp) both" }}>
-              <SectionLabel style={{ marginBottom: 11 }}>Live Results</SectionLabel>
-              {RESTAURANTS_DATA.map((r, i) => (
-                <div key={r.id} style={{ marginBottom: 10, animation: `fu .45s var(--sp) ${i * 60}ms both` }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{r.name}</span>
-                      {winner === i && <Badge color="amber">🏆 Winner</Badge>}
-                    </div>
-                    <span style={{ fontSize: 10, color: "var(--muted)" }}>{scores[i] ?? 0} pts</span>
-                  </div>
-                  <div style={{ height: 6, borderRadius: 99, background: "var(--border2)", overflow: "hidden" }}>
-                    <div style={{ height: "100%", borderRadius: 99, background: winner === i ? r.accent : "var(--border)", width: `${((scores[i] ?? 0) / maxS) * 100}%`, animation: `bg .8s var(--eo) ${i * 70}ms both` } as React.CSSProperties} />
-                  </div>
-                </div>
-              ))}
-            </Card>
-            <Card delay={150} style={{ padding: "18px 20px", background: "var(--text)", border: "none", animation: "si .5s var(--sp) .15s both", position: "relative", overflow: "hidden", marginBottom: 0 }}>
-              <div style={{ position: "absolute", top: -50, right: -50, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,.04)", pointerEvents: "none" }} />
-              <div style={{ fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: ".06em", color: "rgba(255,255,255,.4)", marginBottom: 5 }}>The group has spoken</div>
-              <div style={{ fontFamily: "var(--fd)", fontSize: 26, color: "white", letterSpacing: "-.02em", marginBottom: 2 }}>{RESTAURANTS_DATA[winner]?.name}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", marginBottom: 16 }}>{RESTAURANTS_DATA[winner]?.addr} · {RESTAURANTS_DATA[winner]?.hours}</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => { const w = RESTAURANTS_DATA[winner]; if (w) downloadICS(w); }}
-                  style={{ padding: "8px 16px", borderRadius: "var(--rs)", border: "1px solid rgba(255,255,255,.25)", background: "rgba(255,255,255,.12)", color: "white", fontSize: 11, fontWeight: 500, cursor: "pointer", fontFamily: "var(--fb)", transition: "background .2s", display: "flex", alignItems: "center", gap: 5, backdropFilter: "blur(8px)" }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,.22)")}
-                  onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,.12)")}>
-                  <svg width="10" height="11" viewBox="0 0 10 11" fill="none"><path d="M5 1v6M2 5l3 3 3-3M1 10h8" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  Export .ics
-                </button>
-                <button style={{ padding: "8px 16px", borderRadius: "var(--rs)", border: "1px solid rgba(255,255,255,.15)", background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 11, cursor: "pointer", fontFamily: "var(--fb)", transition: "background .2s" }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,.08)")}
-                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                  Share result
-                </button>
-              </div>
-            </Card>
-            <button onClick={() => { localStorage.removeItem("gp_voted"); setDone(false); }} style={{ marginTop: 9, fontSize: 10, color: "var(--muted)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)" }}>
-              Reset vote
+        {/* DeepSeek 思维链 */}
+        {debug.prompt && (
+          <div style={{ marginTop: 12, marginBottom: 24 }}>
+            <button
+              onClick={() => setShowDebug(v => !v)}
+              style={{
+                display: "flex", alignItems: "center", gap: 7,
+                background: "var(--surface)", border: "1px solid var(--border2)",
+                borderRadius: "var(--r)", padding: "10px 16px",
+                cursor: "pointer", fontFamily: "var(--fb)", fontSize: 12,
+                color: "var(--text)", fontWeight: 500,
+                transition: "all .2s", width: "100%",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--border)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border2)"; }}
+            >
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                padding: "2px 8px", borderRadius: 6,
+                background: "var(--text)", color: "var(--bg)",
+                fontSize: 10, fontWeight: 700,
+              }}>
+                🧠 思维链
+              </span>
+              <span style={{ color: "var(--muted)", flex: 1, textAlign: "left" }}>
+                DeepSeek 输入输出 · 共 {((debug.prompt || "").length + (debug.reasoning || "").length + (debug.rawResponse || "").length).toLocaleString()} 字符
+              </span>
+              <span style={{
+                display: "inline-block", transition: "transform .2s var(--sp)",
+                transform: showDebug ? "rotate(90deg)" : "none",
+                color: "var(--muted)", fontSize: 10,
+              }}>▶</span>
             </button>
+
+            {showDebug && (
+              <div style={{
+                marginTop: 8, animation: "sd .25s var(--sp) both",
+                display: "flex", flexDirection: "column", gap: 10,
+              }}>
+                {/* Prompt */}
+                <div style={{
+                  background: "var(--surface)", borderRadius: "var(--r)",
+                  border: "1px solid var(--border2)", overflow: "hidden",
+                }}>
+                  <div style={{
+                    padding: "8px 14px", borderBottom: "1px solid var(--border2)",
+                    fontSize: 10, fontWeight: 600, color: "var(--muted)",
+                    fontFamily: "var(--fb)", letterSpacing: ".04em",
+                    textTransform: "uppercase",
+                  }}>
+                    📤 发送给 DeepSeek 的 Prompt
+                  </div>
+                  <pre style={{
+                    margin: 0, padding: "14px 16px",
+                    fontSize: 11, fontFamily: "var(--fb)",
+                    lineHeight: 1.55, color: "var(--text)",
+                    whiteSpace: "pre-wrap", wordBreak: "break-word",
+                    maxHeight: 360, overflowY: "auto",
+                  }}>{debug.prompt}</pre>
+                </div>
+
+                {/* CoT Reasoning */}
+                {debug.reasoning && (
+                  <div style={{
+                    background: "var(--surface)", borderRadius: "var(--r)",
+                    border: "1px solid oklch(85% .06 228)", overflow: "hidden",
+                  }}>
+                    <div style={{
+                      padding: "8px 14px", borderBottom: "1px solid var(--border2)",
+                      fontSize: 10, fontWeight: 600, color: "var(--muted)",
+                      fontFamily: "var(--fb)", letterSpacing: ".04em",
+                      textTransform: "uppercase",
+                      background: "oklch(97% .01 228)",
+                    }}>
+                      💭 DeepSeek CoT 推理过程
+                    </div>
+                    <pre style={{
+                      margin: 0, padding: "14px 16px",
+                      fontSize: 11, fontFamily: "var(--fb)",
+                      lineHeight: 1.55, color: "var(--text)",
+                      whiteSpace: "pre-wrap", wordBreak: "break-word",
+                      maxHeight: 300, overflowY: "auto",
+                    }}>{debug.reasoning}</pre>
+                  </div>
+                )}
+
+                {/* Raw response */}
+                <div style={{
+                  background: "var(--surface)", borderRadius: "var(--r)",
+                  border: "1px solid var(--border2)", overflow: "hidden",
+                }}>
+                  <div style={{
+                    padding: "8px 14px", borderBottom: "1px solid var(--border2)",
+                    fontSize: 10, fontWeight: 600, color: "var(--muted)",
+                    fontFamily: "var(--fb)", letterSpacing: ".04em",
+                    textTransform: "uppercase",
+                  }}>
+                    📥 DeepSeek 原始输出 (JSON)
+                  </div>
+                  <pre style={{
+                    margin: 0, padding: "14px 16px",
+                    fontSize: 11, fontFamily: "var(--fb)",
+                    lineHeight: 1.55, color: "var(--text)",
+                    whiteSpace: "pre-wrap", wordBreak: "break-word",
+                    maxHeight: 400, overflowY: "auto",
+                  }}>{debug.rawResponse}</pre>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
-      <MassiveFooter eventName="Group Vote" />
+      <MassiveFooter eventName="AI Results" />
     </div>
   );
 }

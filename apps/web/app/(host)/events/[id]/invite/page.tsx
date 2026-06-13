@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
-import { getEventById, getInvitationsByEvent } from '@groupplan/db';
+import { getEventById, getInvitationsByEvent } from '@/lib/db';
 import InviteManager from '@/components/forms/InviteManager';
 
 export const metadata: Metadata = { title: 'Manage invites' };
@@ -13,19 +12,19 @@ interface Props {
 
 export default async function InvitePage({ params }: Props) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: event } = await getEventById(supabase, id);
+  const { data: event } = getEventById(id);
 
   if (!event) notFound();
 
-  const { data: invitations } = await getInvitationsByEvent(supabase, id);
+  const evt = event as Record<string, unknown>;
+  const { data: invitations } = getInvitationsByEvent(id);
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px' }}>
 
       <Link href={`/events/${id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none', marginBottom: 28 }}>
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        {event.title}
+        {evt.title as string}
       </Link>
 
       <div style={{ marginBottom: 28 }}>

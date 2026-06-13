@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getInvitationBySlug, getInvitationByToken, getProposalsByEvent, getVotesByInvitation } from '@groupplan/db';
-import { getEventById } from '@groupplan/db';
+import { getInvitationBySlug, getInvitationByToken, getProposalsByEvent, getVotesByInvitation, getEventById } from '@/lib/db';
 import VotingInterface from '@/components/voting/VotingInterface';
 
 export const metadata: Metadata = { title: 'Vote' };
@@ -14,22 +12,25 @@ interface Props {
 
 export default async function VotePage({ params }: Props) {
   const { slug } = await params;
-  const db = createServiceClient();
 
   const { data: invitation } = slug.length === 64
-    ? await getInvitationByToken(db, slug)
-    : await getInvitationBySlug(db, slug);
+    ? getInvitationByToken(slug)
+    : getInvitationBySlug(slug);
   if (!invitation) notFound();
 
-  const { data: event } = await getEventById(db, invitation.event_id);
-  if (!event || event.status !== 'deciding') notFound();
+  const inv = invitation as Record<string, unknown>;
 
-  const { data: proposals } = await getProposalsByEvent(db, invitation.event_id);
-  if (!proposals?.length) notFound();
+  const { data: event } = getEventById(inv.event_id as string);
+  if (!event || (event as Record<string, unknown>).status !== 'deciding') notFound();
 
-  const { data: priorVotes } = await getVotesByInvitation(db, invitation.id);
+  const evt = event as Record<string, unknown>;
+
+  const { data: proposals } = getProposalsByEvent(inv.event_id as string);
+  if (!(proposals as unknown[])?.length) notFound();
+
+  const { data: priorVotes } = getVotesByInvitation(inv.id as string);
   const initialRankings: Record<string, number> = {};
-  for (const v of priorVotes ?? []) initialRankings[v.proposal_id] = v.rank;
+  for (const v of (priorVotes ?? []) as Array<{ proposal_id: string; rank: number }>) initialRankings[v.proposal_id] = v.rank;
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
@@ -39,10 +40,10 @@ export default async function VotePage({ params }: Props) {
         <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <div>
             <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 3, fontFamily: 'var(--fb)' }}>Voting open</div>
-            <h1 style={{ fontFamily: 'var(--fd)', fontSize: 20, letterSpacing: '-.03em', color: 'var(--text)', margin: 0 }}>{event.title}</h1>
+            <h1 style={{ fontFamily: 'var(--fd)', fontSize: 20, letterSpacing: '-.03em', color: 'var(--text)', margin: 0 }}>{evt.title as string}</h1>
           </div>
           <span style={{ fontSize: 11, color: 'var(--muted)', background: 'var(--bg)', border: '1px solid var(--border2)', borderRadius: 7, padding: '4px 10px', fontFamily: 'var(--fb)', flexShrink: 0 }}>
-            {invitation.name}
+            {inv.name as string}
           </span>
         </div>
       </header>
@@ -51,11 +52,11 @@ export default async function VotePage({ params }: Props) {
 
         {/* Intro */}
         <p style={{ fontSize: 14, color: 'var(--muted)', fontFamily: 'var(--fb)', lineHeight: 1.6, margin: '0 0 20px', animation: 'fu .35s var(--sp) both' }}>
-          Rank all <strong style={{ color: 'var(--text)' }}>{proposals.length}</strong> picks from your top choice to your last. Higher ranks weight more in the final tally.
+          Rank all <strong style={{ color: 'var(--text)' }}>{(proposals as unknown[]).length}</strong> picks from your top choice to your last. Higher ranks weight more in the final tally.
         </p>
 
         <VotingInterface
-          proposals={proposals}
+          proposals={proposals as unknown[]}
           token={slug}
           initialRankings={initialRankings}
         />

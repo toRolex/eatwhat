@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { InviteGuestsSchema } from '@groupplan/types';
-import { getEventById, createInvitations } from '@groupplan/db';
-import { getNotificationService, sendBatch, appUrl } from '@/lib/notifications';
-import { track } from '@/lib/funnel';
+import { getEventById, createInvitations } from '@/lib/db';
 
 interface Context {
   params: Promise<{ id: string }>;
@@ -11,15 +8,13 @@ interface Context {
 
 export async function POST(request: Request, { params }: Context) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const hostId = 'demo-host'; // Supabase auth removed
 
-  const { data: event } = await getEventById(supabase, id);
-  if (!event || event.host_id !== user.id) {
+  const { data: event } = getEventById(id);
+  if (!event || (event as Record<string, unknown>).host_id !== hostId) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  if (event.status !== 'open' && event.status !== 'collecting') {
+  if ((event as Record<string, unknown>).status !== 'open' && (event as Record<string, unknown>).status !== 'collecting') {
     return NextResponse.json(
       { error: 'Invitations can only be sent while the event is open or collecting' },
       { status: 422 },
@@ -32,49 +27,28 @@ export async function POST(request: Request, { params }: Context) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const rows = parsed.data.guests.map((g) => ({
+  const rows = parsed.data.guests.map((g: { name: string; email: string }) => ({
     event_id: id,
-    event_slug: event.slug,
+    event_slug: (event as Record<string, unknown>).slug as string,
     name: g.name,
     email: g.email,
   }));
-  const { data: invitations, error } = await createInvitations(supabase, rows);
+  const { data: invitations, error } = createInvitations(rows);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  void track('invites_sent', { userId: user.id, metadata: { event_id: id, count: invitations?.length ?? 0 } });
 
-  // Advance the event into 'collecting' on first invite so guests can submit prefs
-  if (event.status === 'open') {
-    await supabase.from('events').update({ status: 'collecting' }).eq('id', id);
+  // Advance the event into 'collecting' on first invite
+  if ((event as Record<string, unknown>).status === 'open') {
+    const { updateEvent } = await import('@/lib/db');
+    updateEvent(id, { status: 'collecting' });
   }
 
-  // Fetch host display name for the invitation copy
-  const { data: hostRow } = await supabase
-    .from('users').select('name').eq('id', user.id).single();
-  const hostName = hostRow?.name ?? user.email?.split('@')[0] ?? 'Your friend';
+  // Host name stub — no Supabase users table
+  const hostName = 'Host';
 
-  const notifier = getNotificationService();
-  let emailSummary: { sent: number; failed: number } | null = null;
-
-  if (notifier && invitations) {
-    const batch = await sendBatch(
-      notifier,
-      invitations.map((inv) => ({
-        to:       { name: inv.name, email: inv.email },
-        template: 'invitation-sent' as const,
-        data: {
-          host_name:   hostName,
-          event_title: event.title,
-          invite_url:  `${appUrl()}/invite/${inv.slug ?? inv.invite_token}`,
-        },
-      })),
-      `invite event ${id}`,
-    );
-    emailSummary = { sent: batch.sent, failed: batch.failed };
-  }
-
+  // Email notifications disabled (no Supabase/SendGrid)
   return NextResponse.json({
     invitations,
-    emails: emailSummary,
-    email_disabled: !notifier,
+    emails: null,
+    email_disabled: true,
   }, { status: 201 });
 }

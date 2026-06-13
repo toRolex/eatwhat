@@ -1,21 +1,17 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
-import { getEventsByHost } from '@groupplan/db';
+import { getEventsByHost } from '@/lib/db';
 import { STATUS_COLORS } from '@/lib/event-status';
 
 export const metadata: Metadata = { title: 'Dashboard' };
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const { data: events } = await getEventsByHost(supabase, user!.id);
+  // Hardcoded demo host — Supabase auth removed
+  const hostId = 'demo-host';
+  const { data: events } = getEventsByHost(hostId);
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px' }}>
-
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 32 }}>
         <div>
           <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 5, fontFamily: 'var(--fb)' }}>Dashboard</div>
@@ -31,8 +27,7 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {/* Event list */}
-      {!events?.length ? (
+      {!(events as unknown[])?.length ? (
         <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', padding: '40px 32px', boxShadow: 'var(--sh)', animation: 'fu .4s var(--sp) both' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 24 }}>
             <div style={{ width: 48, height: 48, borderRadius: 'var(--rs)', background: 'oklch(94% .04 148)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -46,7 +41,6 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Three-step nudge */}
           <ol style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
               { n: 1, t: 'Create the event', d: 'Title, location hint, and RSVP deadline.' },
@@ -75,22 +69,22 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div data-testid="dashboard-event-list" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {events.map((event, i) => (
+          {(events as Array<Record<string, unknown>>).map((event, i) => (
             <Link
-              key={event.id}
+              key={event.id as string}
               href={`/events/${event.id}`}
               className="event-card"
               data-testid="dashboard-event-card"
               style={{ display: 'block', padding: '16px 20px', borderRadius: 'var(--r)', border: '1px solid var(--border2)', background: 'var(--surface)', textDecoration: 'none', boxShadow: 'var(--sh)', transition: 'box-shadow .2s, border-color .2s', animation: `fu .35s var(--sp) ${i * 0.05}s both` }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--fb)', letterSpacing: '-.01em' }}>{event.title}</span>
-                <span style={{ fontSize: 11, fontWeight: 500, color: STATUS_COLORS[event.status] ?? 'var(--muted)', fontFamily: 'var(--fb)', background: 'var(--bg)', border: '1px solid var(--border2)', borderRadius: 'var(--rs)', padding: '3px 8px', textTransform: 'capitalize', flexShrink: 0 }}>
-                  {event.status}
+                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--fb)', letterSpacing: '-.01em' }}>{event.title as string}</span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: (STATUS_COLORS as Record<string, string>)[event.status as string] ?? 'var(--muted)', fontFamily: 'var(--fb)', background: 'var(--bg)', border: '1px solid var(--border2)', borderRadius: 'var(--rs)', padding: '3px 8px', textTransform: 'capitalize', flexShrink: 0 }}>
+                  {event.status as string}
                 </span>
               </div>
               <p style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: '5px 0 0' }}>
-                RSVP by {new Date(event.rsvp_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                RSVP by {new Date(event.rsvp_deadline as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
               </p>
             </Link>
           ))}

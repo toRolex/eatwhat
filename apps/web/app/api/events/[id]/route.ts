@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { UpdateEventSchema, EVENT_STATUS_TRANSITIONS, type EventStatus } from '@groupplan/types';
-import { getEventById, updateEvent, updateEventStatus, deleteEvent } from '@groupplan/db';
+import { getEventById, updateEvent, updateEventStatus, deleteEvent } from '@/lib/db';
 
 interface Context {
   params: Promise<{ id: string }>;
@@ -9,8 +8,7 @@ interface Context {
 
 export async function GET(_req: Request, { params }: Context) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: event, error } = await getEventById(supabase, id);
+  const { data: event, error } = getEventById(id);
 
   if (error || !event) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
@@ -19,28 +17,25 @@ export async function GET(_req: Request, { params }: Context) {
 
 export async function PATCH(request: Request, { params }: Context) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const hostId = 'demo-host'; // Supabase auth removed
 
   const body = await request.json();
 
-  // Status transitions are handled separately from field updates
   if ('status' in body) {
-    const { data: event } = await getEventById(supabase, id);
-    if (!event || event.host_id !== user.id) {
+    const { data: event } = getEventById(id);
+    if (!event || (event as Record<string, unknown>).host_id !== hostId) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    const allowed = EVENT_STATUS_TRANSITIONS[event.status as EventStatus];
+    const allowed = EVENT_STATUS_TRANSITIONS[(event as Record<string, unknown>).status as EventStatus];
     if (!allowed.includes(body.status)) {
       return NextResponse.json(
-        { error: `Cannot transition from ${event.status} to ${body.status}` },
+        { error: `Cannot transition from ${(event as Record<string, unknown>).status} to ${body.status}` },
         { status: 422 },
       );
     }
 
-    const { data: updated, error } = await updateEventStatus(supabase, id, body.status);
+    const { data: updated, error } = updateEventStatus(id, body.status);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ event: updated });
   }
@@ -50,12 +45,12 @@ export async function PATCH(request: Request, { params }: Context) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { data: existing } = await getEventById(supabase, id);
-  if (!existing || existing.host_id !== user.id) {
+  const { data: existing } = getEventById(id);
+  if (!existing || (existing as Record<string, unknown>).host_id !== hostId) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const { data: updated, error } = await updateEvent(supabase, id, parsed.data);
+  const { data: updated, error } = updateEvent(id, parsed.data as Record<string, unknown>);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   return NextResponse.json({ event: updated });
@@ -63,16 +58,14 @@ export async function PATCH(request: Request, { params }: Context) {
 
 export async function DELETE(_req: Request, { params }: Context) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const hostId = 'demo-host'; // Supabase auth removed
 
-  const { data: event } = await getEventById(supabase, id);
-  if (!event || event.host_id !== user.id) {
+  const { data: event } = getEventById(id);
+  if (!event || (event as Record<string, unknown>).host_id !== hostId) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const { error } = await deleteEvent(supabase, id);
+  const { error } = deleteEvent(id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   return new NextResponse(null, { status: 204 });
