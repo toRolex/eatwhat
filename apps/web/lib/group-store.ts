@@ -32,6 +32,11 @@ export function loadGroup(): GroupState | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as GroupState;
+    // Migration: backfill maxMembers for groups created before the feature
+    if (!parsed.maxMembers) {
+      parsed.maxMembers = parsed.members.length || 8;
+      saveGroup(parsed);
+    }
     return parsed;
   } catch {
     return null;
