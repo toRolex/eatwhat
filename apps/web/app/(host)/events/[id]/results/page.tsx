@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getEventById, getProposalsByEvent, getFinalizedPlanByEvent } from '@/lib/db';
 import FinalizeFlow from '@/components/forms/FinalizeFlow';
+import ModificationReviewPanel from '@/components/forms/ModificationReviewPanel';
+import ModificationSuggestInput from '@/components/forms/ModificationSuggestInput';
 
 export const metadata: Metadata = { title: 'Results' };
 
@@ -128,6 +130,10 @@ export default async function ResultsPage({ params }: Props) {
           </div>
         )}
       </div>
+
+      <ModificationReviewPanel eventId={id} />
+
+      <ModificationSuggestInput eventId={id} />
 
       <FinalizeFlow
         eventId={id}
