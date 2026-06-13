@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback, KeyboardEvent } from "react";
-import { createGroup, joinGroup } from "@/lib/group-store";
+import { createGroup, joinGroup, loadGroup } from "@/lib/group-store";
 
 type Step = "idle" | "create" | "join";
 
@@ -42,10 +42,14 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
     const trimmed = name.trim();
     if (!trimmed) return;
     const result = joinGroup(trimmed, inviteCode);
-    if (result) {
+    if (result === "NOT_FOUND") {
+      setInviteError("尚未有人创建聚会");
+    } else if (result === "WRONG_CODE") {
+      setInviteError("邀请码不正确");
+    } else if (result === "NAME_TAKEN") {
+      setInviteError("这个名字已被使用，换一个试试");
+    } else if (result) {
       onGroupReady(trimmed, false);
-    } else {
-      setInviteError("邀请码无效或群组不存在");
     }
   }, [name, inviteCode, onGroupReady]);
 
@@ -220,6 +224,17 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
             <div style={{ animation: "fu .35s var(--sp) both" }}>
               <h2 style={s.heading}>创建新聚会</h2>
               <p style={s.sub}>设置活动信息，然后邀请好友</p>
+
+              {loadGroup() && (
+                <div style={{
+                  padding: "10px 13px", borderRadius: "var(--rs)",
+                  background: "oklch(96% .04 72)", border: "1px solid oklch(85% .08 72)",
+                  fontSize: 12, color: "oklch(40% .14 72)", fontFamily: "var(--fb)",
+                  marginBottom: 16, lineHeight: 1.5,
+                }}>
+                  ⚠️ 已有一个活跃聚会「{loadGroup()!.ownerName}的聚会」，创建新聚会将覆盖它。
+                </div>
+              )}
 
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--muted)", marginBottom: 5, fontFamily: "var(--fb)" }}>

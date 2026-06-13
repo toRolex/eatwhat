@@ -80,15 +80,15 @@ export function createGroup(
 export function joinGroup(
   name: string,
   inviteCode: string
-): GroupState | null {
+): GroupState | "NOT_FOUND" | "WRONG_CODE" | "NAME_TAKEN" {
   const group = loadGroup();
-  if (!group) return null;
-  if (group.inviteCode !== inviteCode) return null;
+  if (!group) return "NOT_FOUND";
+  if (group.inviteCode !== inviteCode) return "WRONG_CODE";
 
   const existing = group.members.find(
     (m) => m.name.toLowerCase() === name.toLowerCase()
   );
-  if (existing) return null;
+  if (existing) return "NAME_TAKEN";
 
   const member: GroupMember = {
     name,

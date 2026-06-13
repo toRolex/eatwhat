@@ -76,6 +76,19 @@ export default function App() {
       if (s) setActivities(JSON.parse(s));
       const cu = localStorage.getItem("gp_current_user_v2");
       if (cu) setCurrentUser(cu);
+      // Restore group state and skip login if already joined
+      const savedGroup = loadGroup();
+      if (savedGroup && cu) {
+        setGroup(savedGroup);
+        setUserIsOwner(savedGroup.ownerName === cu);
+        setShowLogin(false);
+        setLiveGuests(savedGroup.members.map((m, i) => ({
+          id: i + 1, name: m.name, ini: m.ini,
+          status: "confirmed" as const,
+          dietary: m.dietary, cuisine: m.cuisine,
+          budget: m.budget, vibe: m.vibe,
+        })));
+      }
     } catch {}
     setHydrated(true);
   }, []);
@@ -136,6 +149,14 @@ export default function App() {
     setGroup(loadGroup());
     setShowLogin(false);
     localStorage.setItem("gp_current_user_v2", userName);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser("");
+    setUserIsOwner(false);
+    setShowLogin(true);
+    localStorage.removeItem("gp_current_user_v2");
+    setLiveGuests([]);
   };
 
   const handlePrefsCollected = (userName: string, prefs: any) => {
@@ -229,6 +250,15 @@ export default function App() {
             <span style={{ fontSize: 10, color: "var(--muted)", marginLeft: "auto" }}>
               {group.members.length} 人 · {group.members.filter(m => m.preferenceStatus === "done").length} 已填偏好
             </span>
+            <button
+              onClick={handleLogout}
+              title="退出当前身份"
+              style={{
+                fontSize: 10, color: "var(--muted)", background: "none",
+                border: "1px solid var(--border2)", borderRadius: 5,
+                padding: "3px 8px", cursor: "pointer", fontFamily: "var(--fb)",
+              }}
+            >退出</button>
           </div>
         )}
         {tab === "overview"        && <OverviewTab    setTab={setTab} liveGuests={displayGuests} inviteCode={group?.inviteCode} isOwner={userIsOwner} />}
