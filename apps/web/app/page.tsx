@@ -257,6 +257,7 @@ export default function App() {
           onBell={() => setShowNotif(v => !v)}
           unreadCount={unread}
           liveGuests={displayGuests}
+          maxMembers={group?.maxMembers ?? displayGuests.length}
         />
       </div>
       <main style={{ flex: 1, overflowY: "auto", overflowX: "hidden", background: "var(--bg)", position: "relative" }}>

@@ -180,7 +180,7 @@ export function CreateEventModal({ onClose }: { onClose: () => void }) {
 
 // ── Sidebar ───────────────────────────────────────────────────────────
 export function Sidebar({
-  activeTab, setTab, onInvite, onNewEvent, onBell, unreadCount, liveGuests,
+  activeTab, setTab, onInvite, onNewEvent, onBell, unreadCount, liveGuests, maxMembers,
 }: {
   activeTab: string;
   setTab: (t: string) => void;
@@ -189,8 +189,10 @@ export function Sidebar({
   onBell: () => void;
   unreadCount: number;
   liveGuests: Guest[];
+  maxMembers: number;
 }) {
   const confirmed = liveGuests.filter(g => g.status === "confirmed").length;
+  const totalSlots = maxMembers || liveGuests.length;
   const tabs = [
     { id: "overview",       icon: "⊞", label: "概览" },
     { id: "preferences",    icon: "◈", label: "偏好" },
@@ -249,11 +251,11 @@ export function Sidebar({
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
           <span style={{ fontSize: 10, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".07em" }}>已回复</span>
           <span style={{ fontFamily: "var(--fd)", fontSize: 18, color: "var(--text)" }}>
-            {confirmed}<span style={{ fontSize: 11, fontWeight: 400, color: "var(--muted)" }}>/{liveGuests.length}</span>
+            {confirmed}<span style={{ fontSize: 11, fontWeight: 400, color: "var(--muted)" }}>/{totalSlots}</span>
           </span>
         </div>
         <div style={{ height: 3, borderRadius: 99, background: "var(--border2)", overflow: "hidden", marginBottom: 10 }}>
-          <div style={{ height: "100%", borderRadius: 99, background: "var(--text)", width: `${(confirmed / (liveGuests.length || 1)) * 100}%`, transition: "width 1s var(--eo)" }} />
+          <div style={{ height: "100%", borderRadius: 99, background: "var(--text)", width: `${(confirmed / (totalSlots || 1)) * 100}%`, transition: "width 1s var(--eo)" }} />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
           {liveGuests.map((g, i) => (
