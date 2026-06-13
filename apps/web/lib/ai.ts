@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 // DeepSeek client (OpenAI-compatible)
 // ---------------------------------------------------------------------------
 const DEEPSEEK_BASE_URL = 'https://api.deepseek.com/v1';
-const DEEPSEEK_MODEL = 'deepseek-v4-pro'; // also supports "deepseek-chat"
+const DEEPSEEK_MODEL = 'deepseek-v4-pro';
 
 function getClient(): OpenAI {
   const apiKey = process.env.DEEPSEEK_API_KEY;

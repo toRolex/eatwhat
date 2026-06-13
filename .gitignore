@@ -50,5 +50,12 @@ coverage/
 tools/qa/qa-results/
 tools/qa/.auth/
 
+# SQLite WAL
+*.db-shm
+*.db-wal
+
+# Playwright CLI artifacts
+.playwright-cli/
+
 # OS
 Thumbs.db
