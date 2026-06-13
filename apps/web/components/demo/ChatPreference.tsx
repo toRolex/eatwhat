@@ -148,6 +148,44 @@ export default function ChatPreference({ currentUser, onPreferencesCollected }: 
     setClickedOptions({});
   }, [messages.length]);
 
+  // Reload chat state when currentUser switches
+  useEffect(() => {
+    if (!currentUser) {
+      setMessages([{ role: "assistant", content: WELCOME_V2 }]);
+      setComplete(false);
+      return;
+    }
+    const msgKey = `gp_chat_messages_${currentUser}`;
+    const verKey = `gp_chat_version_${currentUser}`;
+    const compKey = `gp_chat_complete_${currentUser}`;
+    const roomKey = `gp_chat_room_${currentUser}`;
+
+    try {
+      const savedVersion = localStorage.getItem(verKey);
+      if (savedVersion === "v2") {
+        const saved = localStorage.getItem(msgKey);
+        if (saved) {
+          setMessages(JSON.parse(saved));
+          setComplete(localStorage.getItem(compKey) === "true");
+        } else {
+          setMessages([{ role: "assistant", content: `嘿 ${currentUser}！来活儿了 🐦 码头海鸥聚会参谋已就位～\n\n先定个调，这次聚会想怎么搞？\n\nA. 只吃饭，找家靠谱的店\nB. 只玩乐，KTV/桌游/密室走起\nC. 吃饭+娱乐，一条龙安排\nD. 还没想好，交给海鸥参谋` }]);
+          setComplete(false);
+        }
+      } else {
+        setMessages([{ role: "assistant", content: `嘿 ${currentUser}！来活儿了 🐦 码头海鸥聚会参谋已就位～\n\n先定个调，这次聚会想怎么搞？\n\nA. 只吃饭，找家靠谱的店\nB. 只玩乐，KTV/桌游/密室走起\nC. 吃饭+娱乐，一条龙安排\nD. 还没想好，交给海鸥参谋` }]);
+        setComplete(false);
+      }
+    } catch {
+      setMessages([{ role: "assistant", content: `嘿 ${currentUser}！来活儿了 🐦 码头海鸥聚会参谋已就位～\n\n先定个调，这次聚会想怎么搞？\n\nA. 只吃饭，找家靠谱的店\nB. 只玩乐，KTV/桌游/密室走起\nC. 吃饭+娱乐，一条龙安排\nD. 还没想好，交给海鸥参谋` }]);
+      setComplete(false);
+    }
+
+    const existingRoom = localStorage.getItem(roomKey);
+    roomId.current = existingRoom || crypto.randomUUID();
+    if (!existingRoom) localStorage.setItem(roomKey, roomId.current);
+    localStorage.setItem(verKey, "v2");
+  }, [currentUser]);
+
   const quickReply = (label: string) => {
     if (loading || complete || !currentUser) return;
     const text = label;
