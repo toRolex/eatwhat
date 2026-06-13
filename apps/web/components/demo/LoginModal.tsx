@@ -19,6 +19,7 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
   const [location, setLocation] = useState("深圳南山区");
   const [inviteCode, setInviteCode] = useState("");
   const [inviteError, setInviteError] = useState("");
+  const [nameConfirmed, setNameConfirmed] = useState(false);
 
   const handleContinue = useCallback(() => {
     const trimmed = name.trim();
@@ -27,9 +28,7 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
       return;
     }
     setnameError("");
-    setStep("idle");
-    // Force re-render to show choices — stay on idle step but with name filled
-    // We use a sub-step within idle: no name → name input, has name → choices
+    setNameConfirmed(true);
   }, [name]);
 
   const handleCreate = useCallback(async () => {
@@ -62,13 +61,19 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
     }
   }, [inviteCode, handleJoin]);
 
-  const backToIdle = useCallback(() => {
+  const backToName = useCallback(() => {
+    setName("");
+    setNameConfirmed(false);
+    setnameError("");
+  }, []);
+
+  const backToChoices = useCallback(() => {
     setStep("idle");
     setInviteCode("");
     setInviteError("");
   }, []);
 
-  const showChoices = name.trim().length > 0 && step === "idle";
+  const showChoices = nameConfirmed && step === "idle";
 
   // ── styles (reusable) ──────────────────────────────────────────────────
   const s: Record<string, React.CSSProperties> = {
@@ -200,7 +205,7 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
                   </button>
 
                   <button
-                    onClick={() => { setName(""); setnameError(""); }}
+                    onClick={backToName}
                     style={s.backBtn}
                   >
                     ← 换个名字
@@ -261,7 +266,7 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
                 创建聚会 →
               </button>
 
-              <button onClick={backToIdle} style={s.backBtn}>
+              <button onClick={backToChoices} style={s.backBtn}>
                 ← 返回
               </button>
             </div>
@@ -313,7 +318,7 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
                 加入聚会 →
               </button>
 
-              <button onClick={backToIdle} style={s.backBtn}>
+              <button onClick={backToChoices} style={s.backBtn}>
                 ← 返回
               </button>
             </div>
