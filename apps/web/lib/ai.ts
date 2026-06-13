@@ -192,8 +192,7 @@ export async function synthesizePlanWithDebug(
       { role: 'user', content: prompt },
     ],
     temperature: 0.7,
-    max_tokens: 8192,
-  });
+  }, { timeout: 90000 });
 
   const raw = completion.choices[0]?.message?.content ?? '';
   if (!raw) {

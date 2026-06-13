@@ -555,7 +555,12 @@ interface SynthesizeDebug {
 
 export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweaks: Tweaks; addActivity: (item: Omit<Activity, "id" | "read">) => void; isOwner?: boolean; group?: any; onAiDone?: (proposals: any[]) => void }) {
   const [phase, setPhase] = useState<"idle" | "running" | "done" | "error">(() => {
-    if (typeof window !== "undefined") return (localStorage.getItem("gp_ai") as any) || "idle";
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("gp_ai") as any;
+      // Never restore "running" — it's a dead-end state
+      if (saved === "running") return "idle";
+      return saved || "idle";
+    }
     return "idle";
   });
   const [step, setStep]               = useState(0);
@@ -570,6 +575,7 @@ export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweak
   const [showDebug, setShowDebug]     = useState(false);
   const [errorMsg, setErrorMsg]       = useState("");
   const [waitMsg, setWaitMsg]         = useState(0);
+  const abortRef                      = useRef<AbortController | null>(null);
   const storedProposals = group?.aiProposals;
   useEffect(() => { localStorage.setItem("gp_ai", phase); }, [phase]);
 
@@ -584,6 +590,8 @@ export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweak
 
   const run = async () => {
     setPhase("running"); setStep(0); setErrorMsg(""); setWaitMsg(0);
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     // Collect preferences from group members
     const prefs = (group?.members || [])
@@ -609,14 +617,19 @@ export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweak
       setWaitMsg(prev => (prev + 1) % WAIT_MESSAGES.length);
     }, 3000);
 
+    // Safety timeout: 120s total
+    const timeoutId = setTimeout(() => controller.abort(), 120_000);
+
     try {
       const res = await fetch("/api/demo/synthesize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ location, preferences: prefs }),
+        signal: controller.signal,
       });
       clearInterval(iv);
       clearInterval(wm);
+      clearTimeout(timeoutId);
       if (!res.ok) {
         const d = await res.json();
         throw new Error(d.error || "Synthesis failed");
@@ -636,7 +649,12 @@ export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweak
     } catch (err: any) {
       clearInterval(iv);
       clearInterval(wm);
-      setErrorMsg(err?.message || "Unknown error");
+      clearTimeout(timeoutId);
+      if (err?.name === "AbortError") {
+        setErrorMsg("请求超时或已取消 — 可以重试");
+      } else {
+        setErrorMsg(err?.message || "Unknown error");
+      }
       setPhase("error");
     }
   };
@@ -715,6 +733,14 @@ export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweak
         );
       })}
       <p style={{ marginTop: 20, fontSize: 11, color: "var(--muted)", fontFamily: "var(--fb)" }}>{WAIT_MESSAGES[waitMsg]}</p>
+      <button
+        onClick={() => { abortRef.current?.abort(); }}
+        style={{ marginTop: 14, padding: "6px 14px", borderRadius: "var(--rs)", border: "1px solid var(--border2)", background: "var(--bg)", color: "var(--muted)", fontSize: 11, cursor: "pointer", fontFamily: "var(--fb)", transition: "all .2s" }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--coral)"; e.currentTarget.style.color = "var(--coral)"; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border2)"; e.currentTarget.style.color = "var(--muted)"; }}
+      >
+        取消
+      </button>
     </div>
   );
 
