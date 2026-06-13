@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getInvitationBySlug, getInvitationByToken, getPreferencesByInvitation, getEventById } from '@groupplan/db';
+import { getInvitationBySlug, getInvitationByToken, getPreferencesByInvitation, getEventById } from '@/lib/db';
 import PreferenceForm from '@/components/forms/PreferenceForm';
 
 export const metadata: Metadata = { title: 'Your preferences' };
@@ -12,21 +11,20 @@ interface Props {
 
 export default async function PreferencesPage({ params }: Props) {
   const { slug } = await params;
-  const db = createServiceClient();
 
   const { data: invitation } = slug.length === 64
-    ? await getInvitationByToken(db, slug)
-    : await getInvitationBySlug(db, slug);
+    ? getInvitationByToken(slug)
+    : getInvitationBySlug(slug);
   if (!invitation) notFound();
 
-  if (invitation.status !== 'accepted') {
+  const inv = invitation as Record<string, unknown>;
+
+  if (inv.status !== 'accepted') {
     redirect(`/invite/${slug}/rsvp`);
   }
 
-  const [{ data: existing }, { data: event }] = await Promise.all([
-    getPreferencesByInvitation(db, invitation.id),
-    getEventById(db, invitation.event_id),
-  ]);
+  const { data: existing } = getPreferencesByInvitation(inv.id as string);
+  const { data: event } = getEventById(inv.event_id as string);
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', padding: '40px 24px 60px' }}>
@@ -34,7 +32,7 @@ export default async function PreferencesPage({ params }: Props) {
 
         <div style={{ marginBottom: 28, animation: 'fu .35s var(--sp) both' }}>
           <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6, fontFamily: 'var(--fb)' }}>
-            Step 2 of 2 · {event?.title ?? 'Your event'}
+            Step 2 of 2 · {(event as Record<string, unknown> | null)?.title as string ?? 'Your event'}
           </div>
           <h1 style={{ fontFamily: 'var(--fd)', fontSize: 30, letterSpacing: '-.03em', color: 'var(--text)', margin: '0 0 8px', lineHeight: 1.1 }}>
             Tell us your taste
@@ -45,7 +43,7 @@ export default async function PreferencesPage({ params }: Props) {
         </div>
 
         <div style={{ background: 'var(--surface)', borderRadius: 'var(--r)', border: '1px solid var(--border2)', boxShadow: 'var(--sh)', padding: '28px', animation: 'fu .4s var(--sp) .05s both' }}>
-          <PreferenceForm token={slug} existing={existing ?? null} category={event?.category ?? "dinner"} />
+          <PreferenceForm token={slug} existing={existing ?? null} category={((event as Record<string, unknown> | null)?.category as string) ?? "dinner"} />
         </div>
       </div>
     </main>

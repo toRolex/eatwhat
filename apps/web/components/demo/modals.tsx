@@ -192,10 +192,11 @@ export function Sidebar({
 }) {
   const confirmed = liveGuests.filter(g => g.status === "confirmed").length;
   const tabs = [
-    { id: "overview",     icon: "⊞", label: "概览" },
-    { id: "preferences",  icon: "◈", label: "偏好" },
-    { id: "ai",           icon: "◆", label: "AI 推荐", badge: "新" },
-    { id: "vote",         icon: "◎", label: "投票" },
+    { id: "overview",       icon: "⊞", label: "概览" },
+    { id: "preferences",    icon: "◈", label: "偏好" },
+    { id: "chat-preference",icon: "🐦", label: "AI 对话" },
+    { id: "ai",             icon: "◆", label: "AI 推荐", badge: "新" },
+    { id: "vote",           icon: "◎", label: "投票" },
   ];
 
   return (

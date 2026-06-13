@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getInvitationBySlug, getInvitationByToken } from '@groupplan/db';
-import { getEventById } from '@groupplan/db';
+import { getInvitationBySlug, getInvitationByToken, getEventById } from '@/lib/db';
 import RSVPForm from '@/components/forms/RSVPForm';
 
 export const metadata: Metadata = { title: 'RSVP' };
@@ -13,18 +11,21 @@ interface Props {
 
 export default async function RSVPPage({ params }: Props) {
   const { slug } = await params;
-  const db = createServiceClient();
 
   const { data: invitation } = slug.length === 64
-    ? await getInvitationByToken(db, slug)
-    : await getInvitationBySlug(db, slug);
+    ? getInvitationByToken(slug)
+    : getInvitationBySlug(slug);
   if (!invitation) notFound();
 
-  const { data: event } = await getEventById(db, invitation.event_id);
+  const inv = invitation as Record<string, unknown>;
+
+  const { data: event } = getEventById(inv.event_id as string);
   if (!event) notFound();
 
-  const deadlinePassed = new Date(event.rsvp_deadline) < new Date();
-  const deadlineDisplay = new Date(event.rsvp_deadline).toLocaleDateString('en-US', {
+  const evt = event as Record<string, unknown>;
+
+  const deadlinePassed = new Date(evt.rsvp_deadline as string) < new Date();
+  const deadlineDisplay = new Date(evt.rsvp_deadline as string).toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric',
   });
 
@@ -38,15 +39,15 @@ export default async function RSVPPage({ params }: Props) {
             You&apos;re invited
           </div>
           <h1 style={{ fontFamily: 'var(--fd)', fontSize: 30, letterSpacing: '-.03em', color: 'var(--text)', margin: '0 0 6px', lineHeight: 1.1 }}>
-            {event.title}
+            {evt.title as string}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: '0 0 24px' }}>
-            Hi {invitation.name} — please respond by <strong data-testid="rsvp-deadline" style={{ color: 'var(--text)' }}>{deadlineDisplay}</strong>.
+            Hi {inv.name as string} — please respond by <strong data-testid="rsvp-deadline" style={{ color: 'var(--text)' }}>{deadlineDisplay}</strong>.
           </p>
 
-          {event.description && (
+          {evt.description && (
             <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', lineHeight: 1.55, margin: '0 0 24px', padding: '12px 14px', background: 'var(--bg)', borderRadius: 'var(--rs)', borderLeft: '2px solid var(--border2)' }}>
-              {event.description}
+              {evt.description as string}
             </p>
           )}
 
@@ -57,7 +58,7 @@ export default async function RSVPPage({ params }: Props) {
               </p>
             </div>
           ) : (
-            <RSVPForm token={slug} currentStatus={invitation.status} />
+            <RSVPForm token={slug} currentStatus={inv.status as string} />
           )}
         </div>
 

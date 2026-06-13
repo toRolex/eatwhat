@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
+// Stub: dev sign-in disabled in SQLite mode (no Supabase Auth)
 export async function POST(request: Request) {
   const isDev = process.env.NODE_ENV === 'development';
   const bypassSecret = process.env.PREVIEW_BYPASS_SECRET;
@@ -20,31 +20,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'email required' }, { status: 400 });
   }
 
-  const admin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    },
-  );
-
-  const { data, error } = await admin.auth.admin.generateLink({
-    type: 'magiclink',
-    email,
-    options: {
-      redirectTo: new URL('/api/auth/callback', process.env.NEXT_PUBLIC_APP_URL).toString(),
-    },
+  // Supabase Auth not available — return a stub
+  return NextResponse.json({
+    message: 'Dev sign-in is disabled in SQLite mode. Supabase Auth has been removed.',
+    action_link: '/',
   });
-
-  if (error) {
-    return NextResponse.json({ error: 'Unable to generate sign-in link' }, { status: 500 });
-  }
-
-  const callbackUrl = new URL('/api/auth/callback', process.env.NEXT_PUBLIC_APP_URL);
-  callbackUrl.searchParams.set('token_hash', data.properties.hashed_token);
-  callbackUrl.searchParams.set('type', 'magiclink');
-  return NextResponse.json({ action_link: callbackUrl.toString() });
 }

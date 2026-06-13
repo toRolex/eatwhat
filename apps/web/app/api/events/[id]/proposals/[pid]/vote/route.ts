@@ -1,53 +1,34 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/server';
 import { CastVoteSchema } from '@groupplan/types';
-import { upsertVote } from '@groupplan/db';
+import { upsertVote, getInvitationByToken, getInvitationBySlug, getEventById, getProposalsByEvent } from '@/lib/db';
 
 interface Context {
   params: Promise<{ id: string; pid: string }>;
 }
 
-// Guest votes are submitted via invite slug/token in the Authorization header
-// because guests may not have a Supabase auth session
 export async function POST(request: Request, { params }: Context) {
   const { id: eventId, pid } = await params;
   const invite = request.headers.get('x-invite-token');
   if (!invite) return NextResponse.json({ error: 'Missing invite token' }, { status: 401 });
 
-  const db = createServiceClient();
+  const { data: invitation } = invite.length === 64
+    ? getInvitationByToken(invite)
+    : getInvitationBySlug(invite);
 
-  // Token must belong to *this* event — otherwise a guest of event A could
-  // vote on event B's proposals by swapping the URL.
-  const { data: invitation } = await db
-    .from('invitations')
-    .select('id, status, event_id')
-    .eq(invite.length === 64 ? 'invite_token' : 'slug', invite)
-    .single();
-
-  if (!invitation || invitation.status !== 'accepted') {
+  if (!invitation || (invitation as Record<string, unknown>).status !== 'accepted') {
     return NextResponse.json({ error: 'Invalid token or not accepted' }, { status: 403 });
   }
-  if (invitation.event_id !== eventId) {
+  if ((invitation as Record<string, unknown>).event_id !== eventId) {
     return NextResponse.json({ error: 'Token does not belong to this event' }, { status: 403 });
   }
 
-  // Voting only opens once the host has triggered AI and proposals are live.
-  const { data: event } = await db
-    .from('events')
-    .select('status')
-    .eq('id', eventId)
-    .single();
-  if (!event || event.status !== 'deciding') {
+  const eventRes = getEventById(eventId);
+  if (!eventRes.data || (eventRes.data as Record<string, unknown>).status !== 'deciding') {
     return NextResponse.json({ error: 'Voting is not open for this event' }, { status: 409 });
   }
 
-  // Proposal must actually belong to this event.
-  const { data: proposal } = await db
-    .from('proposals')
-    .select('id')
-    .eq('id', pid)
-    .eq('event_id', eventId)
-    .single();
+  const { data: proposals } = getProposalsByEvent(eventId);
+  const proposal = (proposals as Array<{ id: string }> | undefined)?.find((p) => p.id === pid);
   if (!proposal) {
     return NextResponse.json({ error: 'Proposal not found for this event' }, { status: 404 });
   }
@@ -58,13 +39,7 @@ export async function POST(request: Request, { params }: Context) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { data: vote, error } = await upsertVote(
-    db,
-    pid,
-    invitation.id,
-    parsed.data.rank,
-  );
-
+  const { data: vote, error } = upsertVote(pid, (invitation as Record<string, unknown>).id as string, parsed.data.rank);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   return NextResponse.json({ vote });

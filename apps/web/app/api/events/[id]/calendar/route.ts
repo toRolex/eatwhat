@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/server';
+import { getDb } from '@/lib/db';
 import { IcsCalendarExporter } from '@/lib/calendar';
 import type { CalendarData } from '@groupplan/types';
 
@@ -9,23 +9,21 @@ interface Context {
 
 export async function GET(_req: Request, { params }: Context) {
   const { id } = await params;
-  // Service client — guests access this link from their email without an auth session.
-  const supabase = createServiceClient();
+  const db = getDb();
 
-  const { data: plan } = await supabase
-    .from('finalized_plans')
-    .select('*')
-    .eq('event_id', id)
-    .single();
+  const plan = db.prepare('SELECT * FROM finalized_plans WHERE event_id = ?').get(id) as Record<string, unknown> | undefined;
 
   if (!plan) return NextResponse.json({ error: 'No finalized plan' }, { status: 404 });
 
   const exporter = new IcsCalendarExporter();
-  const result = await exporter.export(plan.calendar_data as unknown as CalendarData);
+  const calendarData = typeof plan.calendar_data === 'string'
+    ? JSON.parse(plan.calendar_data)
+    : plan.calendar_data;
+  const result = await exporter.export(calendarData as unknown as CalendarData);
 
   return new NextResponse(result.content as string, {
     headers: {
-      'Content-Type':        result.content_type,
+      'Content-Type': result.content_type,
       'Content-Disposition': `attachment; filename="${result.filename}"`,
     },
   });

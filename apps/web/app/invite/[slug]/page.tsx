@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { createServiceClient, createClient } from '@/lib/supabase/server';
-import { getInvitationByToken, getInvitationBySlug, getEventById } from '@groupplan/db';
+import { getInvitationByToken, getInvitationBySlug, getEventById, getInvitationsByEvent, getDb } from '@/lib/db';
 import InviteView from '@/components/invite-templates/InviteView';
 import PreviewBanner from '@/components/ui/PreviewBanner';
 import AcceptButton from './AcceptButton';
@@ -45,56 +44,50 @@ function mapAttendees(rows: AttendeeRow[]): Attendee[] {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const db = createServiceClient();
   const { data: invitation } = slug.length === 64
-    ? await getInvitationByToken(db, slug)
-    : await getInvitationBySlug(db, slug);
+    ? getInvitationByToken(slug)
+    : getInvitationBySlug(slug);
 
   if (!invitation) return { title: "You're invited" };
 
-  const { data: event } = await getEventById(db, invitation.event_id);
+  const inv = invitation as Record<string, unknown>;
+  const { data: event } = getEventById(inv.event_id as string);
   return {
-    title: event ? `${event.title} invitation` : "You're invited",
-    description: event?.description ?? undefined,
+    title: event ? `${(event as Record<string, unknown>).title} invitation` : "You're invited",
+    description: ((event as Record<string, unknown>)?.description as string) ?? undefined,
   };
 }
 
 export default async function InvitePage({ params }: Props) {
   const { slug } = await params;
-  const serviceDb = createServiceClient();
 
   const { data: invitation } = slug.length === 64
-    ? await getInvitationByToken(serviceDb, slug)
-    : await getInvitationBySlug(serviceDb, slug);
+    ? getInvitationByToken(slug)
+    : getInvitationBySlug(slug);
   if (!invitation) notFound();
 
-  const { data: event } = await getEventById(serviceDb, invitation.event_id);
+  const inv = invitation as Record<string, unknown>;
+
+  const { data: event } = getEventById(inv.event_id as string);
   if (!event) notFound();
 
-  const [{ data: host }, { data: attendeeRows }] = await Promise.all([
-    serviceDb
-      .from('users')
-      .select('name, email, avatar_url')
-      .eq('id', event.host_id)
-      .single(),
-    serviceDb
-      .from('invitations')
-      .select('name, users(avatar_url)')
-      .eq('event_id', event.id)
-      .eq('status', 'accepted')
-      .order('responded_at', { ascending: true }),
-  ]);
+  const evt = event as Record<string, unknown>;
+  const db = getDb();
 
-  const authDb = await createClient();
-  const { data: { user } } = await authDb.auth.getUser();
-  const isHostPreview = user?.id === event.host_id;
-  const hostName = host?.name ?? user?.email?.split('@')[0] ?? 'Your host';
-  const attendees = mapAttendees((attendeeRows ?? []) as unknown as AttendeeRow[]);
+  const { data: attendeeRows } = getInvitationsByEvent(inv.event_id as string);
+  const acceptedAttendees = (attendeeRows as Array<Record<string, unknown>> | undefined)?.filter((a) => a.status === 'accepted') ?? [];
+  const host = db.prepare('SELECT name, email, avatar_url FROM events WHERE id = ?').get(inv.event_id as string) as Record<string, unknown> | undefined;
+
+  const hostName = host?.name ?? 'Your host';
+  const attendees = (acceptedAttendees as Array<{ name: string }>).map((a) => ({ name: a.name, avatarUrl: null }));
   const visibleAttendees = attendees.slice(0, 5);
   const extraAttendees = Math.max(0, attendees.length - visibleAttendees.length);
-  const dateDisplay = event.date_flexible ? 'Date flexible' : formatDate(event.proposed_date);
-  const locationDisplay = event.location_hint ?? 'Location to be confirmed';
-  const inviteViewInvitation = { ...invitation, invite_token: slug };
+  const dateDisplay = evt.date_flexible ? 'Date flexible' : formatDate(evt.proposed_date as string);
+  const locationDisplay = (evt.location_hint as string) ?? 'Location to be confirmed';
+  const inviteViewInvitation = { ...invitation as object, invite_token: slug };
+
+  const isHostPreview = false; // Supabase auth removed
+  const evtTemplateId = evt.template_id as string | undefined;
 
   return (
     <>
@@ -102,7 +95,7 @@ export default async function InvitePage({ params }: Props) {
       <InviteView
         invitation={inviteViewInvitation}
         event={event}
-        templateId={event.template_id}
+        templateId={evtTemplateId}
       />
 
       <main style={{ background: 'var(--bg)', padding: '36px 24px 60px' }}>
@@ -111,12 +104,7 @@ export default async function InvitePage({ params }: Props) {
             <div className="invite-host-row">
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--bg)', border: '1px solid var(--border2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontFamily: 'var(--fb)', fontSize: 13, fontWeight: 700, overflow: 'hidden' }}>
-                  {host?.avatar_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={host.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    initials(hostName)
-                  )}
+                  {initials(hostName)}
                 </div>
                 <div>
                   <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', fontFamily: 'var(--fb)', marginBottom: 3 }}>

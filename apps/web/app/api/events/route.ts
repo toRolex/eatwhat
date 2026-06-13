@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { CreateEventSchema } from '@groupplan/types';
-import { createEvent, getEventsByHost } from '@groupplan/db';
+import { createEvent, getEventsByHost } from '@/lib/db';
 
 function slugify(title: string): string {
   return title
@@ -13,22 +12,17 @@ function slugify(title: string): string {
 }
 
 export async function GET() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  const { data: events, error } = await getEventsByHost(supabase, user.id);
+  // Hardcoded demo host — Supabase auth removed
+  const hostId = 'demo-host';
+  const { data: events, error } = getEventsByHost(hostId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   return NextResponse.json({ events });
 }
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // Hardcoded demo host — Supabase auth removed
+  const hostId = 'demo-host';
 
   const body = await request.json();
   const parsed = CreateEventSchema.safeParse(body);
@@ -37,7 +31,7 @@ export async function POST(request: Request) {
   }
 
   const slug = slugify(parsed.data.title);
-  const { data: event, error } = await createEvent(supabase, user.id, parsed.data, slug);
+  const { data: event, error } = createEvent(hostId, parsed.data as Record<string, unknown>, slug);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

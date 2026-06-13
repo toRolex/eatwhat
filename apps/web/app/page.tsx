@@ -5,6 +5,7 @@ import { Tweaks, TWEAKS_DEFAULTS, GUESTS_DATA, INITIAL_ACTIVITIES, Guest, Activi
 import { Sidebar, ShareModal, CreateEventModal } from "../components/demo/modals";
 import { NotificationPanel } from "../components/demo/notifications";
 import { OverviewTab, PreferencesTab, AITab, VoteTab } from "../components/demo/tabs";
+import ChatPreference from "../components/demo/ChatPreference";
 
 function TweaksPanel({ tweaks, setTweaks }: { tweaks: Tweaks; setTweaks: (t: Tweaks) => void }) {
   const toggle = (k: keyof Tweaks) => {
@@ -214,9 +215,10 @@ export default function App() {
         />
       </div>
       <main style={{ flex: 1, overflowY: "auto", overflowX: "hidden", background: "var(--bg)", position: "relative" }}>
-        {tab === "overview"    && <OverviewTab    setTab={setTab} liveGuests={displayGuests} />}
-        {tab === "preferences" && <PreferencesTab liveGuests={displayGuests} />}
-        {tab === "ai"          && <AITab          tweaks={tweaks} addActivity={addActivity} />}
+        {tab === "overview"        && <OverviewTab    setTab={setTab} liveGuests={displayGuests} />}
+        {tab === "preferences"      && <PreferencesTab liveGuests={displayGuests} />}
+        {tab === "chat-preference"  && <ChatPreference />}
+        {tab === "ai"               && <AITab          tweaks={tweaks} addActivity={addActivity} />}
         {tab === "vote"        && <VoteTab        addActivity={addActivity} />}
       </main>
       {/* Floating gear button — always visible */}

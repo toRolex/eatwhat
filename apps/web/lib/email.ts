@@ -1,11 +1,12 @@
-import sgMail from '@sendgrid/mail';
+// Stub: SendGrid email disabled in SQLite mode.
+// Email templates are kept for future re-enablement.
 
 export type EmailTemplate = 'invitation-sent' | 'rsvp-reminder' | 'proposals-ready' | 'winner-announced';
 
 interface RenderedEmail {
   subject: string;
-  html:    string;
-  text:    string;
+  html: string;
+  text: string;
 }
 
 function escape(s: string): string {
@@ -108,21 +109,14 @@ export function renderEmail(template: EmailTemplate, data: Record<string, string
   }
 }
 
+// Stub: SendGrid disabled in SQLite mode
 export async function sendEmail(
-  apiKey: string,
-  fromEmail: string,
-  fromName: string,
-  to: { name: string; email: string },
-  template: EmailTemplate,
-  data: Record<string, string>,
+  _apiKey: string,
+  _fromEmail: string,
+  _fromName: string,
+  _to: { name: string; email: string },
+  _template: EmailTemplate,
+  _data: Record<string, string>,
 ): Promise<void> {
-  sgMail.setApiKey(apiKey);
-  const { subject, html, text } = renderEmail(template, data);
-  await sgMail.send({
-    to,
-    from: { email: fromEmail, name: fromName },
-    subject,
-    html,
-    text,
-  });
+  // No-op in SQLite mode
 }

@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
-import { getEventById, getProposalsByEvent } from '@groupplan/db';
+import { getEventById, getProposalsByEvent, getFinalizedPlanByEvent } from '@/lib/db';
 import FinalizeFlow from '@/components/forms/FinalizeFlow';
 
 export const metadata: Metadata = { title: 'Results' };
@@ -15,34 +14,32 @@ const ACCENT_COLORS = ['var(--coral)', 'var(--sage)', 'var(--sky)', 'var(--amber
 
 export default async function ResultsPage({ params }: Props) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: event } = await getEventById(supabase, id);
+  const { data: event } = getEventById(id);
 
   if (!event) notFound();
-  if (event.status !== 'deciding' && event.status !== 'finalized') notFound();
+  const evt = event as Record<string, unknown>;
+  if (evt.status !== 'deciding' && evt.status !== 'finalized') notFound();
 
-  const { data: proposals } = await getProposalsByEvent(supabase, id);
-  const sorted = (proposals ?? []).sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99));
+  const { data: proposals } = getProposalsByEvent(id);
+  const sorted = ((proposals ?? []) as Array<Record<string, unknown>>).sort((a, b) => ((a.rank as number) ?? 99) - ((b.rank as number) ?? 99));
 
-  // Look up finalized plan if any so we can highlight the winning card
-  const { data: plan } = await supabase
-    .from('finalized_plans').select('proposal_id').eq('event_id', id).maybeSingle();
-  const winnerId = plan?.proposal_id ?? null;
+  const { data: plan } = getFinalizedPlanByEvent(id);
+  const winnerId = (plan as Record<string, unknown> | null)?.proposal_id as string ?? null;
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px' }}>
 
       <Link href={`/events/${id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none', marginBottom: 28 }}>
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        {event.title}
+        {evt.title as string}
       </Link>
 
       <div style={{ marginBottom: 32, animation: 'fu .35s var(--sp) both' }}>
         <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 5, fontFamily: 'var(--fb)' }}>
-          {event.status === 'finalized' ? 'Final result' : 'Voting in progress'}
+          {evt.status === 'finalized' ? 'Final result' : 'Voting in progress'}
         </div>
         <h1 style={{ fontFamily: 'var(--fd)', fontSize: 32, letterSpacing: '-.03em', color: 'var(--text)', margin: 0 }}>
-          {event.status === 'finalized' ? 'The group chose…' : 'AI Recommendations'}
+          {evt.status === 'finalized' ? 'The group chose...' : 'AI Recommendations'}
         </h1>
       </div>
 
@@ -52,7 +49,7 @@ export default async function ResultsPage({ params }: Props) {
           const isWinner = p.id === winnerId;
           return (
             <div
-              key={p.id}
+              key={p.id as string}
               style={{
                 background: 'var(--surface)',
                 borderRadius: 'var(--r)',
@@ -64,16 +61,16 @@ export default async function ResultsPage({ params }: Props) {
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
                 <div style={{ width: 32, height: 32, borderRadius: 8, background: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--bg)', fontFamily: 'var(--fb)', flexShrink: 0 }}>
-                  {p.rank ?? i + 1}
+                  {(p.rank as number) ?? i + 1}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--fb)', letterSpacing: '-.01em' }}>{p.restaurant_name}</span>
-                    {p.cuisine_type && <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)' }}>{p.cuisine_type}</span>}
-                    {p.price_range && <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)' }}>{p.price_range}</span>}
+                    <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--fb)', letterSpacing: '-.01em' }}>{p.restaurant_name as string}</span>
+                    {p.cuisine_type && <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)' }}>{p.cuisine_type as string}</span>}
+                    {p.price_range && <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'var(--fb)' }}>{p.price_range as string}</span>}
                   </div>
                   {p.reasoning && (
-                    <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: '6px 0 0', lineHeight: 1.55 }}>{p.reasoning}</p>
+                    <p style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--fb)', margin: '6px 0 0', lineHeight: 1.55 }}>{p.reasoning as string}</p>
                   )}
                   {isWinner && (
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 10, fontSize: 11, fontWeight: 600, color: accent, fontFamily: 'var(--fb)', background: 'var(--bg)', border: `1px solid ${accent}`, borderRadius: 6, padding: '3px 9px' }}>
@@ -126,7 +123,7 @@ export default async function ResultsPage({ params }: Props) {
               href={`/events/${id}`}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 16, fontSize: 12, fontWeight: 600, color: 'var(--muted)', fontFamily: 'var(--fb)', textDecoration: 'none' }}
             >
-              ← Back to event
+              Back to event
             </Link>
           </div>
         )}
@@ -134,8 +131,8 @@ export default async function ResultsPage({ params }: Props) {
 
       <FinalizeFlow
         eventId={id}
-        proposedDate={event.proposed_date ?? null}
-        status={event.status as 'deciding' | 'finalized'}
+        proposedDate={(evt.proposed_date as string) ?? null}
+        status={evt.status as 'deciding' | 'finalized'}
         finalizedId={winnerId ?? undefined}
       />
     </main>

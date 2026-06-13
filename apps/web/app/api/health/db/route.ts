@@ -1,51 +1,45 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/server';
-import { ensureEnvLoaded } from '@/lib/env';
+import { getDb } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-ensureEnvLoaded();
-
-type CheckedTable = 'users' | 'events' | 'invitations' | 'guest_preferences' | 'proposals' | 'votes' | 'finalized_plans' | 'usage_log';
+type CheckedTable = 'events' | 'invitations' | 'preferences' | 'proposals' | 'votes' | 'finalized_plans' | 'usage_log' | 'feature_flags' | 'funnel_events';
 
 const REQUIRED_TABLES: CheckedTable[] = [
-  'users',
   'events',
   'invitations',
-  'guest_preferences',
+  'preferences',
   'proposals',
   'votes',
   'finalized_plans',
   'usage_log',
+  'feature_flags',
+  'funnel_events',
 ];
 
-// Hit GET /api/health/db to verify the schema is in place.
-// Reports per-table status; missing tables surface a copy-paste-ready next step.
+// Hit GET /api/health/db to verify the SQLite schema is in place.
 export async function GET() {
-  const db = createServiceClient();
+  const db = getDb();
   const results: Record<string, { ok: boolean; error?: string; count?: number }> = {};
 
   for (const table of REQUIRED_TABLES) {
-    const { count, error } = await db
-      .from(table)
-      .select('*', { count: 'exact', head: true });
-
-    if (error) {
-      results[table] = { ok: false, error: error.message };
-    } else {
-      results[table] = { ok: true, count: count ?? 0 };
+    try {
+      const row = db.prepare(`SELECT COUNT(*) as count FROM ${table}`).get() as { count: number };
+      results[table] = { ok: true, count: row.count };
+    } catch (err) {
+      results[table] = { ok: false, error: (err as Error).message };
     }
   }
 
   const missing = Object.entries(results).filter(([, v]) => !v.ok).map(([k]) => k);
-  const allOk   = missing.length === 0;
+  const allOk = missing.length === 0;
 
   return NextResponse.json({
     ok: allOk,
     tables: results,
     next_steps: allOk ? null : {
       message: 'One or more tables are missing or unreadable.',
-      action:  'Run the SQL files in supabase/migrations/ in order via the Supabase dashboard SQL editor (001 → 002 → 003 → 004), or use `supabase db push` if you have the CLI linked.',
+      action: 'Ensure initDb() is called during app startup.',
       missing,
     },
   }, { status: allOk ? 200 : 503 });
