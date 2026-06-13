@@ -147,7 +147,16 @@ export default function App() {
   const handleLoginReady = (userName: string, owner: boolean) => {
     setCurrentUser(userName);
     setUserIsOwner(owner);
-    setGroup(loadGroup());
+    const g = loadGroup();
+    setGroup(g);
+    if (g) {
+      setLiveGuests(g.members.map((m, i) => ({
+        id: i + 1, name: m.name, ini: m.ini,
+        status: "confirmed" as const,
+        dietary: m.dietary, cuisine: m.cuisine,
+        budget: m.budget, vibe: m.vibe,
+      })));
+    }
     setShowLogin(false);
     localStorage.setItem("gp_current_user_v2", userName);
   };
