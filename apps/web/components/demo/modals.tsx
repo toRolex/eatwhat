@@ -249,11 +249,11 @@ export function Sidebar({
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
           <span style={{ fontSize: 10, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".07em" }}>已回复</span>
           <span style={{ fontFamily: "var(--fd)", fontSize: 18, color: "var(--text)" }}>
-            {confirmed}<span style={{ fontSize: 11, fontWeight: 400, color: "var(--muted)" }}>/8</span>
+            {confirmed}<span style={{ fontSize: 11, fontWeight: 400, color: "var(--muted)" }}>/{liveGuests.length}</span>
           </span>
         </div>
         <div style={{ height: 3, borderRadius: 99, background: "var(--border2)", overflow: "hidden", marginBottom: 10 }}>
-          <div style={{ height: "100%", borderRadius: 99, background: "var(--text)", width: `${(confirmed / 8) * 100}%`, transition: "width 1s var(--eo)" }} />
+          <div style={{ height: "100%", borderRadius: 99, background: "var(--text)", width: `${(confirmed / (liveGuests.length || 1)) * 100}%`, transition: "width 1s var(--eo)" }} />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
           {liveGuests.map((g, i) => (

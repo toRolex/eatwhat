@@ -230,7 +230,7 @@ export function OverviewTab({ setTab, liveGuests, inviteCode, isOwner }: { setTa
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, position: "relative" }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 500, color: "white", marginBottom: 2 }}>可以生成方案了</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,.45)" }}>已收集 5/7 人偏好 — 信号够强了</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,.45)" }}>已收集 {liveGuests.filter(g => g.vibe).length}/{liveGuests.filter(g => g.status !== "declined").length} 人偏好 — 信号够强了</div>
             </div>
             <button onClick={() => setTab("ai")}
               style={{ padding: "9px 18px", borderRadius: "var(--rs)", border: "1px solid rgba(255,255,255,.2)", background: "rgba(255,255,255,.12)", color: "white", fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "var(--fb)", whiteSpace: "nowrap", transition: "background .2s", backdropFilter: "blur(8px)" }}
