@@ -211,7 +211,7 @@ export default function App() {
 
   return (
     <div className="gp-app-shell">
-      {showLogin && <LoginModal onGroupReady={handleLoginReady} />}
+      {showLogin && <LoginModal onGroupReady={handleLoginReady} onClose={() => setShowLogin(false)} />}
       <header className="gp-mobile-topbar">
         <button
           onClick={() => setNavOpen(true)}
