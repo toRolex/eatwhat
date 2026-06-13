@@ -240,13 +240,10 @@ export default function App() {
       {showCreate && <CreateEventModal onClose={() => setShowCreate(false)} />}
       {showNotif  && <NotificationPanel onClose={() => setShowNotif(false)} activities={activities} setActivities={v => { const next = typeof v === "function" ? v(activities) : v; setActivities(next); localStorage.setItem("gp_activities", JSON.stringify(next)); }} />}
       {/* Beta CTA — fixed bottom banner */}
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 400, background: "var(--surface)", borderTop: "1px solid var(--border2)", padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, boxShadow: "0 -2px 12px rgba(0,0,0,.06)" }}>
-        <p style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--fb)", margin: 0, lineHeight: 1.4 }}>
-          这是演示页面 — <strong style={{ color: "var(--text)" }}>今天整点啥</strong> 用 AI 帮你搞定聚会方案，少废话直接出发。
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 400, background: "var(--surface)", borderTop: "1px solid var(--border2)", padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, boxShadow: "0 -2px 12px rgba(0,0,0,.06)" }}>
+        <p style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--fb)", margin: 0, lineHeight: 1.4, textAlign: "center" }}>
+          <strong style={{ color: "var(--text)" }}>今天整点啥</strong> · AI 帮你搞定聚会方案，少废话直接出发 🐦
         </p>
-        <a href="/login" style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "8px 16px", borderRadius: "var(--rs)", background: "var(--text)", color: "var(--bg)", fontSize: 12, fontWeight: 600, fontFamily: "var(--fb)", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
-          开整 →
-        </a>
       </div>
     </div>
   );

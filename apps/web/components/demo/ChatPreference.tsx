@@ -17,20 +17,90 @@ function TypingDots() {
   );
 }
 
+/** Parse a text line like "A. 只吃饭，找家靠谱的店" into {key, label} or null */
+interface QuickOption {
+  key: string;
+  label: string;
+}
+
+function parseQuickOptions(text: string): { body: string; options: QuickOption[] } | null {
+  const lines = text.split("\n");
+  const options: QuickOption[] = [];
+  let firstOptionIdx = -1;
+  let pattern: "letter" | "number" | "dash" | null = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!;
+    let match: RegExpMatchArray | null = null;
+
+    // Try letter-style: "A. 选项" or "A、选项"
+    match = line.match(/^([A-F])[.、]\s+(.+)$/);
+    if (match) {
+      if (!pattern) pattern = "letter";
+      if (pattern === "letter") {
+        options.push({ key: match[1]!, label: match[2]! });
+        if (firstOptionIdx < 0) firstOptionIdx = i;
+      }
+      continue;
+    }
+
+    // Try numbered: "1. 选项" "1、选项" "1️⃣ 选项"
+    match = line.match(/^(\d+)[.、️⃣]\s*(.+)$/);
+    if (match) {
+      if (!pattern) pattern = "number";
+      if (pattern === "number") {
+        options.push({ key: match[1]!, label: match[2]! });
+        if (firstOptionIdx < 0) firstOptionIdx = i;
+      }
+      continue;
+    }
+
+    // Try dash/bullet: "- 选项" "• 选项" "· 选项" "* 选项"
+    match = line.match(/^[-•·\*]\s+(.+)$/);
+    if (match) {
+      if (!pattern) pattern = "dash";
+      if (pattern === "dash") {
+        options.push({ key: "", label: match[1]! });
+        if (firstOptionIdx < 0) firstOptionIdx = i;
+      }
+      continue;
+    }
+  }
+
+  // Need at least 2 options, and they should be at the end of the message
+  if (options.length < 2) return null;
+  if (firstOptionIdx < 0) return null;
+
+  // Assign keys for dash-style options (A, B, C...)
+  if (pattern === "dash") {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    options.forEach((opt, i) => { opt.key = letters[i] || String(i + 1); });
+  }
+
+  // Body is everything before the first option line
+  const body = lines
+    .slice(0, firstOptionIdx)
+    .filter(l => l.trim())
+    .join("\n");
+
+  return { body: body || "", options };
+}
+
+const WELCOME_V2 = "哟！来活儿了 🐦 码头海鸥聚会参谋已就位～\n\n先定个调，这次聚会想怎么搞？\n\nA. 只吃饭，找家靠谱的店\nB. 只玩乐，KTV/桌游/密室走起\nC. 吃饭+娱乐，一条龙安排\nD. 还没想好，交给海鸥参谋";
+
 export default function ChatPreference() {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     if (typeof window !== "undefined") {
       try {
-        const saved = localStorage.getItem("gp_chat_messages");
-        if (saved) return JSON.parse(saved);
+        const savedVersion = localStorage.getItem("gp_chat_version");
+        if (savedVersion === "v2") {
+          const saved = localStorage.getItem("gp_chat_messages");
+          if (saved) return JSON.parse(saved);
+        }
       } catch {}
     }
-    return [
-      {
-        role: "assistant",
-        content: "嘿！我是你的聚会参谋 🐦 今天整点啥？先告诉我，这次聚会你想要啥感觉？给个词就成，比如「热闹」「安静」「随便」",
-      },
-    ];
+    localStorage.setItem("gp_chat_version", "v2");
+    return [{ role: "assistant", content: WELCOME_V2 }];
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,6 +108,7 @@ export default function ChatPreference() {
     if (typeof window !== "undefined") return localStorage.getItem("gp_chat_complete") === "true";
     return false;
   });
+  const [clickedOptions, setClickedOptions] = useState<Record<number, boolean>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const roomId = useRef(
@@ -59,63 +130,197 @@ export default function ChatPreference() {
     localStorage.setItem("gp_chat_complete", String(complete));
   }, [complete]);
 
-  const send = async () => {
-    const text = input.trim();
-    if (!text || loading || complete) return;
+  // Reset clicked options when a new assistant message arrives
+  useEffect(() => {
+    setClickedOptions({});
+  }, [messages.length]);
 
+  const quickReply = (label: string) => {
+    if (loading || complete) return;
+    const text = label;
     const userMsg: ChatMessage = { role: "user", content: text };
     const next = [...messages, userMsg];
     setMessages(next);
-    setInput("");
     setLoading(true);
 
-    try {
-      const res = await fetch("/api/chat/preferences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: text,
-          roomId: roomId.current,
-          conversationHistory: messages,
-        }),
-      });
+    fetch("/api/chat/preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: text,
+        roomId: roomId.current,
+        conversationHistory: messages,
+      }),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "请求失败");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        const aiMsg: ChatMessage = { role: "assistant", content: data.reply };
+        setMessages(prev => [...prev, aiMsg]);
+        if (data.complete) setComplete(true);
+      })
+      .catch(() => {
+        setMessages(prev => [...prev, { role: "assistant", content: "哎呀，海鸥翅膀卡住了…等一下再试试？🐦" }]);
+      })
+      .finally(() => setLoading(false));
+  };
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "请求失败");
-      }
-
-      const data = await res.json();
-      const aiMsg: ChatMessage = { role: "assistant", content: data.reply };
-      setMessages(prev => [...prev, aiMsg]);
-
-      if (data.complete) {
-        setComplete(true);
-      }
-    } catch (err: any) {
-      const errMsg: ChatMessage = {
-        role: "assistant",
-        content: "哎呀，海鸥翅膀卡住了…等一下再试试？🐦",
-      };
-      setMessages(prev => [...prev, errMsg]);
-    } finally {
-      setLoading(false);
-    }
+  const send = async () => {
+    const text = input.trim();
+    if (!text || loading || complete) return;
+    quickReply(text);
   };
 
   const reset = () => {
-    setMessages([
-      {
-        role: "assistant",
-        content: "嘿！我是你的聚会参谋 🐦 今天整点啥？先告诉我，这次聚会你想要啥感觉？给个词就成，比如「热闹」「安静」「随便」",
-      },
-    ]);
+    setMessages([{ role: "assistant", content: WELCOME_V2 }]);
     setComplete(false);
+    setClickedOptions({});
     localStorage.removeItem("gp_chat_messages");
     localStorage.removeItem("gp_chat_complete");
     roomId.current = crypto.randomUUID();
     localStorage.setItem("gp_chat_room", roomId.current);
   };
+
+  /** Render a single message bubble, with quick-reply buttons for assistant messages */
+  function MessageBubble({ msg, idx }: { msg: ChatMessage; idx: number }) {
+    const isUser = msg.role === "user";
+    const isLastAssistant = msg.role === "assistant" && idx === messages.length - 1;
+
+    let body = msg.content;
+    let options: QuickOption[] | null = null;
+
+    // Only parse quick options on the LAST assistant message when not loading
+    if (isLastAssistant && !loading && !complete) {
+      const parsed = parseQuickOptions(msg.content);
+      if (parsed && parsed.options.length >= 2) {
+        body = parsed.body;
+        options = parsed.options;
+      }
+    }
+
+    return (
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          alignSelf: isUser ? "flex-end" : "flex-start",
+          flexDirection: isUser ? "row-reverse" : "row",
+          maxWidth: "88%",
+          animation: `fu .35s var(--sp) both`,
+        }}
+      >
+        <div
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: "50%",
+            background: isUser ? "var(--text)" : "oklch(93% .04 228)",
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: isUser ? 10 : 14,
+            fontWeight: 600,
+            color: isUser ? "var(--bg)" : "var(--text)",
+          }}
+        >
+          {isUser ? "我" : "🐦"}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {/* Text bubble */}
+          {body && (
+            <div
+              style={{
+                padding: "10px 14px",
+                borderRadius: isUser ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                background: isUser ? "var(--text)" : "var(--bg)",
+                color: isUser ? "var(--bg)" : "var(--text)",
+                fontSize: 13,
+                lineHeight: 1.6,
+                fontFamily: "var(--fb)",
+                wordBreak: "break-word",
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {body}
+            </div>
+          )}
+
+          {/* Quick-reply option buttons */}
+          {options && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 5, paddingLeft: 2 }}>
+              {options.map((opt) => {
+                const clicked = clickedOptions[idx] ?? false;
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => {
+                      if (clicked || loading) return;
+                      setClickedOptions(prev => ({ ...prev, [idx]: true }));
+                      quickReply(opt.label);
+                    }}
+                    disabled={clicked || loading}
+                    title={opt.label}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "8px 13px",
+                      border: "1px solid var(--border2)",
+                      borderRadius: 10,
+                      background: clicked ? "var(--border2)" : "var(--surface)",
+                      cursor: clicked || loading ? "default" : "pointer",
+                      fontSize: 12,
+                      fontFamily: "var(--fb)",
+                      color: "var(--text)",
+                      textAlign: "left",
+                      transition: "all .18s var(--eo)",
+                      opacity: clicked ? 0.45 : 1,
+                    }}
+                    onMouseEnter={e => {
+                      if (!clicked && !loading) {
+                        e.currentTarget.style.background = "var(--bg)";
+                        e.currentTarget.style.borderColor = "var(--border)";
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (!clicked && !loading) {
+                        e.currentTarget.style.background = "var(--surface)";
+                        e.currentTarget.style.borderColor = "var(--border2)";
+                      }
+                    }}
+                  >
+                    <span style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: 6,
+                      background: "var(--text)",
+                      color: "var(--bg)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      flexShrink: 0,
+                    }}>
+                      {opt.key}
+                    </span>
+                    <span style={{ lineHeight: 1.35 }}>{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -161,10 +366,9 @@ export default function ChatPreference() {
             overflow: "hidden",
             display: "flex",
             flexDirection: "column",
-            height: 420,
+            height: 460,
           }}
         >
-          {/* Messages area */}
           <div
             style={{
               flex: 1,
@@ -176,108 +380,15 @@ export default function ChatPreference() {
             }}
           >
             {messages.map((msg, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  gap: 10,
-                  alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
-                  flexDirection: msg.role === "user" ? "row-reverse" : "row",
-                  maxWidth: "88%",
-                  animation: `fu .35s var(--sp) both`,
-                }}
-              >
-                {/* Avatar */}
-                {msg.role === "assistant" ? (
-                  <div
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: "50%",
-                      background: "oklch(93% .04 228)",
-                      flexShrink: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 14,
-                    }}
-                  >
-                    🐦
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: "50%",
-                      background: "var(--text)",
-                      flexShrink: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 10,
-                      fontWeight: 600,
-                      color: "var(--bg)",
-                    }}
-                  >
-                    我
-                  </div>
-                )}
-
-                {/* Bubble */}
-                <div
-                  style={{
-                    padding: "10px 14px",
-                    borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                    background: msg.role === "user" ? "var(--text)" : "var(--bg)",
-                    color: msg.role === "user" ? "var(--bg)" : "var(--text)",
-                    fontSize: 13,
-                    lineHeight: 1.6,
-                    fontFamily: "var(--fb)",
-                    wordBreak: "break-word",
-                  }}
-                >
-                  {msg.content}
-                </div>
-              </div>
+              <MessageBubble key={i} msg={msg} idx={i} />
             ))}
 
-            {/* Typing indicator */}
             {loading && (
-              <div
-                style={{
-                  display: "flex",
-                  gap: 10,
-                  alignSelf: "flex-start",
-                  animation: `fu .3s var(--sp) both`,
-                }}
-              >
-                <div
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    background: "oklch(93% .04 228)",
-                    flexShrink: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 14,
-                  }}
-                >
+              <div style={{ display: "flex", gap: 10, alignSelf: "flex-start", animation: `fu .3s var(--sp) both` }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "oklch(93% .04 228)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>
                   🐦
                 </div>
-                <div
-                  style={{
-                    padding: "10px 14px",
-                    borderRadius: "14px 14px 14px 4px",
-                    background: "var(--bg)",
-                    color: "var(--text)",
-                    fontSize: 13,
-                    lineHeight: 1.6,
-                    fontFamily: "var(--fb)",
-                  }}
-                >
+                <div style={{ padding: "10px 14px", borderRadius: "14px 14px 14px 4px", background: "var(--bg)", color: "var(--text)", fontSize: 13, lineHeight: 1.6, fontFamily: "var(--fb)" }}>
                   海鸥正在思考<TypingDots />
                 </div>
               </div>
@@ -286,17 +397,8 @@ export default function ChatPreference() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input area */}
           {!complete && (
-            <div
-              style={{
-                borderTop: "1px solid var(--border2)",
-                padding: "12px 14px",
-                display: "flex",
-                gap: 8,
-                alignItems: "center",
-              }}
-            >
+            <div style={{ borderTop: "1px solid var(--border2)", padding: "12px 14px", display: "flex", gap: 8, alignItems: "center" }}>
               <input
                 ref={inputRef}
                 value={input}
@@ -337,12 +439,8 @@ export default function ChatPreference() {
                   flexShrink: 0,
                   whiteSpace: "nowrap",
                 }}
-                onMouseEnter={e => {
-                  if (input.trim() && !loading) e.currentTarget.style.opacity = "0.85";
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.opacity = "1";
-                }}
+                onMouseEnter={e => { if (input.trim() && !loading) e.currentTarget.style.opacity = "0.85"; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
               >
                 发送
               </button>
@@ -351,7 +449,6 @@ export default function ChatPreference() {
         </div>
       </div>
 
-      {/* Footer */}
       <footer style={{ background: "var(--text)", marginTop: 48, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(var(--border2) 1px,transparent 1px),linear-gradient(90deg,var(--border2) 1px,transparent 1px)", backgroundSize: "40px 40px", opacity: .06, pointerEvents: "none" }} />
         <div style={{ position: "relative", padding: "52px 32px 32px", maxWidth: 820 }}>

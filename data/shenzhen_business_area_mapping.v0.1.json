@@ -1,0 +1,515 @@
+{
+  "version": "0.1",
+  "purpose": "Normalize participant-entered Shenzhen landmarks, metro stations, malls, and business districts into planning areas for party plan generation.",
+  "strategy": "Use business-area-level matching for MVP instead of precise GPS. The Decision Agent can query POI by city + district + normalized area + category keywords.",
+  "defaultCity": "深圳",
+  "defaultDistrict": "南山区",
+  "sources": [
+    {
+      "name": "深圳市商业网点规划(2025-2035)",
+      "url": "https://commerce.sz.gov.cn/attachment/1/1556/1556028/12058546.pdf",
+      "usage": "商圈体系、商业空间层级、核心商圈方向参考"
+    },
+    {
+      "name": "南山：打造世界级地标商圈",
+      "url": "https://www.szns.gov.cn/mlns/fxns/content/post_12587567.html",
+      "usage": "南山区后海-深圳湾、蛇口-太子湾、西丽、大冲等商圈方向参考"
+    },
+    {
+      "name": "深圳十大适合开店的商业步行街/商圈/购物中心",
+      "url": "https://m.maigoo.com/top/430240.html",
+      "usage": "深圳代表性商圈与商业载体参考"
+    },
+    {
+      "name": "福田概况",
+      "url": "http://www.szft.gov.cn/zjft/ftgk/content/post_12655608.html",
+      "usage": "福田中心商圈、华强北、车公庙-金沙、梅林、印力-东海等商圈参考"
+    }
+  ],
+  "normalizationRules": {
+    "matchPriority": [
+      "exactAlias",
+      "metroStation",
+      "landmark",
+      "mall",
+      "districtFallback"
+    ],
+    "fallbackAreaId": "nanshan_tech_park",
+    "unknownLocationHandling": "Ask one lightweight clarification: 商圈、地铁站、公司附近都行；仍不明确则使用 organizer.area.",
+    "privacyRule": "Do not store exact home address. Normalize to business area, metro station, or landmark level."
+  },
+  "areas": [
+    {
+      "id": "nanshan_tech_park",
+      "name": "科技园",
+      "district": "南山区",
+      "aliases": ["科技园", "科兴", "科兴科学园", "粤海门", "高新园", "高新区", "中科大厦", "讯美", "软件园", "虚拟大学园", "创维大厦", "大冲", "万象天地", "深大科技园"],
+      "metroStations": ["高新园", "深大", "粤海门", "科苑"],
+      "landmarks": ["科兴科学园", "深圳湾科技生态园", "万象天地", "大冲商务中心", "中国科技开发院"],
+      "commercialAnchors": ["万象天地", "大冲商务中心", "科兴科学园"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "日料", "烧烤", "火锅", "茶餐厅", "西餐", "湘菜"],
+        "activity": ["桌游", "KTV", "清吧", "密室", "电影院", "咖啡"],
+        "combo": ["聚餐", "饭后娱乐", "商场餐饮"]
+      },
+      "demoWeight": 100
+    },
+    {
+      "id": "nanshan_shenzhen_university",
+      "name": "深圳大学",
+      "district": "南山区",
+      "aliases": ["深大", "深圳大学", "深大地铁站", "桂庙", "桂庙新村", "南山书城", "南油书城", "学府路"],
+      "metroStations": ["深大", "南山", "桃园"],
+      "landmarks": ["深圳大学", "南山书城", "桂庙新村"],
+      "commercialAnchors": ["南山书城", "桂庙商圈"],
+      "poiQueryKeywords": {
+        "meal": ["平价餐厅", "烧烤", "火锅", "日料", "茶餐厅", "韩餐"],
+        "activity": ["桌游", "KTV", "剧本杀", "清吧", "咖啡"],
+        "combo": ["学生聚餐", "饭后桌游", "年轻人聚会"]
+      },
+      "demoWeight": 95
+    },
+    {
+      "id": "nanshan_houhai",
+      "name": "后海",
+      "district": "南山区",
+      "aliases": ["后海", "海岸城", "深圳湾万象城", "后海汇", "保利文化广场", "文心五路", "深圳湾体育中心", "春茧"],
+      "metroStations": ["后海", "登良", "深圳湾公园"],
+      "landmarks": ["海岸城", "深圳湾万象城", "后海汇", "深圳湾体育中心"],
+      "commercialAnchors": ["海岸城", "深圳湾万象城", "后海汇"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "日料", "西餐", "火锅", "东南亚菜", "烤肉"],
+        "activity": ["KTV", "电影院", "清吧", "桌游", "Livehouse", "咖啡"],
+        "combo": ["商场餐饮", "饭后清吧", "饭后KTV"]
+      },
+      "demoWeight": 100
+    },
+    {
+      "id": "nanshan_shenzhen_bay",
+      "name": "深圳湾",
+      "district": "南山区",
+      "aliases": ["深圳湾", "人才公园", "深圳湾公园", "红树林", "超级总部基地", "深湾", "深湾汇云中心"],
+      "metroStations": ["深圳湾公园", "深湾", "红树湾南"],
+      "landmarks": ["深圳人才公园", "深圳湾公园", "深圳湾超级总部基地"],
+      "commercialAnchors": ["深圳湾万象城", "深圳湾文化广场"],
+      "poiQueryKeywords": {
+        "meal": ["西餐", "粤菜", "咖啡", "轻食", "日料"],
+        "activity": ["散步", "公园", "清吧", "咖啡", "夜景"],
+        "combo": ["饭后散步", "湾区夜景", "轻松聊天"]
+      },
+      "demoWeight": 90
+    },
+    {
+      "id": "nanshan_shekou",
+      "name": "蛇口",
+      "district": "南山区",
+      "aliases": ["蛇口", "海上世界", "水湾", "南海意库", "太子湾", "蛇口码头", "招商局广场", "花园城"],
+      "metroStations": ["海上世界", "水湾", "太子湾", "蛇口港"],
+      "landmarks": ["海上世界", "南海意库", "K11 ECOAST", "太子湾"],
+      "commercialAnchors": ["海上世界", "K11 ECOAST", "太子湾花园城"],
+      "poiQueryKeywords": {
+        "meal": ["西餐", "酒吧餐厅", "日料", "粤菜", "东南亚菜"],
+        "activity": ["清吧", "Livehouse", "散步", "展览", "咖啡"],
+        "combo": ["饭后清吧", "海边散步", "艺术街区"]
+      },
+      "demoWeight": 88
+    },
+    {
+      "id": "nanshan_oct",
+      "name": "华侨城",
+      "district": "南山区",
+      "aliases": ["华侨城", "欢乐海岸", "世界之窗", "锦绣中华", "生态广场", "创意文化园", "OCT", "益田假日广场"],
+      "metroStations": ["华侨城", "侨城东", "世界之窗", "深湾"],
+      "landmarks": ["欢乐海岸", "世界之窗", "锦绣中华", "华侨城创意文化园"],
+      "commercialAnchors": ["欢乐海岸", "益田假日广场", "华侨城创意文化园"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "西餐", "火锅", "茶餐厅", "东南亚菜"],
+        "activity": ["电影院", "展览", "密室", "清吧", "散步"],
+        "combo": ["饭后看展", "饭后散步", "主题娱乐"]
+      },
+      "demoWeight": 85
+    },
+    {
+      "id": "nanshan_qianhai",
+      "name": "前海",
+      "district": "南山区",
+      "aliases": ["前海", "桂湾", "前湾", "梦海", "前海卓悦", "前海壹方汇", "前海石公园", "妈湾"],
+      "metroStations": ["桂湾", "前湾", "鲤鱼门", "梦海"],
+      "landmarks": ["前海卓悦INTOWN", "前海壹方汇", "前海石公园"],
+      "commercialAnchors": ["前海卓悦INTOWN", "前海壹方汇"],
+      "poiQueryKeywords": {
+        "meal": ["商务餐", "粤菜", "西餐", "日料", "火锅"],
+        "activity": ["清吧", "咖啡", "桌游", "电影院"],
+        "combo": ["商务聚餐", "饭后咖啡", "商场餐饮"]
+      },
+      "demoWeight": 80
+    },
+    {
+      "id": "nanshan_xili",
+      "name": "西丽",
+      "district": "南山区",
+      "aliases": ["西丽", "大学城", "留仙洞", "万科云城", "茶光", "石鼓", "西丽湖", "西丽高铁"],
+      "metroStations": ["西丽", "大学城", "留仙洞", "茶光", "石鼓"],
+      "landmarks": ["西丽大学城", "万科云城", "西丽湖", "留仙洞总部基地"],
+      "commercialAnchors": ["云城万科里", "万科云城"],
+      "poiQueryKeywords": {
+        "meal": ["平价餐厅", "火锅", "烧烤", "湘菜", "粤菜"],
+        "activity": ["桌游", "KTV", "咖啡", "剧本杀"],
+        "combo": ["学生聚餐", "饭后桌游", "轻松聊天"]
+      },
+      "demoWeight": 80
+    },
+    {
+      "id": "nanshan_nantou",
+      "name": "南头",
+      "district": "南山区",
+      "aliases": ["南头", "南头古城", "中山公园", "桃园", "大新", "同乐", "南山农批"],
+      "metroStations": ["桃园", "大新", "同乐南"],
+      "landmarks": ["南头古城", "中山公园", "荷兰花卉小镇"],
+      "commercialAnchors": ["南头古城", "泛海城市广场"],
+      "poiQueryKeywords": {
+        "meal": ["小吃", "粤菜", "烧烤", "火锅", "茶餐厅"],
+        "activity": ["古城散步", "咖啡", "清吧", "桌游"],
+        "combo": ["饭后逛古城", "小吃路线", "轻松散步"]
+      },
+      "demoWeight": 78
+    },
+    {
+      "id": "futian_cbd",
+      "name": "福田CBD",
+      "district": "福田区",
+      "aliases": ["福田CBD", "购物公园", "会展中心", "市民中心", "卓悦中心", "皇庭广场", "平安金融中心", "中心城", "COCO Park", "星河COCO Park"],
+      "metroStations": ["购物公园", "会展中心", "市民中心", "福田", "岗厦北"],
+      "landmarks": ["星河COCO Park", "卓悦中心", "皇庭广场", "平安金融中心", "市民中心"],
+      "commercialAnchors": ["星河COCO Park", "卓悦中心", "皇庭广场", "领展中心城"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "西餐", "日料", "火锅", "东南亚菜", "商务餐"],
+        "activity": ["KTV", "清吧", "电影院", "桌游", "Livehouse"],
+        "combo": ["饭后酒吧", "商场餐饮", "商务聚餐"]
+      },
+      "demoWeight": 96
+    },
+    {
+      "id": "futian_huaqiangbei",
+      "name": "华强北",
+      "district": "福田区",
+      "aliases": ["华强北", "华强路", "赛格", "茂业天地", "华强广场", "燕南", "电子市场"],
+      "metroStations": ["华强北", "华强路", "燕南", "华新"],
+      "landmarks": ["赛格广场", "华强北步行街", "茂业天地"],
+      "commercialAnchors": ["华强北步行街", "茂业天地", "华强广场"],
+      "poiQueryKeywords": {
+        "meal": ["烧烤", "火锅", "湘菜", "粤菜", "茶餐厅", "快餐"],
+        "activity": ["KTV", "桌游", "密室", "电玩城", "清吧"],
+        "combo": ["饭后KTV", "年轻人聚会", "平价聚餐"]
+      },
+      "demoWeight": 85
+    },
+    {
+      "id": "futian_chegongmiao",
+      "name": "车公庙",
+      "district": "福田区",
+      "aliases": ["车公庙", "下沙", "上沙", "泰然", "天安数码城", "KK ONE", "丰盛町", "金沙"],
+      "metroStations": ["车公庙", "下沙", "上沙", "香蜜湖"],
+      "landmarks": ["天安数码城", "KK ONE", "丰盛町"],
+      "commercialAnchors": ["KK ONE", "丰盛町", "天安数码城"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "湘菜", "火锅", "烧烤", "日料"],
+        "activity": ["清吧", "KTV", "桌游", "咖啡"],
+        "combo": ["下班聚餐", "饭后清吧", "商务轻聚"]
+      },
+      "demoWeight": 88
+    },
+    {
+      "id": "futian_shangmeilin",
+      "name": "梅林",
+      "district": "福田区",
+      "aliases": ["梅林", "上梅林", "下梅林", "梅林关", "卓悦汇", "梅林生活中心"],
+      "metroStations": ["上梅林", "下梅林", "孖岭"],
+      "landmarks": ["卓悦汇", "梅林水库"],
+      "commercialAnchors": ["卓悦汇"],
+      "poiQueryKeywords": {
+        "meal": ["火锅", "烧烤", "粤菜", "湘菜", "茶餐厅"],
+        "activity": ["KTV", "桌游", "咖啡", "散步"],
+        "combo": ["社区聚餐", "饭后散步", "轻松聊天"]
+      },
+      "demoWeight": 72
+    },
+    {
+      "id": "futian_shangbu_shangcheng",
+      "name": "深业上城",
+      "district": "福田区",
+      "aliases": ["深业上城", "莲花村", "冬瓜岭", "笔架山", "莲花北", "中洲湾"],
+      "metroStations": ["莲花村", "冬瓜岭", "莲花北"],
+      "landmarks": ["深业上城", "莲花山公园", "笔架山公园"],
+      "commercialAnchors": ["深业上城"],
+      "poiQueryKeywords": {
+        "meal": ["西餐", "粤菜", "咖啡", "日料", "轻食"],
+        "activity": ["展览", "咖啡", "清吧", "散步"],
+        "combo": ["饭后逛街", "饭后公园", "轻松聊天"]
+      },
+      "demoWeight": 75
+    },
+    {
+      "id": "futian_xiangmihu",
+      "name": "香蜜湖",
+      "district": "福田区",
+      "aliases": ["香蜜湖", "农林", "侨香", "东海", "印力中心", "山姆福田", "香蜜"],
+      "metroStations": ["香蜜湖", "农林", "侨香"],
+      "landmarks": ["印力中心", "东海城市广场", "香蜜公园"],
+      "commercialAnchors": ["印力中心", "东海城市广场"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "西餐", "亲友聚餐", "火锅", "日料"],
+        "activity": ["咖啡", "公园散步", "清吧", "电影院"],
+        "combo": ["饭后散步", "家庭聚会", "低强度活动"]
+      },
+      "demoWeight": 70
+    },
+    {
+      "id": "luohu_dongmen",
+      "name": "东门",
+      "district": "罗湖区",
+      "aliases": ["东门", "老街", "东门町", "东门步行街", "晒布", "湖贝", "人民南"],
+      "metroStations": ["老街", "晒布", "湖贝", "国贸"],
+      "landmarks": ["东门步行街", "东门町", "湖贝老村"],
+      "commercialAnchors": ["东门步行街", "东门町购物广场"],
+      "poiQueryKeywords": {
+        "meal": ["小吃", "茶餐厅", "火锅", "烧烤", "粤菜", "港式"],
+        "activity": ["KTV", "电玩城", "密室", "桌游", "逛街"],
+        "combo": ["小吃路线", "饭后逛街", "平价聚会"]
+      },
+      "demoWeight": 82
+    },
+    {
+      "id": "luohu_caiwuwei",
+      "name": "蔡屋围",
+      "district": "罗湖区",
+      "aliases": ["蔡屋围", "万象城", "大剧院", "京基100", "地王", "罗湖万象城", "KK Mall", "红岭"],
+      "metroStations": ["大剧院", "红岭", "老街"],
+      "landmarks": ["深圳万象城", "京基100", "地王大厦"],
+      "commercialAnchors": ["深圳万象城", "KK Mall"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "日料", "西餐", "火锅", "商务餐"],
+        "activity": ["电影院", "清吧", "咖啡", "KTV"],
+        "combo": ["饭后电影", "商务聚餐", "商场餐饮"]
+      },
+      "demoWeight": 84
+    },
+    {
+      "id": "luohu_guomao",
+      "name": "国贸",
+      "district": "罗湖区",
+      "aliases": ["国贸", "金光华", "人民南", "罗湖口岸", "深圳火车站", "建设路"],
+      "metroStations": ["国贸", "罗湖", "人民南", "向西村"],
+      "landmarks": ["金光华广场", "罗湖口岸", "深圳火车站"],
+      "commercialAnchors": ["金光华广场"],
+      "poiQueryKeywords": {
+        "meal": ["港式茶餐厅", "粤菜", "火锅", "烧烤", "小吃"],
+        "activity": ["KTV", "按摩", "清吧", "逛街"],
+        "combo": ["港味聚餐", "饭后逛街", "口岸附近"]
+      },
+      "demoWeight": 76
+    },
+    {
+      "id": "luohu_shuibei",
+      "name": "水贝",
+      "district": "罗湖区",
+      "aliases": ["水贝", "田贝", "笋岗", "洪湖", "珠宝城", "IBC"],
+      "metroStations": ["水贝", "田贝", "洪湖", "笋岗"],
+      "landmarks": ["水贝珠宝城", "IBC MALL", "笋岗工艺城"],
+      "commercialAnchors": ["IBC MALL"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "火锅", "茶餐厅", "湘菜", "烧烤"],
+        "activity": ["KTV", "咖啡", "桌游", "逛街"],
+        "combo": ["社区聚餐", "饭后咖啡", "珠宝城附近"]
+      },
+      "demoWeight": 66
+    },
+    {
+      "id": "baoan_center",
+      "name": "宝安中心",
+      "district": "宝安区",
+      "aliases": ["宝安中心", "壹方城", "前海壹方城", "宝中", "新安", "宝安体育馆", "欢乐港湾", "湾区之光"],
+      "metroStations": ["宝安中心", "宝体", "新安", "临海"],
+      "landmarks": ["前海壹方城", "欢乐港湾", "湾区之光摩天轮"],
+      "commercialAnchors": ["前海壹方城", "欢乐港湾"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "火锅", "日料", "烧烤", "西餐"],
+        "activity": ["KTV", "电影院", "清吧", "桌游", "摩天轮"],
+        "combo": ["饭后海边", "商场餐饮", "饭后电影"]
+      },
+      "demoWeight": 86
+    },
+    {
+      "id": "baoan_xixiang",
+      "name": "西乡",
+      "district": "宝安区",
+      "aliases": ["西乡", "坪洲", "固戍", "碧海湾", "西乡天虹", "宝安客运中心"],
+      "metroStations": ["西乡", "坪洲", "固戍", "碧海湾"],
+      "landmarks": ["西乡天虹", "碧海湾公园"],
+      "commercialAnchors": ["西乡天虹"],
+      "poiQueryKeywords": {
+        "meal": ["烧烤", "火锅", "湘菜", "粤菜", "海鲜"],
+        "activity": ["KTV", "桌游", "电影院", "清吧"],
+        "combo": ["平价聚餐", "饭后KTV", "社区聚会"]
+      },
+      "demoWeight": 62
+    },
+    {
+      "id": "baoan_airport",
+      "name": "空港会展",
+      "district": "宝安区",
+      "aliases": ["机场", "宝安机场", "空港", "会展", "国际会展中心", "福永", "沙井", "万丰海岸城"],
+      "metroStations": ["机场", "机场北", "国展", "国展北", "福永", "沙井"],
+      "landmarks": ["深圳宝安国际机场", "深圳国际会展中心", "万丰海岸城"],
+      "commercialAnchors": ["万丰海岸城", "深圳国际会展中心商业"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "海鲜", "火锅", "烧烤", "商务餐"],
+        "activity": ["KTV", "电影院", "清吧", "酒店餐饮"],
+        "combo": ["会展聚餐", "机场附近", "商务接待"]
+      },
+      "demoWeight": 60
+    },
+    {
+      "id": "longhua_core",
+      "name": "龙华中心",
+      "district": "龙华区",
+      "aliases": ["龙华", "红山", "深圳北", "民治", "壹方天地", "龙华壹方天地", "龙华超级商圈"],
+      "metroStations": ["红山", "深圳北站", "龙华", "民治", "上塘"],
+      "landmarks": ["壹方天地", "深圳北站", "红山6979"],
+      "commercialAnchors": ["壹方天地", "红山6979"],
+      "poiQueryKeywords": {
+        "meal": ["火锅", "粤菜", "日料", "烧烤", "湘菜"],
+        "activity": ["KTV", "电影院", "桌游", "清吧"],
+        "combo": ["北站附近", "商场餐饮", "饭后电影"]
+      },
+      "demoWeight": 78
+    },
+    {
+      "id": "longgang_dayun",
+      "name": "龙岗大运",
+      "district": "龙岗区",
+      "aliases": ["大运", "龙岗大运", "大运中心", "大运天地", "龙城广场", "龙岗中心城"],
+      "metroStations": ["大运", "龙城广场", "吉祥", "爱联"],
+      "landmarks": ["大运中心", "大运天地", "龙岗COCO Park"],
+      "commercialAnchors": ["大运天地", "龙岗COCO Park"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "火锅", "烧烤", "湘菜", "客家菜"],
+        "activity": ["KTV", "电影院", "桌游", "体育公园"],
+        "combo": ["体育中心附近", "饭后电影", "商场餐饮"]
+      },
+      "demoWeight": 65
+    },
+    {
+      "id": "longgang_bantian",
+      "name": "坂田",
+      "district": "龙岗区",
+      "aliases": ["坂田", "五和", "华为", "天安云谷", "岗头", "杨美", "星河WORLD"],
+      "metroStations": ["坂田", "五和", "岗头", "杨美"],
+      "landmarks": ["天安云谷", "华为基地", "星河WORLD"],
+      "commercialAnchors": ["天安云谷", "星河WORLD"],
+      "poiQueryKeywords": {
+        "meal": ["火锅", "烧烤", "粤菜", "湘菜", "日料"],
+        "activity": ["KTV", "桌游", "清吧", "电影院"],
+        "combo": ["下班聚餐", "饭后桌游", "园区附近"]
+      },
+      "demoWeight": 64
+    },
+    {
+      "id": "yantian_shatoujiao",
+      "name": "沙头角",
+      "district": "盐田区",
+      "aliases": ["沙头角", "壹海城", "海山", "盐田港", "中英街"],
+      "metroStations": ["海山", "沙头角", "盐田港西"],
+      "landmarks": ["壹海城", "中英街", "盐田中央公园"],
+      "commercialAnchors": ["壹海城"],
+      "poiQueryKeywords": {
+        "meal": ["海鲜", "粤菜", "茶餐厅", "烧烤"],
+        "activity": ["海边散步", "咖啡", "清吧", "逛街"],
+        "combo": ["饭后海边", "海鲜聚餐", "轻松散步"]
+      },
+      "demoWeight": 50
+    },
+    {
+      "id": "yantian_dameisha",
+      "name": "大梅沙",
+      "district": "盐田区",
+      "aliases": ["大梅沙", "小梅沙", "梅沙", "奥特莱斯", "东部华侨城", "海滨公园"],
+      "metroStations": ["大梅沙", "小梅沙"],
+      "landmarks": ["大梅沙海滨公园", "小梅沙", "东部华侨城"],
+      "commercialAnchors": ["大梅沙奥特莱斯"],
+      "poiQueryKeywords": {
+        "meal": ["海鲜", "烧烤", "粤菜", "简餐"],
+        "activity": ["海边", "沙滩", "散步", "度假"],
+        "combo": ["海边聚会", "饭后散步", "周末出游"]
+      },
+      "demoWeight": 48
+    },
+    {
+      "id": "guangming_core",
+      "name": "光明中心",
+      "district": "光明区",
+      "aliases": ["光明", "光明大街", "光明城", "蓝鲸世界", "凤凰城", "虹桥公园"],
+      "metroStations": ["光明大街", "凤凰城", "光明"],
+      "landmarks": ["蓝鲸世界", "虹桥公园", "光明城站"],
+      "commercialAnchors": ["蓝鲸世界"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "火锅", "烧烤", "茶餐厅"],
+        "activity": ["公园", "KTV", "电影院", "桌游"],
+        "combo": ["饭后公园", "商场餐饮", "周末轻聚"]
+      },
+      "demoWeight": 45
+    },
+    {
+      "id": "pingshan_core",
+      "name": "坪山中心",
+      "district": "坪山区",
+      "aliases": ["坪山", "坪山中心", "坪山高铁站", "坪山文化聚落", "坪山益田假日"],
+      "metroStations": ["坪山中心", "坪山围", "坪山广场"],
+      "landmarks": ["坪山高铁站", "坪山文化聚落"],
+      "commercialAnchors": ["坪山益田假日世界"],
+      "poiQueryKeywords": {
+        "meal": ["粤菜", "客家菜", "火锅", "烧烤"],
+        "activity": ["KTV", "电影院", "咖啡", "公园"],
+        "combo": ["高铁站附近", "饭后电影", "社区聚餐"]
+      },
+      "demoWeight": 40
+    }
+  ],
+  "districtFallbacks": {
+    "南山": "nanshan_tech_park",
+    "南山区": "nanshan_tech_park",
+    "福田": "futian_cbd",
+    "福田区": "futian_cbd",
+    "罗湖": "luohu_caiwuwei",
+    "罗湖区": "luohu_caiwuwei",
+    "宝安": "baoan_center",
+    "宝安区": "baoan_center",
+    "龙华": "longhua_core",
+    "龙华区": "longhua_core",
+    "龙岗": "longgang_dayun",
+    "龙岗区": "longgang_dayun",
+    "盐田": "yantian_shatoujiao",
+    "盐田区": "yantian_shatoujiao",
+    "光明": "guangming_core",
+    "光明区": "guangming_core",
+    "坪山": "pingshan_core",
+    "坪山区": "pingshan_core"
+  },
+  "poiQueryTemplates": {
+    "meal_only": [
+      "{city} {district} {areaName} {cuisine}",
+      "{city} {areaName} 聚餐",
+      "{city} {areaName} 人均{budget} 餐厅"
+    ],
+    "activity_only": [
+      "{city} {district} {areaName} {activity}",
+      "{city} {areaName} 娱乐",
+      "{city} {areaName} 饭后活动"
+    ],
+    "meal_activity": [
+      "{city} {areaName} {cuisine} 餐厅",
+      "{city} {areaName} {activity}",
+      "{city} {areaName} 聚餐 KTV 桌游 清吧"
+    ]
+  }
+}

@@ -56,7 +56,8 @@ export function Card({
       onMouseLeave={() => hover && setH(false)}
       style={{
         background: "var(--surface)", borderRadius: "var(--r)",
-        border: `1px solid ${h ? "var(--border)" : "var(--border2)"}`,
+        borderWidth: 1, borderStyle: "solid",
+        borderColor: h ? "var(--border)" : "var(--border2)",
         boxShadow: h ? "var(--shh)" : "var(--sh)",
         transition: "all .25s var(--eo)",
         transform: h ? "translateY(-2px)" : "none",

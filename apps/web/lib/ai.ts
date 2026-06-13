@@ -168,11 +168,16 @@ function parseResponse(text: string): SynthesizedProposal[] {
 }
 
 // ---------------------------------------------------------------------------
-// Main export: synthesizePlan
+// Debug-aware synthesis
 // ---------------------------------------------------------------------------
-export async function synthesizePlan(
+export interface SynthesizeDebug {
+  prompt: string;
+  rawResponse: string;
+}
+
+export async function synthesizePlanWithDebug(
   input: SynthesizeInput,
-): Promise<SynthesizedProposal[]> {
+): Promise<{ proposals: SynthesizedProposal[]; debug: SynthesizeDebug }> {
   const client = getClient();
   const prompt = buildPrompt(input);
 
@@ -187,7 +192,7 @@ export async function synthesizePlan(
       { role: 'user', content: prompt },
     ],
     temperature: 0.7,
-    max_tokens: 4096,
+    max_tokens: 8192,
   });
 
   const raw = completion.choices[0]?.message?.content ?? '';
@@ -195,7 +200,20 @@ export async function synthesizePlan(
     throw new Error('DeepSeek returned empty response');
   }
 
-  return parseResponse(raw);
+  return {
+    proposals: parseResponse(raw),
+    debug: { prompt, rawResponse: raw },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Main export: synthesizePlan
+// ---------------------------------------------------------------------------
+export async function synthesizePlan(
+  input: SynthesizeInput,
+): Promise<SynthesizedProposal[]> {
+  const result = await synthesizePlanWithDebug(input);
+  return result.proposals;
 }
 
 // ---------------------------------------------------------------------------

@@ -536,6 +536,11 @@ function RealRestCard({ p, delay, tweaks, open, onToggle }: { p: RealProposal; d
   );
 }
 
+interface SynthesizeDebug {
+  prompt: string;
+  rawResponse: string;
+}
+
 export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (item: Omit<Activity, "id" | "read">) => void }) {
   const [phase, setPhase] = useState<"idle" | "running" | "done" | "error">(() => {
     if (typeof window !== "undefined") return (localStorage.getItem("gp_ai") as any) || "idle";
@@ -547,17 +552,38 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
   const [realProposals, setReal]      = useState<RealProposal[]>(() => {
     try { return JSON.parse(localStorage.getItem("gp_ai_proposals") || "null") || []; } catch { return []; }
   });
+  const [debug, setDebug]             = useState<SynthesizeDebug>(() => {
+    try { return JSON.parse(localStorage.getItem("gp_ai_debug") || "null") || { prompt: "", rawResponse: "" }; } catch { return { prompt: "", rawResponse: "" }; }
+  });
+  const [showDebug, setShowDebug]     = useState(false);
   const [errorMsg, setErrorMsg]       = useState("");
+  const [waitMsg, setWaitMsg]         = useState(0);
   useEffect(() => { localStorage.setItem("gp_ai", phase); }, [phase]);
 
+  const WAIT_MESSAGES = [
+    "正在解析 6 人偏好矩阵…",
+    "正在匹配南山区 56 家商家…",
+    "正在构建决策提示词…",
+    "正在调用 DeepSeek 综合打分…",
+    "正在解析 AI 推荐结果…",
+    "正在校验约束满足度…",
+  ];
+
   const run = async () => {
-    setPhase("running"); setStep(0); setErrorMsg("");
-    // Animate steps while the real fetch runs in parallel
+    setPhase("running"); setStep(0); setErrorMsg(""); setWaitMsg(0);
+
+    // Animate 6 steps evenly over ~60s (10s per step)
+    const STEP_MS = 10000;
     let s = 0;
     const iv = setInterval(() => {
       s = Math.min(s + 1, AI_STEPS.length - 1);
       setStep(s);
-    }, 700);
+    }, STEP_MS);
+
+    // Cycle the status message every 3s
+    const wm = setInterval(() => {
+      setWaitMsg(prev => (prev + 1) % WAIT_MESSAGES.length);
+    }, 3000);
 
     try {
       const res = await fetch("/api/demo/synthesize", {
@@ -566,26 +592,31 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
         body: JSON.stringify({ location }),
       });
       clearInterval(iv);
+      clearInterval(wm);
       if (!res.ok) {
         const d = await res.json();
         throw new Error(d.error || "Synthesis failed");
       }
-      const data = await res.json() as { proposals: RealProposal[] };
+      const data = await res.json() as { proposals: RealProposal[]; debug?: SynthesizeDebug };
       setStep(AI_STEPS.length);
       setReal(data.proposals);
+      const dbg = data.debug || { prompt: "", rawResponse: "" };
+      setDebug(dbg);
       localStorage.setItem("gp_ai_proposals", JSON.stringify(data.proposals));
+      localStorage.setItem("gp_ai_debug", JSON.stringify(dbg));
       setTimeout(() => {
         setPhase("done");
         addActivity({ type: "ai", ini: "AI", name: "AI Engine", msg: `Synthesis complete — 3 venues ranked in ${location}`, time: "just now" });
       }, 400);
     } catch (err: any) {
       clearInterval(iv);
+      clearInterval(wm);
       setErrorMsg(err?.message || "Unknown error");
       setPhase("error");
     }
   };
 
-  const reset = () => { setPhase("idle"); setStep(0); setReal([]); localStorage.removeItem("gp_ai"); localStorage.removeItem("gp_ai_proposals"); };
+  const reset = () => { setPhase("idle"); setStep(0); setReal([]); setDebug({ prompt: "", rawResponse: "" }); setShowDebug(false); localStorage.removeItem("gp_ai"); localStorage.removeItem("gp_ai_proposals"); localStorage.removeItem("gp_ai_debug"); };
 
   if (phase === "idle" || phase === "error") return (
     <div>
@@ -652,7 +683,7 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
           </div>
         );
       })}
-      <p style={{ marginTop: 20, fontSize: 11, color: "var(--muted)", fontFamily: "var(--fb)" }}>正在搜索商家 · 调用 DeepSeek · 排序推荐…</p>
+      <p style={{ marginTop: 20, fontSize: 11, color: "var(--muted)", fontFamily: "var(--fb)" }}>{WAIT_MESSAGES[waitMsg]}</p>
     </div>
   );
 
@@ -672,6 +703,93 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
         {realProposals.map((p, i) => (
           <RealRestCard key={i} p={p} delay={i * 80} tweaks={tweaks} open={!!open[i]} onToggle={() => setOpen(prev => ({ ...prev, [i]: !prev[i] }))} />
         ))}
+
+        {/* DeepSeek 思维链 */}
+        {debug.prompt && (
+          <div style={{ marginTop: 12, marginBottom: 24 }}>
+            <button
+              onClick={() => setShowDebug(v => !v)}
+              style={{
+                display: "flex", alignItems: "center", gap: 7,
+                background: "var(--surface)", border: "1px solid var(--border2)",
+                borderRadius: "var(--r)", padding: "10px 16px",
+                cursor: "pointer", fontFamily: "var(--fb)", fontSize: 12,
+                color: "var(--text)", fontWeight: 500,
+                transition: "all .2s", width: "100%",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--border)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border2)"; }}
+            >
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                padding: "2px 8px", borderRadius: 6,
+                background: "var(--text)", color: "var(--bg)",
+                fontSize: 10, fontWeight: 700,
+              }}>
+                🧠 思维链
+              </span>
+              <span style={{ color: "var(--muted)", flex: 1, textAlign: "left" }}>
+                DeepSeek 输入输出 · 共 {(debug.prompt.length + debug.rawResponse.length).toLocaleString()} 字符
+              </span>
+              <span style={{
+                display: "inline-block", transition: "transform .2s var(--sp)",
+                transform: showDebug ? "rotate(90deg)" : "none",
+                color: "var(--muted)", fontSize: 10,
+              }}>▶</span>
+            </button>
+
+            {showDebug && (
+              <div style={{
+                marginTop: 8, animation: "sd .25s var(--sp) both",
+                display: "flex", flexDirection: "column", gap: 10,
+              }}>
+                {/* Prompt */}
+                <div style={{
+                  background: "var(--surface)", borderRadius: "var(--r)",
+                  border: "1px solid var(--border2)", overflow: "hidden",
+                }}>
+                  <div style={{
+                    padding: "8px 14px", borderBottom: "1px solid var(--border2)",
+                    fontSize: 10, fontWeight: 600, color: "var(--muted)",
+                    fontFamily: "var(--fb)", letterSpacing: ".04em",
+                    textTransform: "uppercase",
+                  }}>
+                    📤 发送给 DeepSeek 的 Prompt
+                  </div>
+                  <pre style={{
+                    margin: 0, padding: "14px 16px",
+                    fontSize: 11, fontFamily: "var(--fb)",
+                    lineHeight: 1.55, color: "var(--text)",
+                    whiteSpace: "pre-wrap", wordBreak: "break-word",
+                    maxHeight: 360, overflowY: "auto",
+                  }}>{debug.prompt}</pre>
+                </div>
+
+                {/* Raw response */}
+                <div style={{
+                  background: "var(--surface)", borderRadius: "var(--r)",
+                  border: "1px solid var(--border2)", overflow: "hidden",
+                }}>
+                  <div style={{
+                    padding: "8px 14px", borderBottom: "1px solid var(--border2)",
+                    fontSize: 10, fontWeight: 600, color: "var(--muted)",
+                    fontFamily: "var(--fb)", letterSpacing: ".04em",
+                    textTransform: "uppercase",
+                  }}>
+                    📥 DeepSeek 原始输出 (JSON)
+                  </div>
+                  <pre style={{
+                    margin: 0, padding: "14px 16px",
+                    fontSize: 11, fontFamily: "var(--fb)",
+                    lineHeight: 1.55, color: "var(--text)",
+                    whiteSpace: "pre-wrap", wordBreak: "break-word",
+                    maxHeight: 400, overflowY: "auto",
+                  }}>{debug.rawResponse}</pre>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <MassiveFooter eventName="AI Results" />
     </div>
