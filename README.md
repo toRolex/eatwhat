@@ -2,6 +2,8 @@
 
 AI 驱动的聚餐规划工具。发起人创建可分享的邀请链接，参与者提交口味偏好，12 阶段多模型 AI 流水线推荐真实附近餐厅并按群体匹配度排序。参与者通过 Borda 计分投票，发起人一键定案，所有人收到日历邀请。
 
+![今天整点啥 截图](assets/image.jpg)
+
 ## How it works
 
 1. Host creates an event with a location hint and RSVP deadline, then sends personalized invitation links
