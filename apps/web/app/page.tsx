@@ -58,6 +58,7 @@ export default function App() {
   const [showShare, setShowShare] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
+  const [showSwitch, setShowSwitch] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [liveGuests, setLiveGuests] = useState<Guest[]>([]);
   const [activities, setActivities] = useState<Activity[]>(INITIAL_ACTIVITIES);
@@ -238,7 +239,7 @@ export default function App() {
       </div>
       <main style={{ flex: 1, overflowY: "auto", overflowX: "hidden", background: "var(--bg)", position: "relative" }}>
         {group && (
-          <div style={{ padding: "8px 32px", borderBottom: "1px solid var(--border2)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ padding: "8px 32px", borderBottom: "1px solid var(--border2)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
             <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)" }}>
               {userIsOwner ? "👑 群主" : "🙋 成员"} · {currentUser}
             </span>
@@ -251,14 +252,60 @@ export default function App() {
               {group.members.length} 人 · {group.members.filter(m => m.preferenceStatus === "done").length} 已填偏好
             </span>
             <button
-              onClick={handleLogout}
-              title="退出当前身份"
+              onClick={() => setShowSwitch(v => !v)}
               style={{
                 fontSize: 10, color: "var(--muted)", background: "none",
                 border: "1px solid var(--border2)", borderRadius: 5,
                 padding: "3px 8px", cursor: "pointer", fontFamily: "var(--fb)",
+                position: "relative",
               }}
-            >退出</button>
+            >切换 ▾</button>
+            {showSwitch && (
+              <div style={{
+                position: "absolute", top: "100%", right: 32, marginTop: 4,
+                background: "var(--surface)", border: "1px solid var(--border2)",
+                borderRadius: "var(--r)", boxShadow: "var(--shh)", zIndex: 500,
+                minWidth: 140, padding: "4px 0", animation: "si .15s var(--sp) both",
+              }}>
+                {group.members.map(m => (
+                  <button
+                    key={m.name}
+                    onClick={() => {
+                      setCurrentUser(m.name);
+                      setUserIsOwner(group.ownerName === m.name);
+                      localStorage.setItem("gp_current_user_v2", m.name);
+                      setShowSwitch(false);
+                    }}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 8, width: "100%",
+                      padding: "7px 14px", border: "none", background: "none",
+                      cursor: "pointer", fontSize: 12, fontFamily: "var(--fb)",
+                      color: currentUser === m.name ? "var(--text)" : "var(--muted)",
+                      fontWeight: currentUser === m.name ? 600 : 400,
+                    }}
+                  >
+                    <span style={{
+                      width: 18, height: 18, borderRadius: "50%",
+                      background: bgMap[avColor(m.ini)], color: fgMap[avColor(m.ini)],
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 7, fontWeight: 700,
+                    }}>{m.ini}</span>
+                    {m.name}
+                    {currentUser === m.name && <span style={{ marginLeft: "auto", fontSize: 9 }}>✓</span>}
+                  </button>
+                ))}
+                <div style={{ height: 1, background: "var(--border2)", margin: "4px 0" }} />
+                <button
+                  onClick={() => { handleLogout(); setShowSwitch(false); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6, width: "100%",
+                    padding: "7px 14px", border: "none", background: "none",
+                    cursor: "pointer", fontSize: 12, fontFamily: "var(--fb)",
+                    color: "var(--muted)",
+                  }}
+                >+ 新用户加入</button>
+              </div>
+            )}
           </div>
         )}
         {tab === "overview"        && <OverviewTab    setTab={setTab} liveGuests={displayGuests} inviteCode={group?.inviteCode} isOwner={userIsOwner} />}
