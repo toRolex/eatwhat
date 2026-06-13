@@ -3,15 +3,15 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | GroupPlan',
-    default: 'GroupPlan — The Friday Gathering',
+    template: '%s | 今天整点啥',
+    default: '今天整点啥 — 少废话，直接出发',
   },
-  description: 'AI-powered group restaurant planning. Beautiful invitations, smart recommendations, easy voting.',
+  description: '用 AI 替代群里那个最操心的人——自动收集所有人偏好，生成一份大家都说得过去的一站式聚会方案。',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="zh-CN" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

@@ -20,17 +20,17 @@ function TweaksPanel({ tweaks, setTweaks }: { tweaks: Tweaks; setTweaks: (t: Twe
 
   return (
     <div className="gp-tweaks-panel" style={{ position: "fixed", bottom: 22, right: 22, zIndex: 300, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r)", padding: "15px 17px", width: 230, boxShadow: "var(--shh)", animation: "si .28s var(--sp)", transformOrigin: "bottom right", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
-      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 12 }}>Tweaks</div>
+      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 12 }}>设置</div>
       {(["darkMode", "showAIReasoning", "animations"] as (keyof Tweaks)[]).map(key => (
         <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 9 }}>
-          <span style={{ fontSize: 12, color: "var(--text)" }}>{key === "darkMode" ? "Dark Mode" : key === "showAIReasoning" ? "AI Reasoning" : "Animations"}</span>
+          <span style={{ fontSize: 12, color: "var(--text)" }}>{key === "darkMode" ? "深色模式" : key === "showAIReasoning" ? "AI 推演" : "动画效果"}</span>
           <button onClick={() => toggle(key)} style={{ width: 32, height: 18, borderRadius: 99, border: "none", cursor: "pointer", background: tweaks[key] ? "var(--text)" : "var(--border)", position: "relative", transition: "background .25s", flexShrink: 0 }}>
             <span style={{ position: "absolute", top: 1.5, left: tweaks[key] ? 13.5 : 1.5, width: 15, height: 15, borderRadius: "50%", background: "white", transition: "left .2s var(--sp)", boxShadow: "0 1px 4px rgba(0,0,0,.25)", display: "block" }} />
           </button>
         </div>
       ))}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 3 }}>
-        <span style={{ fontSize: 12, color: "var(--text)" }}>Accent</span>
+        <span style={{ fontSize: 12, color: "var(--text)" }}>主题色</span>
         <select value={tweaks.accentColor} onChange={e => setK("accentColor", e.target.value)} style={{ fontFamily: "var(--fb)", fontSize: 11, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 6, padding: "3px 6px", cursor: "pointer", color: "var(--text)" }}>
           <option value="coral">Coral</option>
           <option value="sage">Sage</option>
@@ -169,7 +169,7 @@ export default function App() {
       <header className="gp-mobile-topbar">
         <button
           onClick={() => setNavOpen(true)}
-          aria-label="Open menu"
+          aria-label="打开菜单"
           style={{ background: "var(--bg)", border: "1px solid var(--border2)", borderRadius: 8, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -183,11 +183,11 @@ export default function App() {
               <circle cx="9" cy="9" r="3" fill="var(--bg)" opacity=".5" />
             </svg>
           </div>
-          <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-.02em", color: "var(--text)" }}>GroupPlan</span>
+          <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: "-.02em", color: "var(--text)" }}>今天整点啥</span>
         </div>
         <button
           onClick={() => setShowNotif(v => !v)}
-          aria-label="Notifications"
+          aria-label="通知"
           style={{ position: "relative", background: "var(--bg)", border: "1px solid var(--border2)", borderRadius: 8, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
         >
           <svg width="13" height="14" viewBox="0 0 13 14" fill="none">
@@ -222,7 +222,7 @@ export default function App() {
       {/* Floating gear button — always visible */}
       <button
         onClick={() => setTweaksOn(v => !v)}
-        title="Tweaks"
+        title="设置"
         className="gp-tweaks-gear"
         style={{ position: "fixed", bottom: tweaksOn ? 270 : 22, right: 22, zIndex: 450, width: 36, height: 36, borderRadius: "50%", border: "1px solid var(--border2)", background: "var(--surface)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "var(--sh)", transition: "bottom .25s var(--sp), opacity .15s", opacity: tweaksOn ? 1 : 0.7 }}
         onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
@@ -240,10 +240,10 @@ export default function App() {
       {/* Beta CTA — fixed bottom banner */}
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 400, background: "var(--surface)", borderTop: "1px solid var(--border2)", padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, boxShadow: "0 -2px 12px rgba(0,0,0,.06)" }}>
         <p style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--fb)", margin: 0, lineHeight: 1.4 }}>
-          This is a live demo — <strong style={{ color: "var(--text)" }}>GroupPlan</strong> uses real AI to plan your next group dinner.
+          这是演示页面 — <strong style={{ color: "var(--text)" }}>今天整点啥</strong> 用 AI 帮你搞定聚会方案，少废话直接出发。
         </p>
         <a href="/login" style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "8px 16px", borderRadius: "var(--rs)", background: "var(--text)", color: "var(--bg)", fontSize: 12, fontWeight: 600, fontFamily: "var(--fb)", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
-          Plan a real dinner →
+          开整 →
         </a>
       </div>
     </div>
