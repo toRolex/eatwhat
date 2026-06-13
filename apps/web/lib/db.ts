@@ -537,15 +537,19 @@ export function insertModificationSuggestion(input: InsertModificationSuggestion
     input.affected_scope ?? null, input.ai_interpretation ?? null,
     input.status ?? 'pending', now,
   );
-  return d.prepare('SELECT * FROM modification_suggestions WHERE id = ?').get(id) as Record<string, unknown>;
+  const row = d.prepare('SELECT * FROM modification_suggestions WHERE id = ?').get(id) as Record<string, unknown>;
+  return { data: row, error: null };
 }
 
 export function getModificationSuggestionsByEvent(eventId: string, opts?: { status?: string }) {
   const d = getDb();
+  let rows: Record<string, unknown>[];
   if (opts?.status) {
-    return d.prepare('SELECT * FROM modification_suggestions WHERE event_id = ? AND status = ? ORDER BY created_at ASC').all(eventId, opts.status) as Record<string, unknown>[];
+    rows = d.prepare('SELECT * FROM modification_suggestions WHERE event_id = ? AND status = ? ORDER BY created_at ASC').all(eventId, opts.status) as Record<string, unknown>[];
+  } else {
+    rows = d.prepare('SELECT * FROM modification_suggestions WHERE event_id = ? ORDER BY created_at ASC').all(eventId) as Record<string, unknown>[];
   }
-  return d.prepare('SELECT * FROM modification_suggestions WHERE event_id = ? ORDER BY created_at ASC').all(eventId) as Record<string, unknown>[];
+  return { data: rows, error: null };
 }
 
 export function updateModificationSuggestionStatus(id: string, status: string, reviewedBy?: string) {
@@ -554,22 +558,26 @@ export function updateModificationSuggestionStatus(id: string, status: string, r
   if (reviewedBy) {
     d.prepare('UPDATE modification_suggestions SET status = ?, reviewed_by = ?, reviewed_at = ? WHERE id = ?').run(status, reviewedBy, now, id);
   } else {
-    d.prepare('UPDATE modification_suggestions SET status = ?, reviewed_at = ? WHERE id = ?').run(status, now, id);
+    d.prepare('UPDATE modification_suggestions SET status = ? WHERE id = ?').run(status, id);
   }
-  return d.prepare('SELECT * FROM modification_suggestions WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+  const row = d.prepare('SELECT * FROM modification_suggestions WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+  return { data: row ?? null, error: row ? null : { message: 'Not found' } };
 }
 
 export function bumpPlanVersion(eventId: string) {
   const d = getDb();
-  d.prepare('UPDATE events SET plan_version = plan_version + 1 WHERE id = ?').run(eventId);
+  const result = d.prepare('UPDATE events SET plan_version = plan_version + 1 WHERE id = ?').run(eventId);
+  if (result.changes === 0) {
+    return { data: null, error: { message: 'Not found' } };
+  }
   const row = d.prepare('SELECT plan_version FROM events WHERE id = ?').get(eventId) as { plan_version: number } | undefined;
-  return row?.plan_version ?? 1;
+  return { data: row!.plan_version, error: null };
 }
 
-export function getPlanVersion(eventId: string): number {
+export function getPlanVersion(eventId: string): { data: number | null; error: null } {
   const d = getDb();
   const row = d.prepare('SELECT plan_version FROM events WHERE id = ?').get(eventId) as { plan_version: number } | undefined;
-  return row?.plan_version ?? 1;
+  return { data: row?.plan_version ?? null, error: null };
 }
 
 export interface ModificationVersion {
@@ -578,12 +586,12 @@ export interface ModificationVersion {
   modification_summary: string | null;
 }
 
-export function getModificationHistory(eventId: string): ModificationVersion[] {
+export function getModificationHistory(eventId: string) {
   const d = getDb();
   const rows = d.prepare(
-    'SELECT DISTINCT version, created_at, modification_summary FROM proposals WHERE event_id = ? ORDER BY version DESC',
+    'SELECT version, MAX(created_at) as created_at, modification_summary FROM proposals WHERE event_id = ? GROUP BY version ORDER BY version DESC',
   ).all(eventId) as Array<{ version: number; created_at: string; modification_summary: string | null }>;
-  return rows;
+  return { data: rows, error: null };
 }
 
 // ---------------------------------------------------------------------------
