@@ -224,7 +224,7 @@ export function OverviewTab({ setTab, liveGuests, inviteCode, isOwner }: { setTa
         </div>
 
         {/* CTA */}
-        <Card delay={400} style={{ padding: "18px 20px", background: "var(--text)", border: "none", position: "relative", overflow: "hidden", marginBottom: 0 }}>
+        <Card delay={400} style={{ padding: "18px 20px", background: "var(--text)", borderWidth: 0, position: "relative", overflow: "hidden", marginBottom: 0 }}>
           <div style={{ position: "absolute", top: -40, right: -40, width: 140, height: 140, borderRadius: "50%", background: "rgba(255,255,255,.04)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", bottom: -20, left: 120, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,.03)", pointerEvents: "none" }} />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, position: "relative" }}>
