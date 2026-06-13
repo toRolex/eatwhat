@@ -114,7 +114,7 @@ export function MassiveFooter({ eventName = "周五聚餐计划" }: { eventName?
 }
 
 // ── Overview Tab ─────────────────────────────────────────────────────────────
-export function OverviewTab({ setTab, liveGuests }: { setTab: (t: string) => void; liveGuests: Guest[] }) {
+export function OverviewTab({ setTab, liveGuests, inviteCode, isOwner }: { setTab: (t: string) => void; liveGuests: Guest[]; inviteCode?: string; isOwner?: boolean }) {
   const confirmed = liveGuests.filter(g => g.status === "confirmed");
   const dietary: Record<string, number> = {};
   confirmed.forEach(g => g.dietary.forEach(d => { dietary[d] = (dietary[d] || 0) + 1; }));
@@ -151,13 +151,25 @@ export function OverviewTab({ setTab, liveGuests }: { setTab: (t: string) => voi
         </div>
       </div>
 
+      {isOwner && inviteCode && (
+        <div style={{ padding: "12px 32px", background: "oklch(95% .04 228)", borderBottom: "1px solid oklch(85% .08 228)", display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 11, color: "var(--muted)", fontFamily: "var(--fb)" }}>邀请码</span>
+          <span style={{ fontFamily: "var(--fd)", fontSize: 28, letterSpacing: "6px", color: "var(--text)" }}>
+            {inviteCode}
+          </span>
+          <span style={{ fontSize: 10, color: "var(--muted)", fontFamily: "var(--fb)" }}>
+            分享给朋友即可加入
+          </span>
+        </div>
+      )}
+
       <div style={{ padding: "24px 32px 0", maxWidth: 820 }}>
         <LiveActivity liveGuests={liveGuests} />
 
         {/* Stat cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 12 }}>
           {[
-            { label: "已确认", val: confirmed.length, sub: "共 8 人邀请",  acc: "var(--sage)"  },
+            { label: "已确认", val: confirmed.length, sub: `共 ${liveGuests.length} 人`,  acc: "var(--sage)"  },
             { label: "饮食需求", val: Object.keys(dietary).length, sub: "不同需求", acc: "var(--sky)" },
             { label: "距离活动",  val: 5,               sub: "周五",   acc: "var(--amber)" },
           ].map((s, i) => (
@@ -541,7 +553,7 @@ interface SynthesizeDebug {
   rawResponse: string;
 }
 
-export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (item: Omit<Activity, "id" | "read">) => void }) {
+export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweaks: Tweaks; addActivity: (item: Omit<Activity, "id" | "read">) => void; isOwner?: boolean; group?: any; onAiDone?: (proposals: any[]) => void }) {
   const [phase, setPhase] = useState<"idle" | "running" | "done" | "error">(() => {
     if (typeof window !== "undefined") return (localStorage.getItem("gp_ai") as any) || "idle";
     return "idle";
@@ -558,6 +570,7 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
   const [showDebug, setShowDebug]     = useState(false);
   const [errorMsg, setErrorMsg]       = useState("");
   const [waitMsg, setWaitMsg]         = useState(0);
+  const storedProposals = group?.aiProposals;
   useEffect(() => { localStorage.setItem("gp_ai", phase); }, [phase]);
 
   const WAIT_MESSAGES = [
@@ -571,6 +584,17 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
 
   const run = async () => {
     setPhase("running"); setStep(0); setErrorMsg(""); setWaitMsg(0);
+
+    // Collect preferences from group members
+    const prefs = (group?.members || [])
+      .filter((m: any) => m.preferenceStatus === "done" || m.vibe)
+      .map((m: any) => ({
+        name: m.name,
+        dietary: m.dietary || [],
+        cuisine: m.cuisine || [],
+        budget: m.budget || "$$",
+        vibe: m.vibe || null,
+      }));
 
     // Animate 6 steps evenly over ~60s (10s per step)
     const STEP_MS = 10000;
@@ -589,7 +613,7 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
       const res = await fetch("/api/demo/synthesize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ location }),
+        body: JSON.stringify({ location, preferences: prefs }),
       });
       clearInterval(iv);
       clearInterval(wm);
@@ -604,6 +628,7 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
       setDebug(dbg);
       localStorage.setItem("gp_ai_proposals", JSON.stringify(data.proposals));
       localStorage.setItem("gp_ai_debug", JSON.stringify(dbg));
+      if (data.proposals && onAiDone) onAiDone(data.proposals);
       setTimeout(() => {
         setPhase("done");
         addActivity({ type: "ai", ini: "AI", name: "AI Engine", msg: `Synthesis complete — 3 venues ranked in ${location}`, time: "just now" });
@@ -654,9 +679,15 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
           />
         </div>
         {phase === "error" && <p style={{ fontSize: 12, color: "oklch(55% 0.18 26)", fontFamily: "var(--fb)", marginBottom: 10 }}>{errorMsg}</p>}
-        <Btn onClick={run} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-          生成方案 →
-        </Btn>
+        {isOwner ? (
+          <Btn onClick={run} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+            生成方案 →
+          </Btn>
+        ) : (
+          <p style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--fb)", padding: "12px 0" }}>
+            等待群主生成方案…
+          </p>
+        )}
       </div>
       <MassiveFooter eventName="AI Synthesis" />
     </div>
@@ -700,9 +731,15 @@ export function AITab({ tweaks, addActivity }: { tweaks: Tweaks; addActivity: (i
         <p style={{ fontSize: 11, color: "var(--muted)" }}><strong style={{ color: "var(--text)" }}>{location}</strong> 的真实商家 · DeepSeek 根据 5 人偏好综合排序</p>
       </div>
       <div style={{ padding: "24px 32px 0", maxWidth: 760 }}>
-        {realProposals.map((p, i) => (
-          <RealRestCard key={i} p={p} delay={i * 80} tweaks={tweaks} open={!!open[i]} onToggle={() => setOpen(prev => ({ ...prev, [i]: !prev[i] }))} />
-        ))}
+        {realProposals.length > 0 ? (
+          realProposals.map((p, i) => (
+            <RealRestCard key={i} p={p} delay={i * 80} tweaks={tweaks} open={!!open[i]} onToggle={() => setOpen(prev => ({ ...prev, [i]: !prev[i] }))} />
+          ))
+        ) : storedProposals?.length > 0 ? (
+          storedProposals.map((p: any, i: number) => (
+            <RealRestCard key={i} p={p} delay={i * 80} tweaks={tweaks} open={!!open[i]} onToggle={() => setOpen(prev => ({ ...prev, [i]: !prev[i] }))} />
+          ))
+        ) : null}
 
         {/* DeepSeek 思维链 */}
         {debug.prompt && (

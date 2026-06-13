@@ -231,12 +231,12 @@ export default function App() {
             </span>
           </div>
         )}
-        {tab === "overview"        && <OverviewTab    setTab={setTab} liveGuests={displayGuests} />}
+        {tab === "overview"        && <OverviewTab    setTab={setTab} liveGuests={displayGuests} inviteCode={group?.inviteCode} isOwner={userIsOwner} />}
         {tab === "preferences"      && <PreferencesTab liveGuests={displayGuests} />}
         {tab === "chat-preference" && currentUser && (
           <ChatPreference currentUser={currentUser} onPreferencesCollected={handlePrefsCollected} />
         )}
-        {tab === "ai"               && <AITab          tweaks={tweaks} addActivity={addActivity} />}
+        {tab === "ai"               && <AITab          tweaks={tweaks} addActivity={addActivity} isOwner={userIsOwner} group={group} onAiDone={handleAiDone} />}
         {tab === "vote"        && <VoteTab        addActivity={addActivity} />}
       </main>
       {/* Floating gear button — always visible */}
