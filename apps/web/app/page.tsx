@@ -1,11 +1,13 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Tweaks, TWEAKS_DEFAULTS, GUESTS_DATA, INITIAL_ACTIVITIES, Guest, Activity } from "../components/demo/types";
+import { Tweaks, TWEAKS_DEFAULTS, INITIAL_ACTIVITIES, Guest, Activity, bgMap, fgMap, avColor } from "../components/demo/types";
 import { Sidebar, ShareModal, CreateEventModal } from "../components/demo/modals";
 import { NotificationPanel } from "../components/demo/notifications";
 import { OverviewTab, PreferencesTab, AITab, VoteTab } from "../components/demo/tabs";
 import ChatPreference from "../components/demo/ChatPreference";
+import { loadGroup, updateMemberPrefs, setMemberChatting, saveAiProposals, isOwner, type GroupState } from "@/lib/group-store";
+import LoginModal from "../components/demo/LoginModal";
 
 function TweaksPanel({ tweaks, setTweaks }: { tweaks: Tweaks; setTweaks: (t: Tweaks) => void }) {
   const toggle = (k: keyof Tweaks) => {
@@ -43,30 +45,11 @@ function TweaksPanel({ tweaks, setTweaks }: { tweaks: Tweaks; setTweaks: (t: Twe
   );
 }
 
-function mergeGuests(): Guest[] {
-  try {
-    const submissions: any[] = JSON.parse(localStorage.getItem("gp_rsvp_submissions") || "[]");
-    const base = [...GUESTS_DATA];
-    submissions.forEach(sub => {
-      const exists = base.find(g => g.name.toLowerCase() === sub.name?.toLowerCase());
-      if (exists) {
-        exists.status = sub.attending === "yes" ? "confirmed" : sub.attending === "no" ? "declined" : "pending";
-        if (sub.vibe) exists.vibe = sub.vibe;
-        if (sub.dietary?.length) exists.dietary = sub.dietary;
-        if (sub.cuisine?.length) exists.cuisine = sub.cuisine;
-        if (sub.budget) exists.budget = sub.budget;
-      } else if (sub.name) {
-        const ini = sub.name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2) || "??";
-        base.push({ id: Date.now() + Math.random(), name: sub.name, ini, status: sub.attending === "yes" ? "confirmed" : "pending", dietary: sub.dietary || [], cuisine: sub.cuisine || [], budget: sub.budget || "$$", vibe: sub.vibe || null });
-      }
-    });
-    return base;
-  } catch { return [...GUESTS_DATA]; }
+function nameToIni(name: string): string {
+  return name.slice(0, 2).toUpperCase() || "??";
 }
 
 export default function App() {
-  // Both states start from defaults on server AND first client paint to keep
-  // hydration consistent, then read localStorage in useEffect after mount.
   const [tab, setTab]       = useState<string>("overview");
   const [tweaks, setTweaks] = useState<Tweaks>(TWEAKS_DEFAULTS);
   const [hydrated, setHydrated] = useState(false);
@@ -76,10 +59,12 @@ export default function App() {
   const [showCreate, setShowCreate] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
-  // Start from INITIAL_ACTIVITIES on both server and client to avoid hydration mismatch;
-  // hydrate from localStorage after mount.
+  const [liveGuests, setLiveGuests] = useState<Guest[]>([]);
   const [activities, setActivities] = useState<Activity[]>(INITIAL_ACTIVITIES);
-  const [liveGuests, setLiveGuests] = useState<Guest[]>(() => [...GUESTS_DATA]);
+  const [showLogin, setShowLogin] = useState(true);
+  const [group, setGroup] = useState<GroupState | null>(null);
+  const [currentUser, setCurrentUser] = useState("");
+  const [userIsOwner, setUserIsOwner] = useState(false);
 
   useEffect(() => {
     try {
@@ -89,8 +74,9 @@ export default function App() {
       if (savedTweaks) setTweaks({ ...TWEAKS_DEFAULTS, ...JSON.parse(savedTweaks) });
       const s = localStorage.getItem("gp_activities");
       if (s) setActivities(JSON.parse(s));
+      const cu = localStorage.getItem("gp_current_user_v2");
+      if (cu) setCurrentUser(cu);
     } catch {}
-    setLiveGuests(mergeGuests());
     setHydrated(true);
   }, []);
 
@@ -144,29 +130,44 @@ export default function App() {
     });
   }, []);
 
-  // Sync RSVP submissions from other tabs
-  useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "gp_rsvp_submissions") {
-        setLiveGuests(mergeGuests());
-        try {
-          const subs: any[] = JSON.parse(e.newValue || "[]");
-          const latest = subs[subs.length - 1];
-          if (latest?.name) {
-            addActivity({ type: "rsvp", ini: latest.name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2), name: latest.name, msg: `submitted RSVP · ${latest.attending === "yes" ? "confirmed" : "pending"}`, time: "just now" });
-          }
-        } catch {}
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, [addActivity]);
+  const handleLoginReady = (userName: string, owner: boolean) => {
+    setCurrentUser(userName);
+    setUserIsOwner(owner);
+    setGroup(loadGroup());
+    setShowLogin(false);
+    localStorage.setItem("gp_current_user_v2", userName);
+  };
+
+  const handlePrefsCollected = (userName: string, prefs: any) => {
+    const updated = updateMemberPrefs(userName, {
+      vibe: prefs.vibe,
+      dietary: prefs.dietary,
+      cuisine: prefs.cuisine,
+      budget: prefs.budget,
+    });
+    if (updated) {
+      setGroup(updated);
+      setLiveGuests(updated.members.map((m, i) => ({
+        id: i + 1, name: m.name, ini: m.ini,
+        status: "confirmed" as const,
+        dietary: m.dietary, cuisine: m.cuisine,
+        budget: m.budget, vibe: m.vibe,
+      })));
+      addActivity({ type: "vibe", ini: userName.slice(0, 2).toUpperCase() || "??", name: userName, msg: "偏好已收集", time: "just now" });
+    }
+  };
+
+  const handleAiDone = (proposals: any[]) => {
+    const updated = saveAiProposals(proposals);
+    if (updated) setGroup(updated);
+  };
 
   const displayGuests = supaGuests ?? liveGuests;
   const tabProps = { tweaks, liveGuests: displayGuests, addActivity, setTab };
 
   return (
     <div className="gp-app-shell">
+      {showLogin && <LoginModal onGroupReady={handleLoginReady} />}
       <header className="gp-mobile-topbar">
         <button
           onClick={() => setNavOpen(true)}
@@ -215,9 +216,26 @@ export default function App() {
         />
       </div>
       <main style={{ flex: 1, overflowY: "auto", overflowX: "hidden", background: "var(--bg)", position: "relative" }}>
+        {group && (
+          <div style={{ padding: "8px 32px", borderBottom: "1px solid var(--border2)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)" }}>
+              {userIsOwner ? "👑 群主" : "🙋 成员"} · {currentUser}
+            </span>
+            {userIsOwner && group && (
+              <span style={{ fontSize: 11, color: "var(--text)", fontFamily: "var(--fd)", letterSpacing: "2px", background: "var(--bg)", padding: "3px 10px", borderRadius: 6, border: "1px solid var(--border2)" }}>
+                邀请码: {group.inviteCode}
+              </span>
+            )}
+            <span style={{ fontSize: 10, color: "var(--muted)", marginLeft: "auto" }}>
+              {group.members.length} 人 · {group.members.filter(m => m.preferenceStatus === "done").length} 已填偏好
+            </span>
+          </div>
+        )}
         {tab === "overview"        && <OverviewTab    setTab={setTab} liveGuests={displayGuests} />}
         {tab === "preferences"      && <PreferencesTab liveGuests={displayGuests} />}
-        {tab === "chat-preference"  && <ChatPreference />}
+        {tab === "chat-preference" && currentUser && (
+          <ChatPreference currentUser={currentUser} onPreferencesCollected={handlePrefsCollected} />
+        )}
         {tab === "ai"               && <AITab          tweaks={tweaks} addActivity={addActivity} />}
         {tab === "vote"        && <VoteTab        addActivity={addActivity} />}
       </main>
