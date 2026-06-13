@@ -68,14 +68,7 @@ export const RESTAURANTS_DATA: Restaurant[] = [
   { id:3, name:"金稻园砂锅粥",           cuisine:"粤菜·砂锅粥", price:"$",   dist:"0.7km", rating:4.6, match:82, tags:["宵夜圣地","性价比高","广东味道"],       addr:"南油生活区",      hours:"17:00-03:00", reasoning:"人均 80 吃到撑，满足了阿花的预算和清爽需求。砂锅粥配几碟小炒，十几个人也能拼桌。", accent:"#8B7AB8" },
 ];
 
-export const INITIAL_ACTIVITIES: Activity[] = [
-  { id:6, type:"system", ini:"HJ", name:"今天整点啥",    msg:"聚会创建 · 周五聚餐计划",                         time:"1小时前", read:true  },
-  { id:5, type:"rsvp",   ini:"DL", name:"大刘",          msg:"已确认参加",                                      time:"42分前", read:true  },
-  { id:4, type:"rsvp",   ini:"XL", name:"小林",          msg:"已确认 · 标注了海鲜过敏",                          time:"31分前", read:true  },
-  { id:3, type:"rsvp",   ini:"AH", name:"阿花",          msg:"已确认 · 提交了偏好",                              time:"18分前", read:false },
-  { id:2, type:"vibe",   ini:"LZ", name:"老张",          msg:`提交了偏好：「今晚我请客，档次不能低」`,            time:"9分前",  read:false },
-  { id:1, type:"rsvp",   ini:"XM", name:"小明",          msg:"已确认参加",                                      time:"2分前",  read:false },
-];
+export const INITIAL_ACTIVITIES: Activity[] = [];
 
 export const clrs = ["coral","sage","sky","amber","lav"] as const;
 export const bgMap: Record<string,string> = {

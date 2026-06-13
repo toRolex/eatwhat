@@ -17,6 +17,7 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
   const [nameError, setnameError] = useState("");
   const [eventType, setEventType] = useState<"meal_only" | "activity_only" | "meal_activity" | "undecided">("meal_only");
   const [location, setLocation] = useState("深圳南山区");
+  const [maxMembers, setMaxMembers] = useState(8);
   const [inviteCode, setInviteCode] = useState("");
   const [inviteError, setInviteError] = useState("");
   const [nameConfirmed, setNameConfirmed] = useState(false);
@@ -34,9 +35,9 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
   const handleCreate = useCallback(async () => {
     const trimmed = name.trim();
     if (!trimmed) return;
-    createGroup(trimmed, eventType, location);
+    createGroup(trimmed, eventType, location, maxMembers);
     onGroupReady(trimmed, true);
-  }, [name, eventType, location, onGroupReady]);
+  }, [name, eventType, location, maxMembers, onGroupReady]);
 
   const handleJoin = useCallback(async () => {
     const trimmed = name.trim();
@@ -48,6 +49,8 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
       setInviteError("邀请码不正确");
     } else if (result === "NAME_TAKEN") {
       setInviteError("这个名字已被使用，换一个试试");
+    } else if (result === "FULL") {
+      setInviteError("聚会已满员，无法加入");
     } else if (result) {
       onGroupReady(trimmed, false);
     }
@@ -258,7 +261,7 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
                 </select>
               </div>
 
-              <div style={{ marginBottom: 20 }}>
+              <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--muted)", marginBottom: 5, fontFamily: "var(--fb)" }}>
                   位置
                 </label>
@@ -266,6 +269,22 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
                   value={location}
                   onChange={e => setLocation(e.target.value)}
                   placeholder="深圳南山区"
+                  style={s.input}
+                  onFocus={e => (e.target.style.borderColor = "var(--border)")}
+                  onBlur={e => (e.target.style.borderColor = "var(--border2)")}
+                />
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: "block", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--muted)", marginBottom: 5, fontFamily: "var(--fb)" }}>
+                  最大人数
+                </label>
+                <input
+                  type="number"
+                  min={2}
+                  max={20}
+                  value={maxMembers}
+                  onChange={e => setMaxMembers(Math.max(2, Math.min(20, parseInt(e.target.value) || 2)))}
                   style={s.input}
                   onFocus={e => (e.target.style.borderColor = "var(--border)")}
                   onBlur={e => (e.target.style.borderColor = "var(--border2)")}

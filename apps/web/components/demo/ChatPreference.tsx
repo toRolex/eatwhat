@@ -228,6 +228,7 @@ export default function ChatPreference({ currentUser, onPreferencesCollected }: 
   const send = async () => {
     const text = input.trim();
     if (!text || loading || complete) return;
+    setInput("");
     quickReply(text);
   };
 

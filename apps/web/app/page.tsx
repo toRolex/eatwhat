@@ -6,7 +6,7 @@ import { Sidebar, ShareModal, CreateEventModal } from "../components/demo/modals
 import { NotificationPanel } from "../components/demo/notifications";
 import { OverviewTab, PreferencesTab, AITab } from "../components/demo/tabs";
 import ChatPreference from "../components/demo/ChatPreference";
-import { loadGroup, updateMemberPrefs, setMemberChatting, saveAiProposals, isOwner, type GroupState } from "@/lib/group-store";
+import { loadGroup, updateMemberPrefs, setMemberChatting, saveAiProposals, isOwner, clearGroup, type GroupState } from "@/lib/group-store";
 import LoginModal from "../components/demo/LoginModal";
 
 function TweaksPanel({ tweaks, setTweaks }: { tweaks: Tweaks; setTweaks: (t: Tweaks) => void }) {
@@ -160,6 +160,19 @@ export default function App() {
     setLiveGuests([]);
   };
 
+  const handleReset = () => {
+    clearGroup();
+    setGroup(null);
+    setLiveGuests([]);
+    setActivities([]);
+    setCurrentUser("");
+    setUserIsOwner(false);
+    setShowLogin(true);
+    ["gp_ai","gp_ai_proposals","gp_ai_debug","gp_activities","gp_current_user_v2","gp_tab","gp_scores","gp_voted"].forEach(k => localStorage.removeItem(k));
+    // Clear chat rooms
+    Object.keys(localStorage).filter(k => k.startsWith("gp_chat_")).forEach(k => localStorage.removeItem(k));
+  };
+
   const handlePrefsCollected = (userName: string, prefs: any) => {
     const updated = updateMemberPrefs(userName, {
       vibe: prefs.vibe,
@@ -249,8 +262,17 @@ export default function App() {
               </span>
             )}
             <span style={{ fontSize: 10, color: "var(--muted)", marginLeft: "auto" }}>
-              {group.members.length} 人 · {group.members.filter(m => m.preferenceStatus === "done").length} 已填偏好
+              {group.members.length}/{group.maxMembers} 人 · {group.members.filter(m => m.preferenceStatus === "done").length} 已填偏好
             </span>
+            <button
+              onClick={() => { if (confirm("确定要重置整个演示吗？所有数据将丢失。")) handleReset(); }}
+              style={{
+                fontSize: 10, color: "var(--coral)", background: "none",
+                border: "1px solid var(--border2)", borderRadius: 5,
+                padding: "3px 8px", cursor: "pointer", fontFamily: "var(--fb)",
+              }}
+              title="重置演示"
+            >重置</button>
             <button
               onClick={() => setShowSwitch(v => !v)}
               style={{

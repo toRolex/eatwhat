@@ -14,6 +14,7 @@ export interface GroupState {
   ownerName: string;
   eventType: "meal_only" | "activity_only" | "meal_activity" | "undecided";
   location: string;
+  maxMembers: number;
   members: GroupMember[];
   aiProposals: any[] | null;
   createdAt: number;
@@ -50,7 +51,8 @@ export function clearGroup(): void {
 export function createGroup(
   ownerName: string,
   eventType: GroupState["eventType"],
-  location: string
+  location: string,
+  maxMembers: number = 8
 ): GroupState {
   const owner: GroupMember = {
     name: ownerName,
@@ -68,6 +70,7 @@ export function createGroup(
     ownerName,
     eventType,
     location,
+    maxMembers,
     members: [owner],
     aiProposals: null,
     createdAt: Date.now(),
@@ -80,7 +83,7 @@ export function createGroup(
 export function joinGroup(
   name: string,
   inviteCode: string
-): GroupState | "NOT_FOUND" | "WRONG_CODE" | "NAME_TAKEN" {
+): GroupState | "NOT_FOUND" | "WRONG_CODE" | "NAME_TAKEN" | "FULL" {
   const group = loadGroup();
   if (!group) return "NOT_FOUND";
   if (group.inviteCode !== inviteCode) return "WRONG_CODE";
@@ -89,6 +92,8 @@ export function joinGroup(
     (m) => m.name.toLowerCase() === name.toLowerCase()
   );
   if (existing) return "NAME_TAKEN";
+
+  if (group.members.length >= group.maxMembers) return "FULL";
 
   const member: GroupMember = {
     name,
