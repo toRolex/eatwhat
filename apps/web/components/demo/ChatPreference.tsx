@@ -88,47 +88,60 @@ function parseQuickOptions(text: string): { body: string; options: QuickOption[]
 
 const WELCOME_V2 = "哟！来活儿了 🐦 码头海鸥聚会参谋已就位～\n\n先定个调，这次聚会想怎么搞？\n\nA. 只吃饭，找家靠谱的店\nB. 只玩乐，KTV/桌游/密室走起\nC. 吃饭+娱乐，一条龙安排\nD. 还没想好，交给海鸥参谋";
 
-export default function ChatPreference() {
+
+export default function ChatPreference({ currentUser, onPreferencesCollected }: {
+  currentUser: string;
+  onPreferencesCollected: (name: string, prefs: any) => void;
+}) {
+  const userRoomKey = `gp_chat_room_${currentUser}`;
+  const userMsgKey = `gp_chat_messages_${currentUser}`;
+  const userCompleteKey = `gp_chat_complete_${currentUser}`;
+  const userVersionKey = `gp_chat_version_${currentUser}`;
+
+  const initialMsg = currentUser
+    ? [{ role: "assistant" as const, content: `嘿 ${currentUser}！来活儿了 🐦 码头海鸥聚会参谋已就位～\n\n先定个调，这次聚会想怎么搞？\n\nA. 只吃饭，找家靠谱的店\nB. 只玩乐，KTV/桌游/密室走起\nC. 吃饭+娱乐，一条龙安排\nD. 还没想好，交给海鸥参谋` }]
+    : [{ role: "assistant" as const, content: WELCOME_V2 }];
+
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && currentUser) {
       try {
-        const savedVersion = localStorage.getItem("gp_chat_version");
+        const savedVersion = localStorage.getItem(userVersionKey);
         if (savedVersion === "v2") {
-          const saved = localStorage.getItem("gp_chat_messages");
+          const saved = localStorage.getItem(userMsgKey);
           if (saved) return JSON.parse(saved);
         }
       } catch {}
     }
-    localStorage.setItem("gp_chat_version", "v2");
-    return [{ role: "assistant", content: WELCOME_V2 }];
+    if (currentUser) localStorage.setItem(userVersionKey, "v2");
+    return initialMsg;
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [complete, setComplete] = useState(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("gp_chat_complete") === "true";
+    if (typeof window !== "undefined" && currentUser) return localStorage.getItem(userCompleteKey) === "true";
     return false;
   });
   const [clickedOptions, setClickedOptions] = useState<Record<number, boolean>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const roomId = useRef(
-    typeof window !== "undefined"
-      ? localStorage.getItem("gp_chat_room") || crypto.randomUUID()
+    typeof window !== "undefined" && currentUser
+      ? localStorage.getItem(userRoomKey) || crypto.randomUUID()
       : "server"
   );
 
   useEffect(() => {
-    localStorage.setItem("gp_chat_room", roomId.current);
-  }, []);
+    if (currentUser) localStorage.setItem(userRoomKey, roomId.current);
+  }, [currentUser, userRoomKey]);
 
   useEffect(() => {
-    localStorage.setItem("gp_chat_messages", JSON.stringify(messages));
+    if (currentUser) localStorage.setItem(userMsgKey, JSON.stringify(messages));
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, currentUser, userMsgKey]);
 
   useEffect(() => {
-    localStorage.setItem("gp_chat_complete", String(complete));
-  }, [complete]);
+    if (currentUser) localStorage.setItem(userCompleteKey, String(complete));
+  }, [complete, currentUser, userCompleteKey]);
 
   // Reset clicked options when a new assistant message arrives
   useEffect(() => {
@@ -136,7 +149,7 @@ export default function ChatPreference() {
   }, [messages.length]);
 
   const quickReply = (label: string) => {
-    if (loading || complete) return;
+    if (loading || complete || !currentUser) return;
     const text = label;
     const userMsg: ChatMessage = { role: "user", content: text };
     const next = [...messages, userMsg];
@@ -149,6 +162,7 @@ export default function ChatPreference() {
       body: JSON.stringify({
         message: text,
         roomId: roomId.current,
+        userName: currentUser,
         conversationHistory: messages,
       }),
     })
@@ -162,7 +176,10 @@ export default function ChatPreference() {
       .then((data) => {
         const aiMsg: ChatMessage = { role: "assistant", content: data.reply };
         setMessages(prev => [...prev, aiMsg]);
-        if (data.complete) setComplete(true);
+        if (data.complete && data.preferences) {
+          setComplete(true);
+          onPreferencesCollected(currentUser, data.preferences);
+        }
       })
       .catch(() => {
         setMessages(prev => [...prev, { role: "assistant", content: "哎呀，海鸥翅膀卡住了…等一下再试试？🐦" }]);
@@ -177,13 +194,18 @@ export default function ChatPreference() {
   };
 
   const reset = () => {
-    setMessages([{ role: "assistant", content: WELCOME_V2 }]);
+    const welcome = currentUser
+      ? `嘿 ${currentUser}！来活儿了 🐦 码头海鸥聚会参谋已就位～\n\n先定个调，这次聚会想怎么搞？\n\nA. 只吃饭，找家靠谱的店\nB. 只玩乐，KTV/桌游/密室走起\nC. 吃饭+娱乐，一条龙安排\nD. 还没想好，交给海鸥参谋`
+      : WELCOME_V2;
+    setMessages([{ role: "assistant", content: welcome }]);
     setComplete(false);
     setClickedOptions({});
-    localStorage.removeItem("gp_chat_messages");
-    localStorage.removeItem("gp_chat_complete");
-    roomId.current = crypto.randomUUID();
-    localStorage.setItem("gp_chat_room", roomId.current);
+    if (currentUser) {
+      localStorage.removeItem(userMsgKey);
+      localStorage.removeItem(userCompleteKey);
+      roomId.current = crypto.randomUUID();
+      localStorage.setItem(userRoomKey, roomId.current);
+    }
   };
 
   /** Render a single message bubble, with quick-reply buttons for assistant messages */
@@ -339,13 +361,25 @@ export default function ChatPreference() {
         <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", textWrap: "balance" as React.CSSProperties["textWrap"] }}>
           海鸥参谋<br /><em>帮你定偏好</em>
         </h2>
+        {currentUser && <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>当前用户: <strong style={{ color: "var(--text)" }}>{currentUser}</strong></p>}
       </div>
 
+      {!currentUser && (
+        <div style={{ padding: "48px 32px", maxWidth: 520, textAlign: "center" }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>🐦</div>
+          <h3 style={{ fontFamily: "var(--fd)", fontSize: 22, color: "var(--text)", marginBottom: 8 }}>请先选择一个用户</h3>
+          <p style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.7, fontFamily: "var(--fb)" }}>
+            在顶部"模拟用户"栏中点击已有用户切换身份，<br />或输入新名字添加一个模拟用户。
+          </p>
+        </div>
+      )}
+
+      {currentUser && (<>
       {complete && (
         <div style={{ padding: "12px 32px 0", maxWidth: 640 }}>
           <div style={{ padding: "12px 16px", borderRadius: "var(--r)", background: "oklch(95% .04 148)", border: "1px solid oklch(85% .08 148)", color: "oklch(34% .13 148)", fontSize: 12, fontWeight: 500, fontFamily: "var(--fb)", display: "flex", alignItems: "center", gap: 8, animation: "si .3s var(--sp) both" }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            偏好已收集完成！海鸥已把信息存好，去 AI 推荐标签生成方案吧。
+            偏好已收集完成！
           </div>
           <button
             onClick={reset}
@@ -469,6 +503,7 @@ export default function ChatPreference() {
           </div>
         </div>
       </footer>
+      </>)}
     </div>
   );
 }
