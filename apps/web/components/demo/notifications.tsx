@@ -5,7 +5,6 @@ import { Activity, avColor, bgMap, fgMap } from "./types";
 const typeColor: Record<string, string> = {
   rsvp:   "var(--sage)",
   vibe:   "var(--sky)",
-  vote:   "var(--amber)",
   system: "var(--amber)",
   ai:     "var(--lav)",
 };

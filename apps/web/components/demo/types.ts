@@ -11,7 +11,7 @@ export interface Guest {
 
 export interface Activity {
   id: number;
-  type: "rsvp" | "vibe" | "system" | "ai" | "vote";
+  type: "rsvp" | "vibe" | "system" | "ai";
   ini: string;
   name: string;
   msg: string;

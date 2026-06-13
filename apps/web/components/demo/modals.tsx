@@ -196,7 +196,6 @@ export function Sidebar({
     { id: "preferences",    icon: "◈", label: "偏好" },
     { id: "chat-preference",icon: "🐦", label: "AI 对话" },
     { id: "ai",             icon: "◆", label: "AI 推荐", badge: "新" },
-    { id: "vote",           icon: "◎", label: "投票" },
   ];
 
   return (

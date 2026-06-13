@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Tweaks, TWEAKS_DEFAULTS, INITIAL_ACTIVITIES, Guest, Activity, bgMap, fgMap, avColor } from "../components/demo/types";
 import { Sidebar, ShareModal, CreateEventModal } from "../components/demo/modals";
 import { NotificationPanel } from "../components/demo/notifications";
-import { OverviewTab, PreferencesTab, AITab, VoteTab } from "../components/demo/tabs";
+import { OverviewTab, PreferencesTab, AITab } from "../components/demo/tabs";
 import ChatPreference from "../components/demo/ChatPreference";
 import { loadGroup, updateMemberPrefs, setMemberChatting, saveAiProposals, isOwner, type GroupState } from "@/lib/group-store";
 import LoginModal from "../components/demo/LoginModal";
@@ -314,7 +314,6 @@ export default function App() {
           <ChatPreference currentUser={currentUser} onPreferencesCollected={handlePrefsCollected} />
         )}
         {tab === "ai"               && <AITab          tweaks={tweaks} addActivity={addActivity} isOwner={userIsOwner} group={group} onAiDone={handleAiDone} />}
-        {tab === "vote"        && <VoteTab        addActivity={addActivity} />}
       </main>
       {/* Floating gear button — always visible */}
       <button

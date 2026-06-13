@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Guest, Restaurant, Tweaks, RESTAURANTS_DATA, avColor, bgMap, fgMap } from "./types";
+import { Guest, Restaurant, Tweaks, avColor, bgMap, fgMap } from "./types";
 import { Av, Badge, Card, Btn, Bracket, SectionLabel } from "./ui";
 import { Activity } from "./types";
 
@@ -793,7 +793,7 @@ export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweak
                 🧠 思维链
               </span>
               <span style={{ color: "var(--muted)", flex: 1, textAlign: "left" }}>
-                DeepSeek 输入输出 · 共 {(debug.prompt.length + debug.reasoning.length + debug.rawResponse.length).toLocaleString()} 字符
+                DeepSeek 输入输出 · 共 {((debug.prompt || "").length + (debug.reasoning || "").length + (debug.rawResponse || "").length).toLocaleString()} 字符
               </span>
               <span style={{
                 display: "inline-block", transition: "transform .2s var(--sp)",
@@ -881,120 +881,6 @@ export function AITab({ tweaks, addActivity, isOwner, group, onAiDone }: { tweak
         )}
       </div>
       <MassiveFooter eventName="AI Results" />
-    </div>
-  );
-}
-
-// ── Vote Tab ─────────────────────────────────────────────────────────────────
-function downloadICS(restaurant: Restaurant) {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const dt = new Date(2026, 3, 25, 19, 0, 0), dte = new Date(2026, 3, 25, 22, 0, 0);
-  const fmt = (d: Date) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
-  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//GroupPlan//EN","BEGIN:VEVENT",`DTSTART:${fmt(dt)}`,`DTEND:${fmt(dte)}`,`SUMMARY:The Friday Gathering @ ${restaurant.name}`,`DESCRIPTION:GroupPlan event · AI-matched.`,`LOCATION:${restaurant.addr}\\, NYC`,"STATUS:CONFIRMED","END:VEVENT","END:VCALENDAR"].join("\r\n");
-  const blob = new Blob([ics], { type: "text/calendar" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = "friday-gathering.ics"; a.click(); URL.revokeObjectURL(url);
-}
-
-export function VoteTab({ addActivity }: { addActivity: (item: Omit<Activity, "id" | "read">) => void }) {
-  const [ranking, setRanking] = useState([0, 1, 2]);
-  const [scores, setScores] = useState<number[]>(() => {
-    if (typeof window !== "undefined") return JSON.parse(localStorage.getItem("gp_scores") || "[3,2,1]");
-    return [3, 2, 1];
-  });
-  const [done, setDone] = useState(() => typeof window !== "undefined" && !!localStorage.getItem("gp_voted"));
-  const moveUp   = (i: number) => { if (i === 0) return; const r = [...ranking] as number[]; const a = r[i]!; const b = r[i-1]!; r[i] = b; r[i-1] = a; setRanking(r); };
-  const moveDown = (i: number) => { if (i === ranking.length-1) return; const r = [...ranking] as number[]; const a = r[i]!; const b = r[i+1]!; r[i] = b; r[i+1] = a; setRanking(r); };
-
-  const submit = () => {
-    const s = [...scores] as number[];
-    ranking.forEach((idx, pos) => { s[idx] = (s[idx] ?? 0) + Math.max(0, 3 - pos) + 1; });
-    setScores(s); localStorage.setItem("gp_scores", JSON.stringify(s)); localStorage.setItem("gp_voted", "1");
-    addActivity({ type: "vote", ini: "◎", name: "You", msg: `Voted: ${RESTAURANTS_DATA[ranking[0] ?? 0]?.name ?? ""} as top pick`, time: "just now" });
-    setDone(true);
-  };
-
-  const maxS = Math.max(...scores, 1);
-  const winner = scores.indexOf(Math.max(...scores));
-
-  return (
-    <div>
-      <div style={{ padding: "40px 32px 24px", borderBottom: "1px solid var(--border2)" }}>
-        <SectionLabel style={{ marginBottom: 10 }}>排序投票</SectionLabel>
-        <h2 style={{ fontFamily: "var(--fd)", fontSize: 48, lineHeight: .98, letterSpacing: "-.04em", color: "var(--text)", textWrap: "balance" as React.CSSProperties["textWrap"] }}>
-          投出你的<br /><em>选择</em>
-        </h2>
-      </div>
-      <div style={{ padding: "24px 32px 0", maxWidth: 640 }}>
-        {!done ? (
-          <>
-            <Card delay={70} style={{ padding: "16px 18px", marginBottom: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--muted)", marginBottom: 10 }}>第 1 名是你的首选</div>
-              {ranking.map((ri, pos) => {
-                const r = RESTAURANTS_DATA[ri ?? 0];
-                return (
-                  <div key={r?.id ?? pos} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 11px", borderRadius: "var(--rs)", marginBottom: 4, background: pos === 0 ? "var(--bg)" : "transparent", border: "1px solid", borderColor: pos === 0 ? "var(--border)" : "transparent", transition: "all .25s var(--sp)", animation: `fu .4s var(--sp) ${pos * 50 + 75}ms both` }}>
-                    <span style={{ fontSize: 18, fontFamily: "var(--fd)", color: "var(--muted)", width: 22, textAlign: "center" }}>{["①","②","③"][pos]}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{r?.name}</div>
-                      <div style={{ fontSize: 10, color: "var(--muted)" }}>{r?.cuisine} · {r?.price}</div>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <button onClick={() => moveUp(pos)} style={{ background: "none", border: "1px solid var(--border2)", borderRadius: 4, width: 19, height: 19, cursor: "pointer", fontSize: 8, display: "flex", alignItems: "center", justifyContent: "center", opacity: pos === 0 ? .3 : 1, color: "var(--text)" }}>↑</button>
-                      <button onClick={() => moveDown(pos)} style={{ background: "none", border: "1px solid var(--border2)", borderRadius: 4, width: 19, height: 19, cursor: "pointer", fontSize: 8, display: "flex", alignItems: "center", justifyContent: "center", opacity: pos === ranking.length - 1 ? .3 : 1, color: "var(--text)" }}>↓</button>
-                    </div>
-                  </div>
-                );
-              })}
-            </Card>
-            <Btn onClick={submit} style={{ fontSize: 12 }}>提交投票</Btn>
-          </>
-        ) : (
-          <div>
-            <Card delay={0} style={{ padding: "16px 18px", marginBottom: 11, animation: "si .4s var(--sp) both" }}>
-              <SectionLabel style={{ marginBottom: 11 }}>实时结果</SectionLabel>
-              {RESTAURANTS_DATA.map((r, i) => (
-                <div key={r.id} style={{ marginBottom: 10, animation: `fu .45s var(--sp) ${i * 60}ms both` }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{r.name}</span>
-                      {winner === i && <Badge color="amber">🏆 胜出</Badge>}
-                    </div>
-                    <span style={{ fontSize: 10, color: "var(--muted)" }}>{scores[i] ?? 0} 分</span>
-                  </div>
-                  <div style={{ height: 6, borderRadius: 99, background: "var(--border2)", overflow: "hidden" }}>
-                    <div style={{ height: "100%", borderRadius: 99, background: winner === i ? r.accent : "var(--border)", width: `${((scores[i] ?? 0) / maxS) * 100}%`, animation: `bg .8s var(--eo) ${i * 70}ms both` } as React.CSSProperties} />
-                  </div>
-                </div>
-              ))}
-            </Card>
-            <Card delay={150} style={{ padding: "18px 20px", background: "var(--text)", border: "none", animation: "si .5s var(--sp) .15s both", position: "relative", overflow: "hidden", marginBottom: 0 }}>
-              <div style={{ position: "absolute", top: -50, right: -50, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,.04)", pointerEvents: "none" }} />
-              <div style={{ fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: ".06em", color: "rgba(255,255,255,.4)", marginBottom: 5 }}>大家的选择</div>
-              <div style={{ fontFamily: "var(--fd)", fontSize: 26, color: "white", letterSpacing: "-.02em", marginBottom: 2 }}>{RESTAURANTS_DATA[winner]?.name}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", marginBottom: 16 }}>{RESTAURANTS_DATA[winner]?.addr} · {RESTAURANTS_DATA[winner]?.hours}</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => { const w = RESTAURANTS_DATA[winner]; if (w) downloadICS(w); }}
-                  style={{ padding: "8px 16px", borderRadius: "var(--rs)", border: "1px solid rgba(255,255,255,.25)", background: "rgba(255,255,255,.12)", color: "white", fontSize: 11, fontWeight: 500, cursor: "pointer", fontFamily: "var(--fb)", transition: "background .2s", display: "flex", alignItems: "center", gap: 5, backdropFilter: "blur(8px)" }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,.22)")}
-                  onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,.12)")}>
-                  <svg width="10" height="11" viewBox="0 0 10 11" fill="none"><path d="M5 1v6M2 5l3 3 3-3M1 10h8" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  Export .ics
-                </button>
-                <button style={{ padding: "8px 16px", borderRadius: "var(--rs)", border: "1px solid rgba(255,255,255,.15)", background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 11, cursor: "pointer", fontFamily: "var(--fb)", transition: "background .2s" }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,.08)")}
-                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                  Share result
-                </button>
-              </div>
-            </Card>
-            <button onClick={() => { localStorage.removeItem("gp_voted"); setDone(false); }} style={{ marginTop: 9, fontSize: 10, color: "var(--muted)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)" }}>
-              重置投票
-            </button>
-          </div>
-        )}
-      </div>
-      <MassiveFooter eventName="Group Vote" />
     </div>
   );
 }
