@@ -37,6 +37,7 @@ export function initDb(): void {
       status        TEXT DEFAULT 'open',
       slug          TEXT UNIQUE,
       template_id   TEXT,
+      plan_version  INTEGER DEFAULT 1,
       rsvp_deadline TEXT,
       vote_deadline TEXT,
       created_at    TEXT DEFAULT (datetime('now'))
@@ -95,6 +96,9 @@ export function initDb(): void {
       narrative_group  TEXT,
       narrative_personal TEXT,
       confidence_score REAL,
+      version            INTEGER DEFAULT 1,
+      parent_version     INTEGER,
+      modification_summary TEXT,
       created_at       TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (event_id) REFERENCES events(id)
     );
@@ -119,6 +123,23 @@ export function initDb(): void {
       created_at     TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (event_id) REFERENCES events(id),
       FOREIGN KEY (proposal_id) REFERENCES proposals(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS modification_suggestions (
+      id               TEXT PRIMARY KEY,
+      event_id         TEXT NOT NULL,
+      invitation_id    TEXT NOT NULL,
+      feedback_text    TEXT NOT NULL,
+      intent_type      TEXT,
+      intent_confidence REAL,
+      affected_scope   TEXT,
+      ai_interpretation TEXT,
+      status           TEXT DEFAULT 'pending',
+      reviewed_by      TEXT,
+      reviewed_at      TEXT,
+      created_at       TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (event_id) REFERENCES events(id),
+      FOREIGN KEY (invitation_id) REFERENCES invitations(id)
     );
 
     CREATE TABLE IF NOT EXISTS usage_log (
@@ -201,14 +222,14 @@ export function createEvent(hostId: string, input: Record<string, unknown>, slug
   const id = crypto.randomUUID();
   const now = nowISO();
   d.prepare(`
-    INSERT INTO events (id, host_id, title, description, category, location_hint, proposed_date, date_flexible, status, slug, template_id, rsvp_deadline, vote_deadline, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO events (id, host_id, title, description, category, location_hint, proposed_date, date_flexible, status, slug, template_id, plan_version, rsvp_deadline, vote_deadline, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     id, hostId,
     input.title ?? null, input.description ?? null, input.category ?? null,
     input.location_hint ?? null, input.proposed_date ?? null,
     input.date_flexible ? 1 : 0, 'open', slug,
-    input.template_id ?? null, input.rsvp_deadline ?? null, input.vote_deadline ?? null, now,
+    input.template_id ?? null, 1, input.rsvp_deadline ?? null, input.vote_deadline ?? null, now,
   );
   const row = d.prepare('SELECT * FROM events WHERE id = ?').get(id) as Record<string, unknown>;
   return { data: row, error: null };
@@ -397,8 +418,8 @@ export function insertProposals(rows: InsertProposalRow[]) {
     for (const r of rows) {
       const id = crypto.randomUUID();
       d.prepare(`
-        INSERT INTO proposals (id, event_id, rank, restaurant_name, restaurant_addr, cuisine_type, price_range, rating, image_url, maps_url, booking_url, reasoning, constraints_met, constraints_gap, suggested_time, envy_scores, narrative_group, narrative_personal, confidence_score, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO proposals (id, event_id, rank, restaurant_name, restaurant_addr, cuisine_type, price_range, rating, image_url, maps_url, booking_url, reasoning, constraints_met, constraints_gap, suggested_time, envy_scores, narrative_group, narrative_personal, confidence_score, version, parent_version, modification_summary, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         id, r.event_id, r.rank, r.restaurant_name, r.restaurant_addr, r.cuisine_type,
         r.price_range, r.rating ?? null, r.image_url ?? null, r.maps_url ?? null,
@@ -408,7 +429,7 @@ export function insertProposals(rows: InsertProposalRow[]) {
         r.envy_scores ? JSON.stringify(r.envy_scores) : null,
         r.narrative_group ?? null,
         r.narrative_personal ? JSON.stringify(r.narrative_personal) : null,
-        r.confidence_score ?? null, now,
+        r.confidence_score ?? null, 1, null, null, now,
       );
       const row = d.prepare('SELECT * FROM proposals WHERE id = ?').get(id) as Record<string, unknown>;
       inserted.push(row);
@@ -432,8 +453,8 @@ export function replaceProposalsAndAdvance(eventId: string, rows: InsertProposal
     for (const r of rows) {
       const id = crypto.randomUUID();
       d.prepare(`
-        INSERT INTO proposals (id, event_id, rank, restaurant_name, restaurant_addr, cuisine_type, price_range, rating, image_url, maps_url, booking_url, reasoning, constraints_met, constraints_gap, suggested_time, envy_scores, narrative_group, narrative_personal, confidence_score, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO proposals (id, event_id, rank, restaurant_name, restaurant_addr, cuisine_type, price_range, rating, image_url, maps_url, booking_url, reasoning, constraints_met, constraints_gap, suggested_time, envy_scores, narrative_group, narrative_personal, confidence_score, version, parent_version, modification_summary, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         id, r.event_id, r.rank, r.restaurant_name, r.restaurant_addr, r.cuisine_type,
         r.price_range, r.rating ?? null, r.image_url ?? null, r.maps_url ?? null,
@@ -443,7 +464,7 @@ export function replaceProposalsAndAdvance(eventId: string, rows: InsertProposal
         r.envy_scores ? JSON.stringify(r.envy_scores) : null,
         r.narrative_group ?? null,
         r.narrative_personal ? JSON.stringify(r.narrative_personal) : null,
-        r.confidence_score ?? null, now,
+        r.confidence_score ?? null, 1, null, null, now,
       );
     }
   });
@@ -487,6 +508,82 @@ export function getFinalizedPlanByEvent(eventId: string) {
   const d = getDb();
   const row = d.prepare('SELECT * FROM finalized_plans WHERE event_id = ? ORDER BY created_at DESC LIMIT 1').get(eventId) as Record<string, unknown> | undefined;
   return { data: row ?? null, error: row ? null : { message: 'Not found' } };
+}
+
+// ---------------------------------------------------------------------------
+// Modification Suggestions
+// ---------------------------------------------------------------------------
+export interface InsertModificationSuggestion {
+  event_id: string;
+  invitation_id: string;
+  feedback_text: string;
+  intent_type?: string | null;
+  intent_confidence?: number | null;
+  affected_scope?: string | null;
+  ai_interpretation?: string | null;
+  status?: string;
+}
+
+export function insertModificationSuggestion(input: InsertModificationSuggestion) {
+  const d = getDb();
+  const id = crypto.randomUUID();
+  const now = nowISO();
+  d.prepare(`
+    INSERT INTO modification_suggestions (id, event_id, invitation_id, feedback_text, intent_type, intent_confidence, affected_scope, ai_interpretation, status, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    id, input.event_id, input.invitation_id, input.feedback_text,
+    input.intent_type ?? null, input.intent_confidence ?? null,
+    input.affected_scope ?? null, input.ai_interpretation ?? null,
+    input.status ?? 'pending', now,
+  );
+  return d.prepare('SELECT * FROM modification_suggestions WHERE id = ?').get(id) as Record<string, unknown>;
+}
+
+export function getModificationSuggestionsByEvent(eventId: string, opts?: { status?: string }) {
+  const d = getDb();
+  if (opts?.status) {
+    return d.prepare('SELECT * FROM modification_suggestions WHERE event_id = ? AND status = ? ORDER BY created_at ASC').all(eventId, opts.status) as Record<string, unknown>[];
+  }
+  return d.prepare('SELECT * FROM modification_suggestions WHERE event_id = ? ORDER BY created_at ASC').all(eventId) as Record<string, unknown>[];
+}
+
+export function updateModificationSuggestionStatus(id: string, status: string, reviewedBy?: string) {
+  const d = getDb();
+  const now = nowISO();
+  if (reviewedBy) {
+    d.prepare('UPDATE modification_suggestions SET status = ?, reviewed_by = ?, reviewed_at = ? WHERE id = ?').run(status, reviewedBy, now, id);
+  } else {
+    d.prepare('UPDATE modification_suggestions SET status = ?, reviewed_at = ? WHERE id = ?').run(status, now, id);
+  }
+  return d.prepare('SELECT * FROM modification_suggestions WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+}
+
+export function bumpPlanVersion(eventId: string) {
+  const d = getDb();
+  d.prepare('UPDATE events SET plan_version = plan_version + 1 WHERE id = ?').run(eventId);
+  const row = d.prepare('SELECT plan_version FROM events WHERE id = ?').get(eventId) as { plan_version: number } | undefined;
+  return row?.plan_version ?? 1;
+}
+
+export function getPlanVersion(eventId: string): number {
+  const d = getDb();
+  const row = d.prepare('SELECT plan_version FROM events WHERE id = ?').get(eventId) as { plan_version: number } | undefined;
+  return row?.plan_version ?? 1;
+}
+
+export interface ModificationVersion {
+  version: number;
+  created_at: string;
+  modification_summary: string | null;
+}
+
+export function getModificationHistory(eventId: string): ModificationVersion[] {
+  const d = getDb();
+  const rows = d.prepare(
+    'SELECT DISTINCT version, created_at, modification_summary FROM proposals WHERE event_id = ? ORDER BY version DESC',
+  ).all(eventId) as Array<{ version: number; created_at: string; modification_summary: string | null }>;
+  return rows;
 }
 
 // ---------------------------------------------------------------------------
