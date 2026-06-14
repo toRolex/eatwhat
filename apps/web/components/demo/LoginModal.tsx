@@ -11,7 +11,7 @@ const EVENT_TYPES: { value: "meal_only" | "activity_only" | "meal_activity" | "u
   { value: "undecided",    label: "还没想好" },
 ];
 
-export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: string, isOwner: boolean) => void }) {
+export default function LoginModal({ onGroupReady, onClose }: { onGroupReady: (userName: string, isOwner: boolean) => void; onClose?: () => void }) {
   const [step, setStep] = useState<Step>("idle");
   const [name, setName] = useState("");
   const [nameError, setnameError] = useState("");
@@ -141,6 +141,22 @@ export default function LoginModal({ onGroupReady }: { onGroupReady: (userName: 
 
   return (
     <div style={s.overlay}>
+      {onClose && (
+        <button
+          onClick={onClose}
+          aria-label="关闭"
+          style={{
+            position: "absolute", top: 16, right: 16, zIndex: 1010,
+            width: 32, height: 32, borderRadius: "50%",
+            border: "1px solid var(--border2)", background: "var(--surface)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", fontSize: 16, color: "var(--muted)",
+            boxShadow: "var(--sh)",
+          }}
+        >
+          ×
+        </button>
+      )}
       <div style={s.panel}>
         <div style={s.body}>
           {/* ── Idle: Name Input or Choices ───────────────────────────── */}

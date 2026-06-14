@@ -59,3 +59,6 @@ tools/qa/.auth/
 
 # OS
 Thumbs.db
+
+# Worktrees
+.worktrees/

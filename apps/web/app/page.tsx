@@ -211,7 +211,7 @@ export default function App() {
 
   return (
     <div className="gp-app-shell">
-      {showLogin && <LoginModal onGroupReady={handleLoginReady} />}
+      {showLogin && <LoginModal onGroupReady={handleLoginReady} onClose={() => setShowLogin(false)} />}
       <header className="gp-mobile-topbar">
         <button
           onClick={() => setNavOpen(true)}
@@ -261,6 +261,19 @@ export default function App() {
         />
       </div>
       <main style={{ flex: 1, overflowY: "auto", overflowX: "hidden", background: "var(--bg)", position: "relative" }}>
+        {!group && !showLogin && (
+          <div style={{ padding: "8px 32px", borderBottom: "1px solid var(--border2)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)" }}>尚未加入聚会</span>
+            <button
+              onClick={() => setShowLogin(true)}
+              style={{
+                fontSize: 11, color: "var(--sky)", background: "var(--bg)",
+                border: "1px solid var(--border2)", borderRadius: 6,
+                padding: "4px 12px", cursor: "pointer", fontFamily: "var(--fb)",
+              }}
+            >加入 / 创建聚会</button>
+          </div>
+        )}
         {group && (
           <div style={{ padding: "8px 32px", borderBottom: "1px solid var(--border2)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
             <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)" }}>
